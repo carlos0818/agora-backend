@@ -1,11 +1,14 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+
 import * as Joi from 'joi';
+import { HttpModule } from '@nestjs/axios';
 
 import { DatabaseModule } from './database/database.module';
 import { CountryModule } from './country/country.module';
 
 import { environments } from './environments';
+import { UserModule } from './user/user.module';
 import config from './config';
 
 @Module({
@@ -21,6 +24,7 @@ import config from './config';
     }),
     DatabaseModule,
     CountryModule,
+    UserModule,
   ],
 })
 export class AppModule {}
