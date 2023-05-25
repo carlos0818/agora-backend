@@ -1,6 +1,6 @@
 import { IsEmail, IsOptional, IsString, Matches, MinLength } from "class-validator";
 
-export class RegisterUserDto {
+export class RegisterSocialUserDto {
     @IsString()
     @IsEmail()
     email: string;
@@ -9,7 +9,6 @@ export class RegisterUserDto {
     fullname: string;
 
     @IsString()
-    @IsOptional()
     source: string;
 
     @IsString()

@@ -6,9 +6,10 @@ import { HttpModule } from '@nestjs/axios';
 
 import { DatabaseModule } from './database/database.module';
 import { CountryModule } from './country/country.module';
+import { UserModule } from './user/user.module';
+import { MailModule } from './mail/mail.module';
 
 import { environments } from './environments';
-import { UserModule } from './user/user.module';
 import config from './config';
 
 @Module({
@@ -22,6 +23,7 @@ import config from './config';
         DATABASE_PORT: Joi.number().required(),
       }),
     }),
+    MailModule,
     DatabaseModule,
     CountryModule,
     UserModule,

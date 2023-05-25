@@ -6,11 +6,12 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { UserService } from './user.service';
 import { UserController } from './user.controller';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { HttpModule, HttpService } from '@nestjs/axios';
+import { HttpModule } from '@nestjs/axios';
+import { MailService } from 'src/mail/mail.service';
 
 @Module({
   controllers: [UserController],
-  providers: [UserService, JwtStrategy],
+  providers: [UserService, JwtStrategy, MailService],
   imports: [
     HttpModule,
     ConfigModule,

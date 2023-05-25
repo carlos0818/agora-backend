@@ -39,15 +39,7 @@ export class User {
         required: true,
         type: String,
     })
-    firstname: string;
-
-    @ApiProperty({
-        example: 'Benavides',
-        description: 'Lastname',
-        required: true,
-        type: String,
-    })
-    lastname: string;
+    fullname: string;
 
     @ApiProperty({
         example: true,
