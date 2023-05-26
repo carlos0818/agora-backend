@@ -18,7 +18,4 @@ export class RegisterSocialUserDto {
     @IsString()
     @IsOptional()
     language: string;
-
-    @IsString()
-    captcha: string;
 }

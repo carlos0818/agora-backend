@@ -102,12 +102,20 @@ export class UserService {
     }
   }
 
-  async userExists(email: string) {
-    const validateEmail = await this.validateEmail(email);
+  async userExists(registerSocialUserDto: RegisterSocialUserDto) {
+    const validateEmail = await this.validateEmail(registerSocialUserDto.email);
 
     if(!validateEmail) {
       throw new BadRequestException('The user does not exist, please click on Sign up');
     }
+
+    return {
+      fullname: registerSocialUserDto.fullname,
+      email: registerSocialUserDto.email,
+      token: this.getJwt({
+        email: registerSocialUserDto.email,
+      })
+    };
   }
 
   // login social
@@ -116,6 +124,7 @@ export class UserService {
 
     switch (validateEmailAndSource) {
       case 'ok':
+        console.log('ok')
         return {
           fullname: registerSocialUserDto.fullname,
           email: registerSocialUserDto.email,
@@ -124,6 +133,7 @@ export class UserService {
           })
         };
       case 'register':
+        console.log('register')
         await this.clientPg.query(`
         INSERT INTO ag_user(email, password, status, type, fullname, lang, creationdate, lastdate, lastlogindate, creationadmin, source)
         VALUES($1, '$P@ssW0rd#', true, $2, $3, 'en', now(), now(), now(), 'web', $4)
@@ -133,7 +143,15 @@ export class UserService {
           registerSocialUserDto.fullname,
           registerSocialUserDto.source
         ]);
+        return {
+          fullname: registerSocialUserDto.fullname,
+          email: registerSocialUserDto.email,
+          token: this.getJwt({
+            email: registerSocialUserDto.email,
+          })
+        };
       case 'source':
+        console.log('source')
         throw new BadRequestException('This email is already registered with another account type');
     }
   }
