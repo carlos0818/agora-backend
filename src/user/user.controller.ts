@@ -23,9 +23,9 @@ export class UserController {
     return this.userService.register(registerUserDto);
   }
 
-  @Post('verifySocial')
+  @Post('loginSocial')
   @ApiResponse({ status: 200, description: 'User was created' })
-  verifySocial(@Body() registerUserDto: RegisterUserDto) {
-    return this.userService.verifySocial(registerUserDto);
+  loginSocial(@Body() registerUserDto: RegisterUserDto) {
+    return this.userService.loginSocial(registerUserDto);
   }
 }

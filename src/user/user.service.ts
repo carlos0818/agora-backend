@@ -1,7 +1,7 @@
 import { BadRequestException, Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
-import { Client } from 'pg';
+import { Client, Pool } from 'pg';
 import * as bcrypt from 'bcrypt';
 import { HttpService } from '@nestjs/axios';
 
@@ -14,10 +14,14 @@ import { lastValueFrom } from 'rxjs';
 import { MailService } from 'src/mail/mail.service';
 import { RegisterSocialUserDto } from './dto/register-social-user.dto';
 
+type ValidateEmailSource = 
+  'ok' | 'register' | 'source'
+
 @Injectable()
 export class UserService {
   constructor(
     @Inject('Postgres') private clientPg: Client,
+    @Inject('Postgres') private pool: Pool,
     private readonly jwtService: JwtService,
     private readonly httpService: HttpService,
     private readonly mailService: MailService,
@@ -26,7 +30,7 @@ export class UserService {
   // User login
   async login(loginUserDto: LoginUserDto) {
     const user = await this.clientPg.query<User>(`
-      SELECT firstname, lastname, password, email FROM ag_user WHERE email=$1 AND status=true
+      SELECT fullname, password, email FROM ag_user WHERE email=$1 AND status=true
     `, [loginUserDto.email]);
 
     if (user.rows.length === 0) {
@@ -59,24 +63,26 @@ export class UserService {
     if (validateEmail) {
       throw new BadRequestException(`Email ${ registerUserDto.email } is already exists`);
     }
+
+    // const client = await this.pool.connect()
   
     try {
       const password = bcrypt.hashSync(registerUserDto.password, 10);
-      // await this.clientPg.query('BEGIN')
+      await this.clientPg.query('BEGIN')
       await this.clientPg.query(`
         INSERT INTO ag_user(email, password, status, type, fullname, lang, creationdate, lastdate, lastlogindate, creationadmin, source)
-        VALUES($1, $2, true, $3, $4, $5, now(), now(), now(), 'web', 'PR')
+        VALUES($1, $2, true, $3, $4, 'en', now(), now(), now(), 'web', 'PR')
       `, [
           registerUserDto.email,
           password,
           registerUserDto.type,
-          registerUserDto.fullname,
-          'en'
+          registerUserDto.fullname
         ]);
-      // await this.clientPg.query('COMMIT');
-
+        
       await this.mailService.sendUserRegister(registerUserDto.email, registerUserDto.password);
-  
+        
+      await this.clientPg.query('COMMIT');
+
       return {
         fullname: registerUserDto.fullname,
         email: registerUserDto.email,
@@ -85,26 +91,37 @@ export class UserService {
         })
       };
     } catch (error) {
-      // await this.clientPg.query('ROLLBACK')
-      throw new InternalServerErrorException('Unexpected error. Try again.' + error)
+      await this.clientPg.query('ROLLBACK');
+      throw new InternalServerErrorException('Unexpected error. Try again.' + error);
     }
   }
 
-  // Verify if user exists in batabase
-  async verifySocial(registerSocialUserDto: RegisterSocialUserDto) {
-    const validateEmail = await this.validateEmailAndSource(registerSocialUserDto.email, registerSocialUserDto.source);
+  // login social
+  async loginSocial(registerSocialUserDto: RegisterSocialUserDto) {
+    const validateEmailAndSource = await this.validateEmailAndSource(registerSocialUserDto.email, registerSocialUserDto.source);
 
-    if (validateEmail) {
-      return {
-        fullname: registerSocialUserDto.fullname,
-        email: registerSocialUserDto.email,
-        token: this.getJwt({
+    switch (validateEmailAndSource) {
+      case 'ok':
+        return {
+          fullname: registerSocialUserDto.fullname,
           email: registerSocialUserDto.email,
-        })
-      };
+          token: this.getJwt({
+            email: registerSocialUserDto.email,
+          })
+        };
+      case 'register':
+        await this.clientPg.query(`
+        INSERT INTO ag_user(email, password, status, type, fullname, lang, creationdate, lastdate, lastlogindate, creationadmin, source)
+        VALUES($1, '$P@ssW0rd#', true, $2, $3, 'en', now(), now(), now(), 'web', $5)
+      `, [
+          registerSocialUserDto.email,
+          registerSocialUserDto.type,
+          registerSocialUserDto.fullname,
+          registerSocialUserDto.source
+        ]);
+      case 'source':
+        throw new BadRequestException('This email is already registered with another account type');
     }
-
-    this.register(registerSocialUserDto);
   }
 
   private getJwt(payload: JwtPayload) {
@@ -125,20 +142,28 @@ export class UserService {
   }
 
   // Validate if email and source is already exists
-  private async validateEmailAndSource(email: string, source: string) {
+  private async validateEmailAndSource(email: string, source: string): Promise<ValidateEmailSource> {
     const user = await this.clientPg.query(`
       SELECT email FROM ag_user WHERE email=$1
     `, [email]);
 
     if (user.rows.length > 0) {
-      return true;
+      const response = await this.clientPg.query(`
+      SELECT email FROM ag_user WHERE email=$1 AND source=$2
+      `, [email, source]);
+      
+      if (response.rows.length === 0) {
+        return 'source';
+      }
+
+      return 'ok'
     }
 
-    return false;
+    return 'register';
   }
 
   // validate captcha code
   private async validateCaptcha(captcha: string) {
-    return await lastValueFrom(this.httpService.post(`https://www.google.com/recaptcha/api/siteverify?secret=${ process.env.CAPTCHA_SECRET }&response=${ captcha }`))
+    return await lastValueFrom(this.httpService.post(`https://www.google.com/recaptcha/api/siteverify?secret=${ process.env.CAPTCHA_SECRET }&response=${ captcha }`));
   }
 }
