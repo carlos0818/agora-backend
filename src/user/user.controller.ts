@@ -24,8 +24,14 @@ export class UserController {
     return this.userService.register(registerUserDto);
   }
 
+  @Post('user-exists')
+  // @ApiResponse({ status: 200, description: 'User was created' })
+  userExists(@Body() email: string) {
+    return this.userService.userExists(email);
+  }
+
   @Post('login-social')
-  @ApiResponse({ status: 200, description: 'User was created' })
+  // @ApiResponse({ status: 200, description: 'User was created' })
   loginSocial(@Body() registerSocialUserDto: RegisterSocialUserDto) {
     return this.userService.loginSocial(registerSocialUserDto);
   }

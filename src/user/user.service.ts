@@ -102,6 +102,14 @@ export class UserService {
     }
   }
 
+  async userExists(email: string) {
+    const validateEmail = await this.validateEmail(email);
+
+    if(!validateEmail) {
+      throw new BadRequestException('The user does not exist, please click on Sign up');
+    }
+  }
+
   // login social
   async loginSocial(registerSocialUserDto: RegisterSocialUserDto) {
     const validateEmailAndSource = await this.validateEmailAndSource(registerSocialUserDto.email, registerSocialUserDto.source);
