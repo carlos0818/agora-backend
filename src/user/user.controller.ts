@@ -5,6 +5,7 @@ import { UserService } from './user.service';
 import { User } from './entities/user.entity';
 import { LoginUserDto } from './dto/login-user.dto';
 import { RegisterUserDto } from './dto/register-user.dto';
+import { RegisterSocialUserDto } from './dto/register-social-user.dto';
 
 @ApiTags('Users')
 @Controller('user')
@@ -23,9 +24,9 @@ export class UserController {
     return this.userService.register(registerUserDto);
   }
 
-  @Post('loginSocial')
+  @Post('login-social')
   @ApiResponse({ status: 200, description: 'User was created' })
-  loginSocial(@Body() registerUserDto: RegisterUserDto) {
-    return this.userService.loginSocial(registerUserDto);
+  loginSocial(@Body() registerSocialUserDto: RegisterSocialUserDto) {
+    return this.userService.loginSocial(registerSocialUserDto);
   }
 }

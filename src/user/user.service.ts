@@ -29,6 +29,12 @@ export class UserService {
 
   // User login
   async login(loginUserDto: LoginUserDto) {
+    const { data } = await this.validateCaptcha(loginUserDto.captcha);
+
+    if (!data.success) {
+      throw new BadRequestException(`Incorrect captcha`);
+    }
+
     const user = await this.clientPg.query<User>(`
       SELECT fullname, password, email FROM ag_user WHERE email=$1 AND status=true
     `, [loginUserDto.email]);
@@ -112,7 +118,7 @@ export class UserService {
       case 'register':
         await this.clientPg.query(`
         INSERT INTO ag_user(email, password, status, type, fullname, lang, creationdate, lastdate, lastlogindate, creationadmin, source)
-        VALUES($1, '$P@ssW0rd#', true, $2, $3, 'en', now(), now(), now(), 'web', $5)
+        VALUES($1, '$P@ssW0rd#', true, $2, $3, 'en', now(), now(), now(), 'web', $4)
       `, [
           registerSocialUserDto.email,
           registerSocialUserDto.type,

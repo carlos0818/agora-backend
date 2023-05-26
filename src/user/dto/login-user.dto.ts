@@ -12,4 +12,7 @@ export class LoginUserDto {
         message: 'The password must have a Uppercase, lowercase letter, a number and special character'
     })
     password: string;
+
+    @IsString()
+    captcha: string;
 }
