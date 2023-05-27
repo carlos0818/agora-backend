@@ -1,4 +1,4 @@
-import { IsEmail, IsString, Matches, MinLength } from "class-validator";
+import { IsEmail, IsOptional, IsString, Matches, MinLength } from "class-validator";
 
 export class LoginUserDto {
     @IsString()
@@ -14,5 +14,6 @@ export class LoginUserDto {
     password: string;
 
     @IsString()
+    @IsOptional()
     captcha: string;
 }

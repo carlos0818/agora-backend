@@ -29,10 +29,12 @@ export class UserService {
 
   // User login
   async login(loginUserDto: LoginUserDto) {
-    const { data } = await this.validateCaptcha(loginUserDto.captcha);
-
-    if (!data.success) {
-      throw new BadRequestException(`Incorrect captcha`);
+    if (loginUserDto.captcha) {
+      const { data } = await this.validateCaptcha(loginUserDto.captcha);
+  
+      if (!data.success) {
+        throw new BadRequestException(`Incorrect captcha`);
+      }
     }
 
     const user = await this.clientPg.query<User>(`
