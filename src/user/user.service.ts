@@ -156,6 +156,7 @@ export class UserService {
     }
   }
 
+  // Generate JWT
   private getJwt(payload: JwtPayload) {
     return this.jwtService.sign(payload);
   }
