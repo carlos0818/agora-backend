@@ -12,14 +12,6 @@
     </style>
 </head>
 <body>
-    {{!-- <p>Su usuario web ha sido creado</p> --}}
-    <p>Email: {{ email }}</p>
-    <p>Password: {{ password }}</p>
-    {{!-- <p>
-        Ingrese a la Zona de Clientes en esta dirección:<br />
-        <a href='https://www.controlmixexpress.com/interno/'>https://www.controlmixexpress.com/interno/</a><br /><br />
-        Puede cambiar su contraseña en la opción <span class="account">Cuenta</span> de su Zona de Cliente.<br /><br /><br /><br />
-        <small style='color:#6e6e6e'>Este es un correo electrónico enviado por un servicio automatizado, por favor <b style='color:#ff4141'>NO RESPONDA NI ENVÍE CORRESPONDENCIA</b> a este correo ya que no será respondido. El presente mensaje le es enviado según lo solicitado en el momento de su registro como usuario de <b style='color:#ff4141'>CONTROL MIX EXPRESS</b></small>
-    </p> --}}
+    Confirm your email: {{ url }}?email={{ email }}&token={{ token }}
 </body>
 </html>

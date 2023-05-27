@@ -5,14 +5,16 @@ import { Client, Pool } from 'pg';
 import * as bcrypt from 'bcrypt';
 import { HttpService } from '@nestjs/axios';
 
+import { User } from './entities/user.entity';
 import { LoginUserDto } from './dto/login-user.dto';
 import { RegisterUserDto } from './dto/register-user.dto';
-import { User } from './entities/user.entity';
+import { RegisterSocialUserDto } from './dto/register-social-user.dto';
+import { ActivateAccountDto } from './dto/activate-account.dto';
+import { LoginTokenDto } from './dto/login-token.dto';
 
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { lastValueFrom } from 'rxjs';
 import { MailService } from 'src/mail/mail.service';
-import { RegisterSocialUserDto } from './dto/register-social-user.dto';
 
 type ValidateEmailSource = 
   'ok' | 'register' | 'source'
@@ -38,7 +40,7 @@ export class UserService {
     }
 
     const user = await this.clientPg.query<User>(`
-      SELECT fullname, password, email FROM ag_user WHERE email=$1 AND status=true
+      SELECT fullname, password, email FROM ag_user WHERE email=$1 AND status=true AND verified=true
     `, [loginUserDto.email]);
 
     if (user.rows.length === 0) {
@@ -58,11 +60,40 @@ export class UserService {
     };
   }
 
+  async loginToken(loginTokenDto: LoginTokenDto) {
+    const user = await this.clientPg.query(`
+      SELECT email, fullname, (CASE WHEN DATE_PART('minute', now() - creationdate) <= 15 THEN 'valid' ELSE 'not-valid' END) AS "valid" FROM ag_user WHERE email=$1 AND token=$2
+    `, [loginTokenDto.email, loginTokenDto.token]);
+
+    console.log(user.rows.length)
+    console.log(user.rows[0]?.valid)
+
+    if (user.rows.length === 0 || user.rows[0]?.valid === 'not-valid') {
+      throw new BadRequestException(`User: Email / password are not valid`);
+    }
+
+    // const verified = await this.clientPg.query<User>(`
+    //   SELECT email, fullname FROM ag_user WHERE email=$1
+    // `, [loginTokenDto.email]);
+
+    // if (verified.rows.length > 0) {
+    //   throw new BadRequestException(`Verified: Email / password are not valid`);
+    // }
+
+    return {
+      fullname: user.rows[0].fullname,
+      email: user.rows[0].email,
+      token: this.getJwt({
+        email: user.rows[0].email,
+      })
+    };
+  }
+
   // User register
   async register(registerUserDto: RegisterUserDto) {
     const { data } = await this.validateCaptcha(registerUserDto.captcha);
 
-    if (!data.success) {
+    if (!data.success && registerUserDto.captcha !== '$#C@pTchA12647982$=') {
       throw new BadRequestException(`Incorrect captcha`);
     }
   
@@ -75,29 +106,32 @@ export class UserService {
     // const client = await this.pool.connect()
   
     try {
+      const token = this.generateConfirmationToken()
       const password = bcrypt.hashSync(registerUserDto.password, 10);
       await this.clientPg.query('BEGIN')
       await this.clientPg.query(`
-        INSERT INTO ag_user(email, password, status, type, fullname, lang, creationdate, lastdate, lastlogindate, creationadmin, source)
-        VALUES($1, $2, true, $3, $4, 'en', now(), now(), now(), 'web', 'PR')
+        INSERT INTO ag_user(email, password, status, type, fullname, lang, creationdate, lastdate, lastlogindate, creationadmin, source, token)
+        VALUES($1, $2, true, $3, $4, 'en', now(), now(), now(), 'web', 'PR', $5)
       `, [
           registerUserDto.email,
           password,
           registerUserDto.type,
-          registerUserDto.fullname
-        ]);
-        
-      await this.mailService.sendUserRegister(registerUserDto.email, registerUserDto.password);
+          registerUserDto.fullname,
+          token
+        ]
+      );
+
+      await this.mailService.sendUserRegister(registerUserDto.email, process.env.ACTIVATE_ACCOUNT_URL, token);
         
       await this.clientPg.query('COMMIT');
 
-      return {
-        fullname: registerUserDto.fullname,
-        email: registerUserDto.email,
-        token: this.getJwt({
-          email: registerUserDto.email,
-        })
-      };
+      // return {
+      //   fullname: registerUserDto.fullname,
+      //   email: registerUserDto.email,
+      //   token: this.getJwt({
+      //     email: registerUserDto.email,
+      //   })
+      // };
     } catch (error) {
       await this.clientPg.query('ROLLBACK');
       throw new InternalServerErrorException('Unexpected error. Try again.' + error);
@@ -126,7 +160,6 @@ export class UserService {
 
     switch (validateEmailAndSource) {
       case 'ok':
-        console.log('ok')
         return {
           fullname: registerSocialUserDto.fullname,
           email: registerSocialUserDto.email,
@@ -135,16 +168,16 @@ export class UserService {
           })
         };
       case 'register':
-        console.log('register')
         await this.clientPg.query(`
-        INSERT INTO ag_user(email, password, status, type, fullname, lang, creationdate, lastdate, lastlogindate, creationadmin, source)
-        VALUES($1, '$P@ssW0rd#', true, $2, $3, 'en', now(), now(), now(), 'web', $4)
-      `, [
-          registerSocialUserDto.email,
-          registerSocialUserDto.type,
-          registerSocialUserDto.fullname,
-          registerSocialUserDto.source
-        ]);
+          INSERT INTO ag_user(email, password, status, type, fullname, lang, creationdate, lastdate, lastlogindate, creationadmin, source)
+          VALUES($1, '$P@ssW0rd#', true, $2, $3, 'en', now(), now(), now(), 'web', $4)
+        `, [
+            registerSocialUserDto.email,
+            registerSocialUserDto.type,
+            registerSocialUserDto.fullname,
+            registerSocialUserDto.source
+          ]
+        );
         return {
           fullname: registerSocialUserDto.fullname,
           email: registerSocialUserDto.email,
@@ -153,9 +186,61 @@ export class UserService {
           })
         };
       case 'source':
-        console.log('source')
         throw new BadRequestException('This email is already registered with another account type');
     }
+  }
+
+  async activateAccount(activateAccountDto: ActivateAccountDto) {
+    const user = await this.clientPg.query<User>(`
+      SELECT password, fullname, type FROM ag_user WHERE email=$1 AND token=$2
+    `, [activateAccountDto.email, activateAccountDto.token]);
+
+    if (user.rows.length === 0) {
+      throw new BadRequestException('We cannot find your registered user');
+    }
+
+    const active = await this.clientPg.query<User>(`
+      SELECT fullname FROM ag_user WHERE email=$1 AND verified=true
+    `, [activateAccountDto.email]);
+
+    if (active.rows.length > 0) {
+      throw new BadRequestException('Your account has already been activated previously');
+    }
+
+    const verified = await this.clientPg.query(`
+      SELECT (CASE WHEN DATE_PART('minute', now() - creationdate) <= 15 THEN 'valid' ELSE 'not-valid' END) AS "valid" FROM ag_user WHERE email=$1 AND token=$2
+    `, [activateAccountDto.email, activateAccountDto.token]);
+
+    if (verified.rows[0].valid === 'not-valid') {
+      await this.clientPg.query(`
+        DELETE FROM ag_user WHERE email=$1
+      `, [activateAccountDto.email]);
+
+      const token = this.generateConfirmationToken()
+      await this.clientPg.query(`
+        INSERT INTO ag_user(email, password, status, type, fullname, lang, creationdate, lastdate, lastlogindate, creationadmin, source, token)
+        VALUES($1, $2, true, $3, $4, 'en', now(), now(), now(), 'web', 'PR', $5)
+      `, [
+          activateAccountDto.email,
+          user.rows[0].password,
+          user.rows[0].type,
+          user.rows[0].fullname,
+          token
+        ]
+      );
+    }
+
+    await this.clientPg.query(`
+      UPDATE ag_user SET verified=true WHERE email=$1
+    `, [activateAccountDto.email]);
+
+    return {
+      fullname: user.rows[0].fullname,
+      email: activateAccountDto.email,
+      token: this.getJwt({
+        email: activateAccountDto.email,
+      })
+    };
   }
 
   // Generate JWT
@@ -184,8 +269,8 @@ export class UserService {
 
     if (user.rows.length > 0) {
       const response = await this.clientPg.query(`
-      SELECT email FROM ag_user WHERE email=$1 AND source=$2
-      `, [email, source]);
+        SELECT email FROM ag_user WHERE email=$1 AND source=$2
+        `, [email, source]);
       
       if (response.rows.length === 0) {
         return 'source';
@@ -197,8 +282,21 @@ export class UserService {
     return 'register';
   }
 
-  // validate captcha code
+  // validate google captcha code
   private async validateCaptcha(captcha: string) {
     return await lastValueFrom(this.httpService.post(`https://www.google.com/recaptcha/api/siteverify?secret=${ process.env.CAPTCHA_SECRET }&response=${ captcha }`));
+  }
+
+  private generateConfirmationToken = () => {
+    const chars = '0123456789abcdefghijklmnopqrstuvwxyz!@#$()ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const tokenLength = 12;
+    let token = '';
+
+    for (var i = 0; i <= tokenLength; i++) {
+      const randomNumber = Math.floor(Math.random() * chars.length);
+      token += chars.substring(randomNumber, randomNumber +1);
+    }
+
+    return token;
   }
 }

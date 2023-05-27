@@ -5,14 +5,15 @@ import { MailerService } from '@nestjs-modules/mailer';
 export class MailService {
     constructor(private mailerService: MailerService) {}
 
-    async sendUserRegister(email: string, password: string) {
+    async sendUserRegister(email: string, url: string, token: string) {
         await this.mailerService.sendMail({
             to: email,
             subject: 'Agora user',
             template: 'newUser',
             context: {
                 email,
-                password,
+                url,
+                token
             },
         });
     }
