@@ -65,9 +65,6 @@ export class UserService {
       SELECT email, fullname, (CASE WHEN DATE_PART('minute', now() - creationdate) <= 15 THEN 'valid' ELSE 'not-valid' END) AS "valid" FROM ag_user WHERE email=$1 AND token=$2
     `, [loginTokenDto.email, loginTokenDto.token]);
 
-    console.log(user.rows.length)
-    console.log(user.rows[0]?.valid)
-
     if (user.rows.length === 0 || user.rows[0]?.valid === 'not-valid') {
       throw new BadRequestException(`User: Email / password are not valid`);
     }
@@ -139,9 +136,11 @@ export class UserService {
   }
 
   async userExists(registerSocialUserDto: RegisterSocialUserDto) {
-    const validateEmail = await this.validateEmail(registerSocialUserDto.email);
+    const validateEmailAndSource = await this.validateEmailAndSource(registerSocialUserDto.email, registerSocialUserDto.source);
 
-    if(!validateEmail) {
+    console.log(validateEmailAndSource)
+
+    if(validateEmailAndSource === 'source' || validateEmailAndSource === 'register') {
       throw new BadRequestException('The user does not exist, please click on Sign up');
     }
 
