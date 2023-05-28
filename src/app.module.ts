@@ -10,6 +10,7 @@ import { UserModule } from './user/user.module';
 import { MailModule } from './mail/mail.module';
 
 import { environments } from './environments';
+import { QuestionModule } from './question/question.module';
 import config from './config';
 
 @Module({
@@ -27,6 +28,7 @@ import config from './config';
     DatabaseModule,
     CountryModule,
     UserModule,
+    QuestionModule,
   ],
 })
 export class AppModule {}
