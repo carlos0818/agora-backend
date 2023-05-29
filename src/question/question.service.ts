@@ -11,11 +11,21 @@ export class QuestionService {
   ){}
 
   async listQuestions() {
-    const questions = await this.clientPg.query<Question>(`
-      SELECT * FROM ag_entquest ORDER BY orderby
+    const questions = await this.clientPg.query(`
+      SELECT qnbr, effdt, descr, video, type, object, bobject FROM ag_entquest ORDER BY orderby
     `);
 
-    return questions.rows;
+    let rows = questions.rows;
+
+    let correlative = 1;
+    for (let i=0; i<rows.length; i++) {
+      if (rows[i].type === 'Q') {
+        rows[i].correlative = correlative;
+        correlative ++;
+      }
+    }
+
+    return rows;
   }
 
   async listAnswers() {
