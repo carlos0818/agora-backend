@@ -3,6 +3,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Client } from 'pg';
 
 import { Question } from './entities/question.entity';
+import { Answer } from './entities/answer.entity';
 
 @Injectable()
 export class QuestionService {
@@ -11,7 +12,7 @@ export class QuestionService {
   ){}
 
   async listQuestions() {
-    const questions = await this.clientPg.query(`
+    const questions = await this.clientPg.query<Question>(`
       SELECT qnbr, effdt, descr, video, type, object, bobject FROM ag_entquest ORDER BY orderby
     `);
 
@@ -29,7 +30,7 @@ export class QuestionService {
   }
 
   async listAnswers() {
-    const questions = await this.clientPg.query<Question>(`
+    const questions = await this.clientPg.query<Answer>(`
       SELECT * FROM ag_entans ORDER BY orderby
     `);
 

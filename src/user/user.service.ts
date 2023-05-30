@@ -44,11 +44,11 @@ export class UserService {
     `, [loginUserDto.email]);
 
     if (user.rows.length === 0) {
-      throw new BadRequestException(`Email / password are not valid`);
+      throw new BadRequestException(`Incorrect credentials`);
     }
 
     if (!bcrypt.compareSync(loginUserDto.password, user.rows[0].password)) {
-      throw new BadRequestException(`Email / password are not valid`);
+      throw new BadRequestException(`Incorrect credentials`);
     }
 
     return {
@@ -66,16 +66,8 @@ export class UserService {
     `, [loginTokenDto.email, loginTokenDto.token]);
 
     if (user.rows.length === 0 || user.rows[0]?.valid === 'not-valid') {
-      throw new BadRequestException(`User: Email / password are not valid`);
+      throw new BadRequestException(`User: Incorrect credentials`);
     }
-
-    // const verified = await this.clientPg.query<User>(`
-    //   SELECT email, fullname FROM ag_user WHERE email=$1
-    // `, [loginTokenDto.email]);
-
-    // if (verified.rows.length > 0) {
-    //   throw new BadRequestException(`Verified: Email / password are not valid`);
-    // }
 
     return {
       fullname: user.rows[0].fullname,
@@ -122,23 +114,15 @@ export class UserService {
         
       await this.clientPg.query('COMMIT');
 
-      // return {
-      //   fullname: registerUserDto.fullname,
-      //   email: registerUserDto.email,
-      //   token: this.getJwt({
-      //     email: registerUserDto.email,
-      //   })
-      // };
+      return { message: 'User was created' }
     } catch (error) {
       await this.clientPg.query('ROLLBACK');
-      throw new InternalServerErrorException('Unexpected error. Try again.' + error);
+      throw new InternalServerErrorException('Unexpected error, try again.' + error);
     }
   }
 
   async userExists(registerSocialUserDto: RegisterSocialUserDto) {
     const validateEmailAndSource = await this.validateEmailAndSource(registerSocialUserDto.email, registerSocialUserDto.source);
-
-    console.log(validateEmailAndSource)
 
     if(validateEmailAndSource === 'source' || validateEmailAndSource === 'register') {
       throw new BadRequestException('The user does not exist, please click on Sign up');

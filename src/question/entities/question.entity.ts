@@ -3,6 +3,14 @@ import { ApiProperty } from "@nestjs/swagger";
 export class Question {
     @ApiProperty({
         example: 1,
+        description: 'Correlative',
+        required: false,
+        type: Number,
+    })
+    correlative: number;
+
+    @ApiProperty({
+        example: 1,
         description: 'Question ID',
         required: true,
         type: Number,
@@ -10,7 +18,7 @@ export class Question {
     qnbr: number;
 
     @ApiProperty({
-        example: 'PER',
+        example: '1900-01-01 00:00:00',
         description: 'Effective date',
         required: true,
         type: String,
@@ -18,8 +26,8 @@ export class Question {
     effdt: string;
 
     @ApiProperty({
-        example: '1900-01-01 00:00:00',
-        description: 'Question status',
+        example: 'A',
+        description: 'Question status (A: Active, I: Inactive)',
         required: true,
         type: String,
     })
@@ -51,7 +59,7 @@ export class Question {
 
     @ApiProperty({
         example: 'Q',
-        description: 'Question type (Q: Question, T: Title)',
+        description: 'Question type (Q: Question, T: Title, S: Subtitle)',
         required: true,
         type: String,
     })
