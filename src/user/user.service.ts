@@ -271,7 +271,7 @@ export class UserService {
   }
 
   private generateConfirmationToken = () => {
-    const chars = '0123456789abcdefghijklmnopqrstuvwxyz!@#$()ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
     const tokenLength = 12;
     let token = '';
 
