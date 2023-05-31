@@ -13,7 +13,7 @@ export class QuestionService {
 
   async listQuestions() {
     const questions = await this.clientPg.query<Question>(`
-      SELECT qnbr, effdt, descr, video, type, object, bobject FROM ag_entquest WHERE status='A' ORDER BY orderby
+      SELECT qnbr, effdt, descr, video, type, object, bobject, page FROM ag_entquest WHERE status='A' ORDER BY page, orderby
     `);
 
     let rows = questions.rows;
