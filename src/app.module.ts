@@ -11,6 +11,7 @@ import { MailModule } from './mail/mail.module';
 
 import { environments } from './environments';
 import { QuestionModule } from './question/question.module';
+import { WallModule } from './wall/wall.module';
 import config from './config';
 
 @Module({
@@ -29,6 +30,7 @@ import config from './config';
     CountryModule,
     UserModule,
     QuestionModule,
+    WallModule,
   ],
 })
 export class AppModule {}

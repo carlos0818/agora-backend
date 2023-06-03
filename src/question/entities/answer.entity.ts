@@ -3,7 +3,7 @@ import { ApiProperty } from "@nestjs/swagger";
 export class Answer {
     @ApiProperty({
         example: 1,
-        description: 'Question ID',
+        description: 'Question number',
         required: true,
         type: Number,
     })
@@ -19,7 +19,7 @@ export class Answer {
 
     @ApiProperty({
         example: 1,
-        description: 'Answer ID',
+        description: 'Answer number',
         required: true,
         type: Number,
     })

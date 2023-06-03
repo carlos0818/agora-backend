@@ -25,7 +25,7 @@ import { MailService } from 'src/mail/mail.service';
         return {
           secret: configService.get('JWT_SECRET'),
           signOptions: {
-            expiresIn: '2h',
+            expiresIn: '30d',
           },
         }
       }

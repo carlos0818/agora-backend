@@ -40,7 +40,7 @@ export class UserService {
     }
 
     const user = await this.clientPg.query<User>(`
-      SELECT fullname, password, email FROM ag_user WHERE email=$1 AND status=true AND verified=true
+      SELECT fullname, password, email, type FROM ag_user WHERE email=$1 AND status=true AND verified=true
     `, [loginUserDto.email]);
 
     if (user.rows.length === 0) {
@@ -54,6 +54,7 @@ export class UserService {
     return {
       fullname: user.rows[0].fullname,
       email: user.rows[0].email,
+      type: user.rows[0].type,
       token: this.getJwt({
         email: user.rows[0].email,
       })
@@ -62,7 +63,8 @@ export class UserService {
 
   async loginToken(loginTokenDto: LoginTokenDto) {
     const user = await this.clientPg.query(`
-      SELECT email, fullname, (CASE WHEN DATE_PART('minute', now() - creationdate) <= 15 THEN 'valid' ELSE 'not-valid' END) AS "valid" FROM ag_user WHERE email=$1 AND token=$2
+      SELECT email, fullname, type, (CASE WHEN DATE_PART('minute', now() - creationdate) <= 15 THEN 'valid' ELSE 'not-valid' END) AS "valid"
+      FROM ag_user WHERE email=$1 AND token=$2
     `, [loginTokenDto.email, loginTokenDto.token]);
 
     if (user.rows.length === 0 || user.rows[0]?.valid === 'not-valid') {
@@ -72,6 +74,7 @@ export class UserService {
     return {
       fullname: user.rows[0].fullname,
       email: user.rows[0].email,
+      type: user.rows[0].type,
       token: this.getJwt({
         email: user.rows[0].email,
       })
@@ -131,6 +134,7 @@ export class UserService {
     return {
       fullname: registerSocialUserDto.fullname,
       email: registerSocialUserDto.email,
+      type: registerSocialUserDto.type,
       token: this.getJwt({
         email: registerSocialUserDto.email,
       })
@@ -146,6 +150,7 @@ export class UserService {
         return {
           fullname: registerSocialUserDto.fullname,
           email: registerSocialUserDto.email,
+          type: registerSocialUserDto.type,
           token: this.getJwt({
             email: registerSocialUserDto.email,
           })
@@ -164,6 +169,7 @@ export class UserService {
         return {
           fullname: registerSocialUserDto.fullname,
           email: registerSocialUserDto.email,
+          type: registerSocialUserDto.type,
           token: this.getJwt({
             email: registerSocialUserDto.email,
           })
@@ -220,6 +226,7 @@ export class UserService {
     return {
       fullname: user.rows[0].fullname,
       email: activateAccountDto.email,
+      type: user.rows[0].type,
       token: this.getJwt({
         email: activateAccountDto.email,
       })

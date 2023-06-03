@@ -3,15 +3,7 @@ import { ApiProperty } from "@nestjs/swagger";
 export class Question {
     @ApiProperty({
         example: 1,
-        description: 'Correlative',
-        required: false,
-        type: Number,
-    })
-    correlative: number;
-
-    @ApiProperty({
-        example: 1,
-        description: 'Question ID',
+        description: 'Question number',
         required: true,
         type: Number,
     })
