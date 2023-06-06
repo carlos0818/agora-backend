@@ -14,7 +14,7 @@ export class QuestionService {
   async listQuestions() {
     const questions = await this.connection.query<RowDataPacket[]>(`
       SELECT qnbr, effdt, descr, video, type, object, bobject, page FROM ag_entquest q
-      WHERE q.status='A' AND q.effdt=(SELECT MAX(q_ed.effdt) FROM ag_entquest q_ed WHERE q.qnbr=q_ed.qnbr AND q_ed.effdt<=current_timestamp)
+      WHERE q.status='A' AND q.effdt=(SELECT MAX(q_ed.effdt) FROM ag_entquest q_ed WHERE q.qnbr=q_ed.qnbr AND q_ed.effdt<=systdate())
       ORDER BY q.page, q.orderby
     `);
 
@@ -23,7 +23,9 @@ export class QuestionService {
 
   async listAnswers() {
     const answers = await this.connection.query<RowDataPacket[]>(`
-      SELECT qnbr, effdt, anbr, status, score, descr, 'show', hide FROM ag_entans a WHERE a.status='A' ORDER BY a.orderby
+      SELECT qnbr, effdt, anbr, status, score, descr, 'show', hide FROM ag_entans a WHERE a.status='A'
+      AND a.effdt=(SELECT MAX(q_ed.effdt) FROM ag_entans q_ed WHERE a.qnbr=q_ed.qnbr AND q_ed.effdt<=sysdate())
+      ORDER BY a.orderby
     `);
 
     return answers[0];
@@ -54,17 +56,29 @@ export class QuestionService {
   //   return answerQuestion.rows[0];
   // }
 
+  // DEBO ENVIAR EL anbr Y EL extravalue por el endpoint
   async saveUserQuestion() {
+    const maxVersion = await this.connection.query<RowDataPacket[]>(`
+      SELECT CASE WHEN MAX(qversion) IS NULL THEN 1 ELSE MAX(qversion) + 1 END AS FROM ag_user_form_version WHERE email=?
+    `);
+    
     const userQuest = await this.connection.query<RowDataPacket[]>(`
-      SELECT email FROM ag_user_quest WHERE email=? AND qnbr=? AND qeffdt=?
+      SELECT a.email, a.qnbr, a.qeffdt FROM ag_user_quest a, ag_entans b
+      WHERE qversion = ${ maxVersion[0][0].maxVersion }
+      AND b.qnbr=a.qnbr and b.effdt=a.qeffdt and b.anbr=a.anbr and b.status='A'
+      AND b.effdt = (select max(b_ed.effdt) from ag_entans b_ed where b.qnbr=b_ed.qnbr and b_ed.effdt <= sysdate())
+      AND a.email = ?
+      AND a.qnbr = ?
     `, []);
-
-    'SELECT qnbr, anbr FROM ag_user u, ag_user_quest uq WHERE '
 
     if (userQuest[0].length > 0) {
       await this.connection.query(`
-        UPDATE ag_user_quest SET anbr=$1, effdt=$2, extravalue=$3
+        UPDATE ag_user_quest SET anbr=? WHERE email=? AND qnbr=? AND qeffdt=? AND qversion=?
       `, []);
+    } else {
+      await this.connection.query(`
+        INSERT INTO ag_user_quest VALUES(?,?,?,?,?,?)
+      `, [userQuest[0][0].email, userQuest[0][0].qnbr, userQuest[0][0].qeffdt, userQuest[0][0].qversion]);
     }
   }
 }
