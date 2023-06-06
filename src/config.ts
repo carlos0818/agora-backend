@@ -2,7 +2,7 @@ import { registerAs } from '@nestjs/config';
 
 export default registerAs('config', () => {
     return {
-        postgres: {
+        mysql: {
             name: process.env.DATABASE_NAME,
             port: parseInt(process.env.DATABASE_PORT, 10),
             password: process.env.DATABASE_PASSWORD,

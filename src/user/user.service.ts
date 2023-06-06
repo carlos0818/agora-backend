@@ -1,11 +1,11 @@
-import { BadRequestException, Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
-import { Client, Pool } from 'pg';
+import { InjectClient } from 'nest-mysql';
+import { Connection, RowDataPacket } from 'mysql2/promise';
 import * as bcrypt from 'bcrypt';
 import { HttpService } from '@nestjs/axios';
 
-import { User } from './entities/user.entity';
 import { LoginUserDto } from './dto/login-user.dto';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { RegisterSocialUserDto } from './dto/register-social-user.dto';
@@ -22,8 +22,7 @@ type ValidateEmailSource =
 @Injectable()
 export class UserService {
   constructor(
-    @Inject('Postgres') private clientPg: Client,
-    @Inject('Postgres') private pool: Pool,
+    @InjectClient() private readonly connection: Connection,
     private readonly jwtService: JwtService,
     private readonly httpService: HttpService,
     private readonly mailService: MailService,
@@ -39,44 +38,44 @@ export class UserService {
       }
     }
 
-    const user = await this.clientPg.query<User>(`
-      SELECT fullname, password, email, type FROM ag_user WHERE email=$1 AND status=true AND verified=true
+    const user = await this.connection.query<RowDataPacket[]>(`
+      SELECT fullname, password, email, type FROM ag_user WHERE email=? AND status='1' AND verified='1'
     `, [loginUserDto.email]);
 
-    if (user.rows.length === 0) {
+    if (user[0].length === 0) {
       throw new BadRequestException(`Incorrect credentials`);
     }
 
-    if (!bcrypt.compareSync(loginUserDto.password, user.rows[0].password)) {
+    if (!bcrypt.compareSync(loginUserDto.password, user[0][0].password)) {
       throw new BadRequestException(`Incorrect credentials`);
     }
 
     return {
-      fullname: user.rows[0].fullname,
-      email: user.rows[0].email,
-      type: user.rows[0].type,
+      fullname: user[0][0].fullname,
+      email: user[0][0].email,
+      type: user[0][0].type,
       token: this.getJwt({
-        email: user.rows[0].email,
+        email: user[0][0].email,
       })
     };
   }
 
   async loginToken(loginTokenDto: LoginTokenDto) {
-    const user = await this.clientPg.query(`
+    const user = await this.connection.query<RowDataPacket[]>(`
       SELECT email, fullname, type, (CASE WHEN DATE_PART('minute', now() - creationdate) <= 15 THEN 'valid' ELSE 'not-valid' END) AS "valid"
-      FROM ag_user WHERE email=$1 AND token=$2
+      FROM ag_user WHERE email=? AND token=?
     `, [loginTokenDto.email, loginTokenDto.token]);
 
-    if (user.rows.length === 0 || user.rows[0]?.valid === 'not-valid') {
+    if (user[0].length === 0 || user[0][0].valid === 'not-valid') {
       throw new BadRequestException(`User: Incorrect credentials`);
     }
 
     return {
-      fullname: user.rows[0].fullname,
-      email: user.rows[0].email,
-      type: user.rows[0].type,
+      fullname: user[0][0].fullname,
+      email: user[0][0].email,
+      type: user[0][0].type,
       token: this.getJwt({
-        email: user.rows[0].email,
+        email: user[0][0].email,
       })
     };
   }
@@ -94,16 +93,13 @@ export class UserService {
     if (validateEmail) {
       throw new BadRequestException(`Email ${ registerUserDto.email } is already exists`);
     }
-
-    // const client = await this.pool.connect()
   
     try {
       const token = this.generateConfirmationToken()
       const password = bcrypt.hashSync(registerUserDto.password, 10);
-      await this.clientPg.query('BEGIN')
-      await this.clientPg.query(`
+      await this.connection.query(`
         INSERT INTO ag_user(email, password, status, type, fullname, lang, creationdate, lastdate, lastlogindate, creationadmin, source, token)
-        VALUES($1, $2, true, $3, $4, 'en', now(), now(), now(), 'web', 'PR', $5)
+        VALUES(?, ?, '1', ?, ?, 'en', now(), now(), now(), 'web', 'PR', ?)
       `, [
           registerUserDto.email,
           password,
@@ -114,12 +110,9 @@ export class UserService {
       );
 
       await this.mailService.sendUserRegister(registerUserDto.email, process.env.ACTIVATE_ACCOUNT_URL, token);
-        
-      await this.clientPg.query('COMMIT');
 
       return { message: 'User was created' }
     } catch (error) {
-      await this.clientPg.query('ROLLBACK');
       throw new InternalServerErrorException('Unexpected error, try again.' + error);
     }
   }
@@ -156,9 +149,9 @@ export class UserService {
           })
         };
       case 'register':
-        await this.clientPg.query(`
+        await this.connection.query(`
           INSERT INTO ag_user(email, password, status, type, fullname, lang, creationdate, lastdate, lastlogindate, creationadmin, source)
-          VALUES($1, '$P@ssW0rd#', true, $2, $3, 'en', now(), now(), now(), 'web', $4)
+          VALUES(?, '$P@ssW0rd#', '1', ?, ?, 'en', now(), now(), now(), 'web', ?)
         `, [
             registerSocialUserDto.email,
             registerSocialUserDto.type,
@@ -180,53 +173,53 @@ export class UserService {
   }
 
   async activateAccount(activateAccountDto: ActivateAccountDto) {
-    const user = await this.clientPg.query<User>(`
-      SELECT password, fullname, type FROM ag_user WHERE email=$1 AND token=$2
+    const user = await this.connection.query<RowDataPacket[]>(`
+      SELECT password, fullname, type FROM ag_user WHERE email=? AND token=?
     `, [activateAccountDto.email, activateAccountDto.token]);
 
-    if (user.rows.length === 0) {
+    if (user[0].length === 0) {
       throw new BadRequestException('We cannot find your registered user');
     }
 
-    const active = await this.clientPg.query<User>(`
-      SELECT fullname FROM ag_user WHERE email=$1 AND verified=true
+    const active = await this.connection.query<RowDataPacket[]>(`
+      SELECT fullname FROM ag_user WHERE email=? AND verified='1'
     `, [activateAccountDto.email]);
 
-    if (active.rows.length > 0) {
+    if (active[0].length > 0) {
       throw new BadRequestException('Your account has already been activated previously');
     }
 
-    const verified = await this.clientPg.query(`
-      SELECT (CASE WHEN DATE_PART('minute', now() - creationdate) <= 15 THEN 'valid' ELSE 'not-valid' END) AS "valid" FROM ag_user WHERE email=$1 AND token=$2
+    const verified = await this.connection.query(`
+      SELECT (CASE WHEN DATE_PART('minute', now() - creationdate) <= 15 THEN 'valid' ELSE 'not-valid' END) AS "valid" FROM ag_user WHERE email=? AND token=?
     `, [activateAccountDto.email, activateAccountDto.token]);
 
-    if (verified.rows[0].valid === 'not-valid') {
-      await this.clientPg.query(`
-        DELETE FROM ag_user WHERE email=$1
+    if (verified[0][0].valid === 'not-valid') {
+      await this.connection.query(`
+        DELETE FROM ag_user WHERE email=?
       `, [activateAccountDto.email]);
 
       const token = this.generateConfirmationToken()
-      await this.clientPg.query(`
+      await this.connection.query(`
         INSERT INTO ag_user(email, password, status, type, fullname, lang, creationdate, lastdate, lastlogindate, creationadmin, source, token)
-        VALUES($1, $2, true, $3, $4, 'en', now(), now(), now(), 'web', 'PR', $5)
+        VALUES(?, ?, '1', ?, ?, 'en', now(), now(), now(), 'web', 'PR', ?)
       `, [
           activateAccountDto.email,
-          user.rows[0].password,
-          user.rows[0].type,
-          user.rows[0].fullname,
+          user[0][0].password,
+          user[0][0].type,
+          user[0][0].fullname,
           token
         ]
       );
     }
 
-    await this.clientPg.query(`
-      UPDATE ag_user SET verified=true WHERE email=$1
+    await this.connection.query(`
+      UPDATE ag_user SET verified=true WHERE email=?
     `, [activateAccountDto.email]);
 
     return {
-      fullname: user.rows[0].fullname,
+      fullname: user[0][0].fullname,
       email: activateAccountDto.email,
-      type: user.rows[0].type,
+      type: user[0][0].type,
       token: this.getJwt({
         email: activateAccountDto.email,
       })
@@ -240,11 +233,11 @@ export class UserService {
 
   // Validate if email is already exists
   private async validateEmail(email: string) {
-    const user = await this.clientPg.query(`
-      SELECT email FROM ag_user WHERE email=$1
+    const user = await this.connection.query<RowDataPacket[]>(`
+      SELECT email FROM ag_user WHERE email=?
     `, [email]);
 
-    if (user.rows.length > 0) {
+    if (user[0].length > 0) {
       return true;
     }
 
@@ -253,16 +246,16 @@ export class UserService {
 
   // Validate if email and source is already exists
   private async validateEmailAndSource(email: string, source: string): Promise<ValidateEmailSource> {
-    const user = await this.clientPg.query(`
-      SELECT email FROM ag_user WHERE email=$1
+    const user = await this.connection.query<RowDataPacket[]>(`
+      SELECT email FROM ag_user WHERE email=?
     `, [email]);
 
-    if (user.rows.length > 0) {
-      const response = await this.clientPg.query(`
-        SELECT email FROM ag_user WHERE email=$1 AND source=$2
+    if (user[0].length > 0) {
+      const response = await this.connection.query<RowDataPacket[]>(`
+        SELECT email FROM ag_user WHERE email=? AND source=?
         `, [email, source]);
       
-      if (response.rows.length === 0) {
+      if (response[0].length === 0) {
         return 'source';
       }
 
