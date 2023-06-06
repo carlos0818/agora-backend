@@ -35,10 +35,9 @@ export class QuestionService {
     const respUserAnswers = await this.connection.query<RowDataPacket[]>(`
       SELECT a.qnbr, a.anbr FROM ag_user_quest a
       WHERE a.email=?
-      AND a.effdt=(SELECT MAX(a_ed.effdt) FROM ag_user_quest a_ed WHERE a.email=a_ed.email AND a.type=a_ed.type AND a.qnbr=a_ed.qnbr AND a.qeffdt=a_ed.qeffdt
-      AND a.anbr=a_ed.anbr)
-      AND a.type=?
-    `, [userAnswers.email, userAnswers.type]);
+      AND a.qeffdt=(SELECT MAX(a_ed.qeffdt) FROM ag_user_quest a_ed WHERE a.email=a_ed.email AND a.qnbr=a_ed.qnbr AND a.qeffdt=a_ed.qeffdt
+      AND a.anbr=a_ed.anbr);
+    `, [userAnswers.email]);
 
     return respUserAnswers[0];
   }
