@@ -14,7 +14,7 @@ export class QuestionService {
   async listQuestions() {
     const questions = await this.connection.query<RowDataPacket[]>(`
       SELECT qnbr, effdt, descr, video, type, object, bobject, page FROM ag_entquest q
-      WHERE q.status='A' AND q.effdt=(SELECT MAX(q_ed.effdt) FROM ag_entquest q_ed WHERE q.qnbr=q_ed.qnbr AND q_ed.effdt<=systdate())
+      WHERE q.status='A' AND q.effdt=(SELECT MAX(q_ed.effdt) FROM ag_entquest q_ed WHERE q.qnbr=q_ed.qnbr AND q_ed.effdt<=sysdate())
       ORDER BY q.page, q.orderby
     `);
 
