@@ -1,24 +1,17 @@
-import { IsEmail, IsOptional, IsString } from "class-validator";
+import { IsEmail, IsNumber, IsOptional, IsString } from "class-validator";
 
-export class AnswerQuestionDto {
+export class SaveQuestionDto {
     @IsString()
     @IsEmail()
     email: string;
 
     @IsString()
-    type: string;
-
-    @IsString()
     qnbr: string;
-
-    @IsString()
-    qeffdt: string;
 
     @IsString()
     anbr: string;
 
     @IsString()
-    @IsOptional()
     effdt: string;
 
     @IsString()

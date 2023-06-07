@@ -50,6 +50,8 @@ export class UserService {
       throw new BadRequestException(`Incorrect credentials`);
     }
 
+    await this.connection.query('UPDATE ag_user SET lastlogindate=NOW() WHERE email=?', [loginUserDto.email]);
+
     return {
       fullname: user[0][0].fullname,
       email: user[0][0].email,
@@ -62,13 +64,15 @@ export class UserService {
 
   async loginToken(loginTokenDto: LoginTokenDto) {
     const user = await this.connection.query<RowDataPacket[]>(`
-      SELECT email, fullname, type, (CASE WHEN DATE_PART('minute', now() - creationdate) <= 15 THEN 'valid' ELSE 'not-valid' END) AS "valid"
+      SELECT email, fullname, type, (CASE WHEN TIMESTAMPDIFF('minute', NOW() - creationdate) <= 15 THEN 'valid' ELSE 'not-valid' END) AS "valid"
       FROM ag_user WHERE email=? AND token=?
     `, [loginTokenDto.email, loginTokenDto.token]);
 
     if (user[0].length === 0 || user[0][0].valid === 'not-valid') {
       throw new BadRequestException(`User: Incorrect credentials`);
     }
+
+    await this.connection.query('UPDATE ag_user SET lastlogindate=NOW() WHERE email=?', [loginTokenDto.email]);
 
     return {
       fullname: user[0][0].fullname,
@@ -124,6 +128,8 @@ export class UserService {
       throw new BadRequestException('The user does not exist, please click on Sign up');
     }
 
+    await this.connection.query('UPDATE ag_user SET lastlogindate=NOW() WHERE email=?', [registerSocialUserDto.email]);
+
     return {
       fullname: registerSocialUserDto.fullname,
       email: registerSocialUserDto.email,
@@ -140,6 +146,7 @@ export class UserService {
 
     switch (validateEmailAndSource) {
       case 'ok':
+        await this.connection.query('UPDATE ag_user SET lastlogindate=NOW() WHERE email=?', [registerSocialUserDto.email]);
         return {
           fullname: registerSocialUserDto.fullname,
           email: registerSocialUserDto.email,
@@ -190,7 +197,7 @@ export class UserService {
     }
 
     const verified = await this.connection.query(`
-      SELECT (CASE WHEN DATE_PART('minute', now() - creationdate) <= 15 THEN 'valid' ELSE 'not-valid' END) AS "valid" FROM ag_user WHERE email=? AND token=?
+      SELECT (CASE WHEN TIMESTAMPDIFF(MINUTE, NOW(), creationdate) <= 15 THEN 'valid' ELSE 'not-valid' END) AS "valid" FROM ag_user WHERE email=? AND token=?
     `, [activateAccountDto.email, activateAccountDto.token]);
 
     if (verified[0][0].valid === 'not-valid') {
@@ -201,7 +208,7 @@ export class UserService {
       const token = this.generateConfirmationToken()
       await this.connection.query(`
         INSERT INTO ag_user(email, password, status, type, fullname, lang, creationdate, lastdate, lastlogindate, creationadmin, source, token)
-        VALUES(?, ?, '1', ?, ?, 'en', now(), now(), now(), 'web', 'PR', ?)
+        VALUES(?, ?, '1', ?, ?, 'en', NOW(), NOW(), NOW(), 'web', 'PR', ?)
       `, [
           activateAccountDto.email,
           user[0][0].password,

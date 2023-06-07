@@ -1,10 +1,11 @@
-import { Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { QuestionService } from './question.service';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Question } from './entities/question.entity';
 import { Answer } from './entities/answer.entity';
 import { AnswerQuestionDto } from './dto/checkAnswerQuestion.dto';
 import { UserAnswers } from './dto/userAnswers.dto';
+import { SaveQuestionDto } from './dto/saveQuestion.dto';
 
 @ApiTags('Questions')
 @Controller('question')
@@ -34,8 +35,8 @@ export class QuestionController {
     return this.questionService.userAnswers(userAnswers);
   }
 
-  @Post()
-  saveUserQuestion() {
-    return this.questionService.saveUserQuestion();
+  @Post('save-question')
+  saveUserQuestion(@Body() saveQuestionDto: SaveQuestionDto) {
+    return this.questionService.saveUserQuestion(saveQuestionDto);
   }
 }
