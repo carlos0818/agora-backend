@@ -72,8 +72,8 @@ export class QuestionService {
 
     if (userQuest[0].length > 0) {
       await this.connection.query(`
-        UPDATE ag_user_quest SET anbr=? WHERE email=? AND qnbr=? AND qeffdt=? AND qversion=?
-      `, [saveQuestionDto.anbr, saveQuestionDto.email, saveQuestionDto.qnbr, saveQuestionDto.effdt, maxVersion[0][0].maxVersion]);
+        UPDATE ag_user_quest SET anbr=?, extravalue=? WHERE email=? AND qnbr=? AND qeffdt=? AND qversion=?
+      `, [saveQuestionDto.anbr, saveQuestionDto.extravalue, saveQuestionDto.email, saveQuestionDto.qnbr, saveQuestionDto.effdt, maxVersion[0][0].maxVersion]);
     } else {
       if (saveQuestionDto.extravalue) {
         await this.connection.query(`
