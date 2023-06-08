@@ -63,11 +63,12 @@ export class QuestionService {
       SELECT CASE WHEN MAX(qversion) IS NULL THEN 1 ELSE MAX(qversion) + 1 END AS maxVersion FROM ag_user_form_version WHERE email=?
     `, [email]);
 
-    return maxVersion[0][0];
+    return maxVersion[0][0].maxVersion;
   }
 
   async saveUserQuestion(saveQuestionDto: SaveQuestionDto) {
     const maxVersion = await this.getUserQuestionVersion(saveQuestionDto.email)
+    console.log(maxVersion)
     
     const userQuest = await this.connection.query<RowDataPacket[]>(`
       SELECT 'EXISTS' FROM ag_user_quest a, ag_entans b
@@ -76,21 +77,21 @@ export class QuestionService {
       AND b.effdt = ?
       AND a.email = ?
       AND a.qnbr = ?
-    `, [maxVersion[0][0].maxVersion, saveQuestionDto.effdt, saveQuestionDto.email, saveQuestionDto.qnbr]);
+    `, [maxVersion, saveQuestionDto.effdt, saveQuestionDto.email, saveQuestionDto.qnbr]);
 
     if (userQuest[0].length > 0) {
       await this.connection.query(`
         UPDATE ag_user_quest SET anbr=?, extravalue=? WHERE email=? AND qnbr=? AND qeffdt=? AND qversion=?
-      `, [saveQuestionDto.anbr, saveQuestionDto.extravalue, saveQuestionDto.email, saveQuestionDto.qnbr, saveQuestionDto.effdt, maxVersion[0][0].maxVersion]);
+      `, [saveQuestionDto.anbr, saveQuestionDto.extravalue, saveQuestionDto.email, saveQuestionDto.qnbr, saveQuestionDto.effdt, maxVersion]);
     } else {
       if (saveQuestionDto.extravalue) {
         await this.connection.query(`
           INSERT INTO ag_user_quest VALUES(?,?,?,?,?,?)
-        `, [saveQuestionDto.email, saveQuestionDto.qnbr, saveQuestionDto.effdt, saveQuestionDto.anbr, maxVersion[0][0].maxVersion, saveQuestionDto.extravalue]);
+        `, [saveQuestionDto.email, saveQuestionDto.qnbr, saveQuestionDto.effdt, saveQuestionDto.anbr, maxVersion, saveQuestionDto.extravalue]);
       } else {
         await this.connection.query(`
           INSERT INTO ag_user_quest(email, qnbr, qeffdt, anbr, qversion) VALUES(?,?,?,?,?)
-        `, [saveQuestionDto.email, saveQuestionDto.qnbr, saveQuestionDto.effdt, saveQuestionDto.anbr, maxVersion[0][0].maxVersion]);
+        `, [saveQuestionDto.email, saveQuestionDto.qnbr, saveQuestionDto.effdt, saveQuestionDto.anbr, maxVersion]);
       }
     }
   }
