@@ -5,6 +5,8 @@ import { Connection, RowDataPacket } from 'mysql2/promise';
 
 import { UserAnswers } from './dto/userAnswers.dto';
 import { SaveQuestionDto } from './dto/saveQuestion.dto';
+import { DeleteUserQuestionDto } from './dto/deleteUserQuestion.dto';
+import { SaveQuestionWithNoValidation } from './dto/saveQuestionWithoutValidation.dto';
 
 @Injectable()
 export class QuestionService {
@@ -56,10 +58,16 @@ export class QuestionService {
   //   return answerQuestion.rows[0];
   // }
 
-  async saveUserQuestion(saveQuestionDto: SaveQuestionDto) {
+  async getUserQuestionVersion(email: string) {
     const maxVersion = await this.connection.query<RowDataPacket[]>(`
       SELECT CASE WHEN MAX(qversion) IS NULL THEN 1 ELSE MAX(qversion) + 1 END AS maxVersion FROM ag_user_form_version WHERE email=?
-    `, [saveQuestionDto.email]);
+    `, [email]);
+
+    return maxVersion[0][0];
+  }
+
+  async saveUserQuestion(saveQuestionDto: SaveQuestionDto) {
+    const maxVersion = await this.getUserQuestionVersion(saveQuestionDto.email)
     
     const userQuest = await this.connection.query<RowDataPacket[]>(`
       SELECT 'EXISTS' FROM ag_user_quest a, ag_entans b
@@ -85,5 +93,17 @@ export class QuestionService {
         `, [saveQuestionDto.email, saveQuestionDto.qnbr, saveQuestionDto.effdt, saveQuestionDto.anbr, maxVersion[0][0].maxVersion]);
       }
     }
+  }
+
+  async deleteUserQuestion(deleteUserQuestion: DeleteUserQuestionDto) {
+    await this.connection.query(`
+      DELETE FROM ag_user_quest WHERE email=? AND qnbr=? AND anbr=? AND qeffdt=? AND qversion=?
+    `, [deleteUserQuestion.email, deleteUserQuestion.qnbr, deleteUserQuestion.anbr, deleteUserQuestion.qeffdt, deleteUserQuestion.qversion])
+  }
+
+  async saveQuestionWithNoValidation(saveQuestionWithNoValidation: SaveQuestionWithNoValidation) {
+    await this.connection.query(`
+      INSERT INTO ag_user_quest VALUES(?, ?, ?, ?, ?, NULL)
+    `, [saveQuestionWithNoValidation.email, saveQuestionWithNoValidation.qnbr, saveQuestionWithNoValidation.qeffdt, saveQuestionWithNoValidation.anbr, saveQuestionWithNoValidation.qversion])
   }
 }

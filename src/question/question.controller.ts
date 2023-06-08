@@ -6,6 +6,8 @@ import { Answer } from './entities/answer.entity';
 import { AnswerQuestionDto } from './dto/checkAnswerQuestion.dto';
 import { UserAnswers } from './dto/userAnswers.dto';
 import { SaveQuestionDto } from './dto/saveQuestion.dto';
+import { DeleteUserQuestionDto } from './dto/deleteUserQuestion.dto';
+import { SaveQuestionWithNoValidation } from './dto/saveQuestionWithoutValidation.dto';
 
 @ApiTags('Questions')
 @Controller('question')
@@ -35,8 +37,23 @@ export class QuestionController {
     return this.questionService.userAnswers(userAnswers);
   }
 
+  @Get('get-user-question-version')
+  getUserQuestionVersion(@Query() email: string) {
+    return this.questionService.getUserQuestionVersion(email);
+  }
+
   @Post('save-question')
   saveUserQuestion(@Body() saveQuestionDto: SaveQuestionDto) {
     return this.questionService.saveUserQuestion(saveQuestionDto);
+  }
+
+  @Post('delete-question')
+  deleteUserQuestion(@Body() deleteUserQuestionDto: DeleteUserQuestionDto) {
+    return this.questionService.deleteUserQuestion(deleteUserQuestionDto);
+  }
+
+  @Post('save-question-without-validation')
+  saveQuestionWithNoValidation(@Body() saveQuestionWithNoValidation: SaveQuestionWithNoValidation) {
+    return this.questionService.saveQuestionWithNoValidation(saveQuestionWithNoValidation);
   }
 }
