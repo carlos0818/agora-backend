@@ -36,7 +36,7 @@ export class QuestionService {
 
   async userAnswers(userAnswers: UserAnswers) {
     const respUserAnswers = await this.connection.query<RowDataPacket[]>(`
-      SELECT a.qnbr, a.anbr FROM ag_user_quest a
+      SELECT a.qnbr, a.anbr, extravalue FROM ag_user_quest a
       WHERE a.email=?
       AND a.qeffdt=(SELECT MAX(a_ed.qeffdt) FROM ag_user_quest a_ed WHERE a.email=a_ed.email AND a.qnbr=a_ed.qnbr AND a.qeffdt=a_ed.qeffdt
       AND a.anbr=a_ed.anbr);
