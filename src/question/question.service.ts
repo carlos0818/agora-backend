@@ -68,7 +68,6 @@ export class QuestionService {
 
   async saveUserQuestion(saveQuestionDto: SaveQuestionDto) {
     const maxVersion = await this.getUserQuestionVersion(saveQuestionDto.email)
-    console.log(maxVersion)
     
     const userQuest = await this.connection.query<RowDataPacket[]>(`
       SELECT 'EXISTS' FROM ag_user_quest a, ag_entans b
@@ -78,6 +77,8 @@ export class QuestionService {
       AND a.email = ?
       AND a.qnbr = ?
     `, [maxVersion, saveQuestionDto.effdt, saveQuestionDto.email, saveQuestionDto.qnbr]);
+
+    console.log(userQuest[0]);
 
     if (userQuest[0].length > 0) {
       await this.connection.query(`
@@ -103,8 +104,14 @@ export class QuestionService {
   }
 
   async saveQuestionWithNoValidation(saveQuestionWithNoValidation: SaveQuestionWithNoValidation) {
-    await this.connection.query(`
-      INSERT INTO ag_user_quest VALUES(?, ?, ?, ?, ?, NULL)
-    `, [saveQuestionWithNoValidation.email, saveQuestionWithNoValidation.qnbr, saveQuestionWithNoValidation.qeffdt, saveQuestionWithNoValidation.anbr, saveQuestionWithNoValidation.qversion])
+    if (!saveQuestionWithNoValidation.extravalue) {
+      await this.connection.query(`
+        INSERT INTO ag_user_quest VALUES(?, ?, ?, ?, ?, NULL)
+      `, [saveQuestionWithNoValidation.email, saveQuestionWithNoValidation.qnbr, saveQuestionWithNoValidation.qeffdt, saveQuestionWithNoValidation.anbr, saveQuestionWithNoValidation.qversion])
+    } else {
+      await this.connection.query(`
+        INSERT INTO ag_user_quest VALUES(?, ?, ?, ?, ?, ?)
+      `, [saveQuestionWithNoValidation.email, saveQuestionWithNoValidation.qnbr, saveQuestionWithNoValidation.qeffdt, saveQuestionWithNoValidation.anbr, saveQuestionWithNoValidation.qversion, saveQuestionWithNoValidation.extravalue])
+    }
   }
 }

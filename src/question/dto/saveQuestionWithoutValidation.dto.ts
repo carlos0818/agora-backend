@@ -16,4 +16,8 @@ export class SaveQuestionWithNoValidation {
 
     @IsString()
     qversion: string;
+
+    @IsString()
+    @IsOptional()
+    extravalue: string;
 }
