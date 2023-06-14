@@ -26,7 +26,7 @@ export class QuestionService {
 
   async listAnswers() {
     const answers = await this.connection.query<RowDataPacket[]>(`
-      SELECT qnbr, DATE_FORMAT(effdt, '%Y-%m-%d %H:%i:%s') effdt, anbr, status, score, descr, 'show', hide FROM ag_entans a WHERE a.status='A'
+      SELECT qnbr, DATE_FORMAT(effdt, '%Y-%m-%d %H:%i:%s') effdt, anbr, status, score, descr, \`show\`, hide FROM ag_entans a WHERE a.status='A'
       AND a.effdt=(SELECT MAX(q_ed.effdt) FROM ag_entans q_ed WHERE a.qnbr=q_ed.qnbr AND q_ed.effdt<=sysdate())
       ORDER BY a.orderby
     `);
@@ -77,8 +77,6 @@ export class QuestionService {
       AND a.email = ?
       AND a.qnbr = ?
     `, [maxVersion, saveQuestionDto.effdt, saveQuestionDto.email, saveQuestionDto.qnbr]);
-
-    console.log(userQuest[0]);
 
     if (userQuest[0].length > 0) {
       await this.connection.query(`
