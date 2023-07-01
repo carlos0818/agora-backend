@@ -6,7 +6,7 @@ import { Connection, RowDataPacket } from 'mysql2/promise';
 @Injectable()
 export class CountryService {
   constructor(
-    @InjectClient() private readonly connection: Connection,
+    @InjectClient('MySQL') private connection: Connection,
   ){}
 
   async findByCountry(id: string) {

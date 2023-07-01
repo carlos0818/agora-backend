@@ -22,7 +22,7 @@ type ValidateEmailSource =
 @Injectable()
 export class UserService {
   constructor(
-    @InjectClient() private readonly connection: Connection,
+    @InjectClient('MySQL') private connection: Connection,
     private readonly jwtService: JwtService,
     private readonly httpService: HttpService,
     private readonly mailService: MailService,
@@ -69,6 +69,7 @@ export class UserService {
     `, [loginTokenDto.email, loginTokenDto.token]);
 
     if (user[0].length === 0 || user[0][0].valid === 'not-valid') {
+      
       throw new BadRequestException(`User: Incorrect credentials`);
     }
 
@@ -117,6 +118,7 @@ export class UserService {
 
       return { message: 'User was created' }
     } catch (error) {
+      
       throw new InternalServerErrorException('Unexpected error, try again.' + error);
     }
   }
@@ -142,11 +144,13 @@ export class UserService {
 
   // login social
   async loginSocial(registerSocialUserDto: RegisterSocialUserDto) {
+
     const validateEmailAndSource = await this.validateEmailAndSource(registerSocialUserDto.email, registerSocialUserDto.source);
 
     switch (validateEmailAndSource) {
       case 'ok':
         await this.connection.query('UPDATE ag_user SET lastlogindate=NOW() WHERE email=?', [registerSocialUserDto.email]);
+        
         return {
           fullname: registerSocialUserDto.fullname,
           email: registerSocialUserDto.email,
@@ -166,6 +170,7 @@ export class UserService {
             registerSocialUserDto.source
           ]
         );
+        
         return {
           fullname: registerSocialUserDto.fullname,
           email: registerSocialUserDto.email,

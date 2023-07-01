@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 
 import { InjectClient } from 'nest-mysql';
 import { Connection, RowDataPacket } from 'mysql2/promise';
@@ -7,11 +7,13 @@ import { UserAnswers } from './dto/userAnswers.dto';
 import { SaveQuestionDto } from './dto/saveQuestion.dto';
 import { DeleteUserQuestionDto } from './dto/deleteUserQuestion.dto';
 import { SaveQuestionWithNoValidation } from './dto/saveQuestionWithoutValidation.dto';
+import { SubmitQuestionnaire } from './dto/submitQuestionnaire.dto';
+import { UserQuestion } from './entities/user-question.entity';
 
 @Injectable()
 export class QuestionService {
   constructor(
-    @InjectClient() private readonly connection: Connection,
+    @InjectClient('MySQL') private connection: Connection,
   ){}
 
   async listQuestions() {
@@ -98,18 +100,110 @@ export class QuestionService {
   async deleteUserQuestion(deleteUserQuestion: DeleteUserQuestionDto) {
     await this.connection.query(`
       DELETE FROM ag_user_quest WHERE email=? AND qnbr=? AND anbr=? AND qeffdt=? AND qversion=?
-    `, [deleteUserQuestion.email, deleteUserQuestion.qnbr, deleteUserQuestion.anbr, deleteUserQuestion.qeffdt, deleteUserQuestion.qversion])
+    `, [deleteUserQuestion.email, deleteUserQuestion.qnbr, deleteUserQuestion.anbr, deleteUserQuestion.qeffdt, deleteUserQuestion.qversion]);
   }
 
   async saveQuestionWithNoValidation(saveQuestionWithNoValidation: SaveQuestionWithNoValidation) {
     if (!saveQuestionWithNoValidation.extravalue) {
       await this.connection.query(`
         INSERT INTO ag_user_quest VALUES(?, ?, ?, ?, ?, NULL)
-      `, [saveQuestionWithNoValidation.email, saveQuestionWithNoValidation.qnbr, saveQuestionWithNoValidation.qeffdt, saveQuestionWithNoValidation.anbr, saveQuestionWithNoValidation.qversion])
+      `, [saveQuestionWithNoValidation.email, saveQuestionWithNoValidation.qnbr, saveQuestionWithNoValidation.qeffdt, saveQuestionWithNoValidation.anbr, saveQuestionWithNoValidation.qversion]);
     } else {
       await this.connection.query(`
         INSERT INTO ag_user_quest VALUES(?, ?, ?, ?, ?, ?)
-      `, [saveQuestionWithNoValidation.email, saveQuestionWithNoValidation.qnbr, saveQuestionWithNoValidation.qeffdt, saveQuestionWithNoValidation.anbr, saveQuestionWithNoValidation.qversion, saveQuestionWithNoValidation.extravalue])
+      `, [saveQuestionWithNoValidation.email, saveQuestionWithNoValidation.qnbr, saveQuestionWithNoValidation.qeffdt, saveQuestionWithNoValidation.anbr, saveQuestionWithNoValidation.qversion, saveQuestionWithNoValidation.extravalue]);
     }
+  }
+
+  async submitQuestionnaire(submitQuestionnaire: SubmitQuestionnaire) {
+    const respQversion = await this.connection.query<RowDataPacket[]>(`
+      SELECT qversion + 1 qversion FROM ag_user WHERE email=?
+    `, [submitQuestionnaire.email]);
+    const qversion = respQversion[0][0].qversion;
+
+    const respQuestionsNotInTemplate = await this.connection.query<RowDataPacket[]>(`
+      SELECT UQTOTAL.qnbr, UQTOTAL.qeffdt, UQTOTAL.anbr, UQ.anbr AS delete_is_null FROM ag_user_quest UQTOTAL LEFT OUTER JOIN ag_user_quest UQ ON 
+      UQ.email=? AND UQ.qversion=?
+      AND UQ.QEFFDT = (SELECT MAX(EFFDT) FROM ag_entquest ED WHERE ED.QNBR=UQ.QNBR AND ED.STATUS='A' AND ED.EFFDT <= sysdate())
+      AND UQ.ANBR = (SELECT ANS.ANBR FROM ag_entans ANS WHERE ANS.QNBR=UQ.QNBR AND ANS.EFFDT=UQ.QEFFDT AND ANS.ANBR=UQ.ANBR AND ANS.STATUS='A')
+      AND UQ.qnbr=UQTOTAL.qnbr AND UQ.anbr=UQTOTAL.anbr
+      WHERE UQTOTAL.email=? AND UQTOTAL.qversion=?
+      ORDER BY QNBR
+    `, [submitQuestionnaire.email, qversion, submitQuestionnaire.email, qversion]);
+    const questionsNotInTemplate = Object.assign([{}], respQuestionsNotInTemplate[0]);
+
+    questionsNotInTemplate.map(async (question: any) => {
+      if (!question.delete_is_null) {
+        await this.connection.query(`
+          DELETE FROM ag_user_quest WHERE UQ.email=? AND UQ.qversion=? AND qnbr=? AND anbr=?
+        `, [submitQuestionnaire.email, qversion, question.qnbr, question.anbr]);
+      }
+    });
+
+    const respUserAnswersWithAction = await this.connection.query<RowDataPacket[]>(`
+      SELECT uq.qnbr, uq.qeffdt, uq.anbr FROM ag_user_quest uq, ag_entans e WHERE uq.qnbr=e.qnbr AND uq.anbr=e.anbr AND uq.qeffdt=e.effdt
+      AND uq.email=? AND uq.qversion=? AND e.status='A' AND e.hide IS NOT NULL
+    `, [submitQuestionnaire.email, qversion]);
+    const userAnswersWithAction = Object.assign([{}], respUserAnswersWithAction[0]);
+
+    let hide: string[] = [];
+
+    for (let i=0; i<userAnswersWithAction.length; i++) {
+      const respShowHide = await this.connection.query<RowDataPacket[]>(`
+        SELECT \`show\`, \`hide\` FROM ag_entans WHERE qnbr=? AND effdt=? AND anbr=?
+      `, [userAnswersWithAction[i].qnbr, userAnswersWithAction[i].qeffdt, userAnswersWithAction[i].anbr]);
+      const showHide = respShowHide[0][0];
+  
+      let respHideSplit: any;
+  
+      if (showHide.hide?.substring(0, 4) !== 'qnbr') {
+        respHideSplit = showHide.hide?.split(',') || null;
+      }
+  
+      if(respHideSplit) {
+        hide.push(...respHideSplit);
+      }
+    }
+    
+    let hideString = hide.join(',');
+
+    await this.connection.query(`
+      DELETE FROM ag_user_quest WHERE email=? AND qversion=? AND qnbr IN(?)
+    `, [submitQuestionnaire.email, qversion, hideString]);
+
+    const respMissingAnswers = await this.connection.query<RowDataPacket[]>(`
+      SELECT A.QNBR, CASE WHEN UQ.QNBR IS NULL THEN 'NE' ELSE 'E' END AS \`EXISTS\` FROM ag_entans A LEFT OUTER JOIN ag_user_quest UQ ON UQ.QNBR=A.QNBR AND email=? AND qversion=?
+      WHERE
+      A.EFFDT = (SELECT MAX(EFFDT) FROM ag_entquest ED WHERE ED.QNBR=A.QNBR AND ED.STATUS='A' AND ED.EFFDT <= sysdate())
+      AND A.ANBR = (SELECT ANS.ANBR FROM ag_entans ANS WHERE ANS.QNBR=A.QNBR AND ANS.EFFDT=A.EFFDT AND ANS.ANBR=A.ANBR AND ANS.STATUS='A')
+      AND A.QNBR NOT IN (?)
+      AND A.QNBR IN (SELECT QNBR FROM ag_entquest WHERE object IN ('C','Y','F','L') AND TYPE='Q')
+      GROUP BY A.QNBR
+      UNION
+      SELECT A.QNBR, CASE WHEN COUNT(UQ.ANBR) BETWEEN SUBSTR(A.BOBJECT,1,1) AND SUBSTR(A.BOBJECT,3,1) THEN 'E' ELSE 'NE' END AS \`EXISTS\` FROM ag_entquest A LEFT OUTER JOIN ag_user_quest UQ ON UQ.QNBR=A.QNBR AND UQ.QEFFDT=A.EFFDT AND email=? AND qversion=?
+      WHERE object='M'
+      AND type = 'Q'
+      GROUP BY A.QNBR, A.BOBJECT
+      UNION
+      SELECT A.QNBR, CASE WHEN UQ.EXTRAVALUE IS NULL THEN 'NE' ELSE 'E' END AS \`EXISTS\` FROM ag_entquest A LEFT OUTER JOIN ag_user_quest UQ ON UQ.QNBR=A.QNBR AND UQ.QEFFDT=A.EFFDT AND email=? AND qversion=?
+      WHERE object='B'
+      AND type = 'Q'
+      GROUP BY A.QNBR
+    `, [submitQuestionnaire.email, qversion, hideString, submitQuestionnaire.email, qversion, submitQuestionnaire.email, qversion]);
+    const missingAnswers = Object.assign([{}], respMissingAnswers[0]);
+
+    // console.log(missingAnswers);
+
+    for (let i=0; i<missingAnswers.length; i++) {
+      if (missingAnswers[i].EXISTS === 'NE') {
+        throw new BadRequestException('Please complete the questionnaire');
+      }
+    }
+
+    await this.connection.query(`
+      UPDATE ag_user SET qversion=qversion+1 WHERE email=?
+    `, [submitQuestionnaire.email]);
+
+    return 'Questionnaire saved';
   }
 }

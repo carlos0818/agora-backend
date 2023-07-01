@@ -20,7 +20,7 @@ import config from '../config';
                     port,
                 };
             },
-        }),
+        }, 'MySQL'),
     ],
 })
 export class DatabaseModule {}

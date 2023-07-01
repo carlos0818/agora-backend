@@ -8,6 +8,7 @@ import { UserAnswers } from './dto/userAnswers.dto';
 import { SaveQuestionDto } from './dto/saveQuestion.dto';
 import { DeleteUserQuestionDto } from './dto/deleteUserQuestion.dto';
 import { SaveQuestionWithNoValidation } from './dto/saveQuestionWithoutValidation.dto';
+import { SubmitQuestionnaire } from './dto/submitQuestionnaire.dto';
 
 @ApiTags('Questions')
 @Controller('question')
@@ -55,5 +56,10 @@ export class QuestionController {
   @Post('save-question-without-validation')
   saveQuestionWithNoValidation(@Body() saveQuestionWithNoValidation: SaveQuestionWithNoValidation) {
     return this.questionService.saveQuestionWithNoValidation(saveQuestionWithNoValidation);
+  }
+
+  @Post('submit-questionnaire')
+  submitQuestionnaire(@Body() submitQuestionnaire: SubmitQuestionnaire) {
+    return this.questionService.submitQuestionnaire(submitQuestionnaire);
   }
 }
