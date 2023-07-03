@@ -6,6 +6,7 @@ import { Connection } from 'mysql2/promise';
 
 import { AgoraMessage } from './dto/agoraMessage.dto';
 import { CloseAgoraMessage } from './dto/closeAgoraMessage.dto';
+import { SaveUserPost } from './dto/saveUserPost';
 
 @Injectable()
 export class WallService {
@@ -24,11 +25,29 @@ export class WallService {
     return messages[0];
   }
 
+  async listUserPosts() {
+    const posts = await this.connection.query(`
+      SELECT p.index, u.fullname, DATE_FORMAT(p.dateposted, '%d %b %Y %H:%i') dateposted, p.body FROM ag_home_user p, ag_user u 
+      WHERE u.email=p.email
+      ORDER BY p.dateposted
+    `);
+
+    return posts[0];
+  }
+
   async closeAgoraMessage(closeAgoraMessage: CloseAgoraMessage) {
     await this.connection.query(`
       INSERT INTO ag_home_agora_closed VALUES(?,?)
     `, [closeAgoraMessage.email, closeAgoraMessage.index]);
 
     return 'Message closed';
+  }
+
+  async savePost(saveUserPost: SaveUserPost) {
+    await this.connection.query(`
+      INSERT INTO ag_home_user VALUES(NULL,?,?,NOW())
+    `, [saveUserPost.email, saveUserPost.body]);
+
+    return 'Post saved'
   }
 }
