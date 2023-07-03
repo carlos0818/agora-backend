@@ -5,6 +5,7 @@ import { RowDataPacket } from 'mysql2';
 import { Connection } from 'mysql2/promise';
 
 import { AgoraMessage } from './dto/agoraMessage.dto';
+import { CloseAgoraMessage } from './dto/closeAgoraMessage.dto';
 
 @Injectable()
 export class WallService {
@@ -21,5 +22,13 @@ export class WallService {
     `, [agoraMessage.email]);
 
     return messages[0];
+  }
+
+  async closeAgoraMessage(closeAgoraMessage: CloseAgoraMessage) {
+    await this.connection.query(`
+      INSERT INTO ag_home_agora_closed VALUES(?,?)
+    `, [closeAgoraMessage.email, closeAgoraMessage.index]);
+
+    return 'Message closed';
   }
 }
