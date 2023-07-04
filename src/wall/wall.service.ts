@@ -27,7 +27,7 @@ export class WallService {
 
   async listUserPosts() {
     const posts = await this.connection.query(`
-      SELECT p.index, u.fullname, DATE_FORMAT(p.dateposted, '%d %b %Y %H:%i') dateposted, p.body FROM ag_home_user p, ag_user u 
+      SELECT p.index, u.fullname, DATE_FORMAT(p.dateposted, '%Y-%m-%d %H:%i:%s') dateposted, p.body FROM ag_home_user p, ag_user u 
       WHERE u.email=p.email
       ORDER BY p.dateposted DESC
     `);
