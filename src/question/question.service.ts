@@ -167,6 +167,8 @@ export class QuestionService {
     
     let hideString = hide.join(',');
 
+    console.log(hideString);
+
     await this.connection.query(`
       DELETE FROM ag_user_quest WHERE email=? AND qversion=? AND qnbr IN(?)
     `, [submitQuestionnaire.email, qversion, hideString]);
@@ -176,28 +178,27 @@ export class QuestionService {
       WHERE
       A.EFFDT = (SELECT MAX(EFFDT) FROM ag_entquest ED WHERE ED.QNBR=A.QNBR AND ED.STATUS='A' AND ED.EFFDT <= sysdate())
       AND A.ANBR = (SELECT ANS.ANBR FROM ag_entans ANS WHERE ANS.QNBR=A.QNBR AND ANS.EFFDT=A.EFFDT AND ANS.ANBR=A.ANBR AND ANS.STATUS='A')
-      AND A.QNBR NOT IN (?)
+      AND A.QNBR NOT IN (${ hideString })
       AND A.QNBR IN (SELECT QNBR FROM ag_entquest WHERE object IN ('C','Y','F','L') AND TYPE='Q')
       GROUP BY A.QNBR
       UNION
       SELECT A.QNBR, CASE WHEN COUNT(UQ.ANBR) BETWEEN SUBSTR(A.BOBJECT,1,1) AND SUBSTR(A.BOBJECT,3,1) THEN 'E' ELSE 'NE' END AS \`EXISTS\` FROM ag_entquest A LEFT OUTER JOIN ag_user_quest UQ ON UQ.QNBR=A.QNBR AND UQ.QEFFDT=A.EFFDT AND email=? AND qversion=?
       WHERE object='M'
       AND type = 'Q'
-      AND A.QNBR NOT IN (?)
+      AND A.QNBR NOT IN (${ hideString })
       GROUP BY A.QNBR, A.BOBJECT
       UNION
       SELECT A.QNBR, CASE WHEN UQ.EXTRAVALUE IS NULL THEN 'NE' ELSE 'E' END AS \`EXISTS\` FROM ag_entquest A LEFT OUTER JOIN ag_user_quest UQ ON UQ.QNBR=A.QNBR AND UQ.QEFFDT=A.EFFDT AND email=? AND qversion=?
       WHERE object='B'
       AND type = 'Q'
-      AND A.QNBR NOT IN (?)
+      AND A.QNBR NOT IN (${ hideString })
       GROUP BY A.QNBR
-    `, [submitQuestionnaire.email, qversion, hideString, submitQuestionnaire.email, qversion, hideString, submitQuestionnaire.email, qversion, hideString]);
+    `, [submitQuestionnaire.email, qversion, submitQuestionnaire.email, qversion, submitQuestionnaire.email, qversion]);
     const missingAnswers = Object.assign([{}], respMissingAnswers[0]);
-
-    // console.log(missingAnswers);
 
     for (let i=0; i<missingAnswers.length; i++) {
       if (missingAnswers[i].EXISTS === 'NE') {
+        console.log(missingAnswers[i]);
         throw new BadRequestException('Please complete the questionnaire');
       }
     }
