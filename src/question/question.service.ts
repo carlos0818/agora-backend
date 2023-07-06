@@ -130,12 +130,16 @@ export class QuestionService {
       WHERE UQTOTAL.email=? AND UQTOTAL.qversion=?
       ORDER BY QNBR
     `, [submitQuestionnaire.email, qversion, submitQuestionnaire.email, qversion]);
-    const questionsNotInTemplate = Object.assign([{}], respQuestionsNotInTemplate[0]);
+    const questionsNotInTemplate = Object.assign([], respQuestionsNotInTemplate[0]);
+
+    if (questionsNotInTemplate.length === 0) {
+      throw new BadRequestException('Please complete the questionnaire');
+    }
 
     questionsNotInTemplate.map(async (question: any) => {
       if (!question.delete_is_null) {
         await this.connection.query(`
-          DELETE FROM ag_user_quest WHERE UQ.email=? AND UQ.qversion=? AND qnbr=? AND anbr=?
+          DELETE FROM ag_user_quest WHERE email=? AND qversion=? AND qnbr=? AND anbr=?
         `, [submitQuestionnaire.email, qversion, question.qnbr, question.anbr]);
       }
     });
@@ -153,6 +157,8 @@ export class QuestionService {
         SELECT \`show\`, \`hide\` FROM ag_entans WHERE qnbr=? AND effdt=? AND anbr=?
       `, [userAnswersWithAction[i].qnbr, userAnswersWithAction[i].qeffdt, userAnswersWithAction[i].anbr]);
       const showHide = respShowHide[0][0];
+
+      console.log(respShowHide[0]);
   
       let respHideSplit: any;
   
@@ -167,11 +173,9 @@ export class QuestionService {
     
     let hideString = hide.join(',');
 
-    console.log(hideString);
-
     await this.connection.query(`
-      DELETE FROM ag_user_quest WHERE email=? AND qversion=? AND qnbr IN(?)
-    `, [submitQuestionnaire.email, qversion, hideString]);
+      DELETE FROM ag_user_quest WHERE email=? AND qversion=? AND qnbr IN(${ hideString })
+    `, [submitQuestionnaire.email, qversion]);
 
     const respMissingAnswers = await this.connection.query<RowDataPacket[]>(`
       SELECT A.QNBR, CASE WHEN UQ.QNBR IS NULL THEN 'NE' ELSE 'E' END AS \`EXISTS\` FROM ag_entans A LEFT OUTER JOIN ag_user_quest UQ ON UQ.QNBR=A.QNBR AND email=? AND qversion=?
@@ -198,7 +202,6 @@ export class QuestionService {
 
     for (let i=0; i<missingAnswers.length; i++) {
       if (missingAnswers[i].EXISTS === 'NE') {
-        console.log(missingAnswers[i]);
         throw new BadRequestException('Please complete the questionnaire');
       }
     }
