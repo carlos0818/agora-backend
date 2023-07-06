@@ -183,13 +183,15 @@ export class QuestionService {
       SELECT A.QNBR, CASE WHEN COUNT(UQ.ANBR) BETWEEN SUBSTR(A.BOBJECT,1,1) AND SUBSTR(A.BOBJECT,3,1) THEN 'E' ELSE 'NE' END AS \`EXISTS\` FROM ag_entquest A LEFT OUTER JOIN ag_user_quest UQ ON UQ.QNBR=A.QNBR AND UQ.QEFFDT=A.EFFDT AND email=? AND qversion=?
       WHERE object='M'
       AND type = 'Q'
+      AND A.QNBR NOT IN (?)
       GROUP BY A.QNBR, A.BOBJECT
       UNION
       SELECT A.QNBR, CASE WHEN UQ.EXTRAVALUE IS NULL THEN 'NE' ELSE 'E' END AS \`EXISTS\` FROM ag_entquest A LEFT OUTER JOIN ag_user_quest UQ ON UQ.QNBR=A.QNBR AND UQ.QEFFDT=A.EFFDT AND email=? AND qversion=?
       WHERE object='B'
       AND type = 'Q'
+      AND A.QNBR NOT IN (?)
       GROUP BY A.QNBR
-    `, [submitQuestionnaire.email, qversion, hideString, submitQuestionnaire.email, qversion, submitQuestionnaire.email, qversion]);
+    `, [submitQuestionnaire.email, qversion, hideString, submitQuestionnaire.email, qversion, hideString, submitQuestionnaire.email, qversion, hideString]);
     const missingAnswers = Object.assign([{}], respMissingAnswers[0]);
 
     // console.log(missingAnswers);
