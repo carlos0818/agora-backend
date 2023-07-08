@@ -47,19 +47,6 @@ export class QuestionService {
     return respUserAnswers[0];
   }
 
-  // async checkAnswerQuestion(answerQuestionDto: AnswerQuestionDto) {
-  //   const answerQuestion = await this.connection.query(`
-  //     SELECT SUBSTRING(b.hide, $1) answer FROM ag_user_quest a, ag_entans b
-  //     WHERE a.email=$2
-  //     AND a.effdt=(SELECT MAX(a_ed.effdt) FROM ag_user_quest a_ed WHERE a.email=a_ed.email AND a.type=a_ed.type AND a.qnbr=a_ed.qnbr AND a.qeffdt=a_ed.qeffdt
-  //     AND a.anbr=a_ed.anbr)
-  //     AND a.qnbr=b.qnbr AND a.qeffdt=b.effdt AND a.anbr=b.anbr
-  //     AND a.qnbr=$3 AND a.type=$4
-  //   `, [answerQuestionDto.numbers, answerQuestionDto.email, answerQuestionDto.question, answerQuestionDto.type]);
-
-  //   return answerQuestion.rows[0];
-  // }
-
   async getUserQuestionVersion(email: string) {
     const maxVersion = await this.connection.query<RowDataPacket[]>(`
       SELECT CASE WHEN MAX(qversion) IS NULL THEN 1 ELSE MAX(qversion) + 1 END AS maxVersion FROM ag_user_form_version WHERE email=?
@@ -157,8 +144,6 @@ export class QuestionService {
         SELECT \`show\`, \`hide\` FROM ag_entans WHERE qnbr=? AND effdt=? AND anbr=?
       `, [userAnswersWithAction[i].qnbr, userAnswersWithAction[i].qeffdt, userAnswersWithAction[i].anbr]);
       const showHide = respShowHide[0][0];
-
-      console.log(respShowHide[0]);
   
       let respHideSplit: any;
   
@@ -210,6 +195,19 @@ export class QuestionService {
       UPDATE ag_user SET qversion=qversion+1 WHERE email=?
     `, [submitQuestionnaire.email]);
 
-    return 'Questionnaire saved';
+    return { message: 'Questionnaire saved' };
+  }
+
+  async validateCompleteQuestionnaire(submitQuestionnaire: SubmitQuestionnaire) {
+    const respValidate = await this.connection.query(`
+      SELECT 'RESPONSE' FROM ag_user WHERE email=? AND qversion=(SELECT MAX(qversion) FROM ag_user_quest WHERE email=?)
+    `, [submitQuestionnaire.email, submitQuestionnaire.email]);
+    const validate = Object.assign([], respValidate[0]);
+
+    if (validate.length > 0) {
+      throw new BadRequestException('The questionnaire has already been completed');
+    }
+
+    return { message: 'Ok' };
   }
 }

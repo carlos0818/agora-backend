@@ -27,20 +27,14 @@ export class QuestionController {
     return this.questionService.listAnswers();
   }
 
-  // @Get('check-answer-question')
-  // // @ApiResponse({ status: 200, description: 'List of answers', type: [Answer] })
-  // checkAnswerQuestion(@Query() answerQuestionDto: AnswerQuestionDto) {
-  //   return this.questionService.checkAnswerQuestion(answerQuestionDto);
-  // }
-
   @Get('user-answers')
   userAnswers(@Query() userAnswers: UserAnswers) {
     return this.questionService.userAnswers(userAnswers);
   }
 
   @Get('get-user-question-version')
-  getUserQuestionVersion(@Query() email: string) {
-    return this.questionService.getUserQuestionVersion(email);
+  getUserQuestionVersion(@Query() submitQuestionnaire: SubmitQuestionnaire) {
+    return this.questionService.getUserQuestionVersion(submitQuestionnaire.email);
   }
 
   @Post('save-question')
@@ -61,5 +55,10 @@ export class QuestionController {
   @Post('submit-questionnaire')
   submitQuestionnaire(@Body() submitQuestionnaire: SubmitQuestionnaire) {
     return this.questionService.submitQuestionnaire(submitQuestionnaire);
+  }
+
+  @Get('validate-complete-questionnaire')
+  validateCompleteQuestionnaire(@Query() submitQuestionnaire: SubmitQuestionnaire) {
+    return this.questionService.validateCompleteQuestionnaire(submitQuestionnaire);
   }
 }
