@@ -1,17 +1,16 @@
-import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { Inject, Injectable, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PassportStrategy } from "@nestjs/passport";
 
 import { ExtractJwt, Strategy } from "passport-jwt";
-import { InjectClient } from 'nest-mysql';
-import { Connection, RowDataPacket } from 'mysql2/promise';
+import { Pool, RowDataPacket } from 'mysql2/promise';
 
 import { JwtPayload } from "../interfaces/jwt-payload.interface";
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
     constructor(
-        @InjectClient('MySQL') private connection: Connection,
+        @Inject('DATABASE_CONNECTION') private readonly pool: Pool,
         configService: ConfigService,
     ) {
         super({
@@ -22,19 +21,17 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
     async validate(payload: JwtPayload): Promise<RowDataPacket> {
         const { email } = payload;
-        await this.connection.connect();
-        const user = await this.connection.query<RowDataPacket[]>(`
-            SELECT status FROM ag_user WHERE email=$1
+
+        const user = await this.pool.query<RowDataPacket[]>(`
+            SELECT status FROM ag_user WHERE email=?
             `, [email]
         );
 
-        if(user[0].length > 0) {
-            await this.connection.end();
+        if(user[0].length === 0) {
             throw new UnauthorizedException('Token not valid');
         }
 
-        if(user[0][0].status) {
-            await this.connection.end();
+        if(user[0][0].status === '0') {
             throw new UnauthorizedException('User is inactive, talk with an admin');
         }
 

@@ -8,10 +8,11 @@ import { UserController } from './user.controller';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { HttpModule } from '@nestjs/axios';
 import { MailService } from 'src/mail/mail.service';
+import { DatabaseService } from 'src/database/database.service';
 
 @Module({
   controllers: [UserController],
-  providers: [UserService, JwtStrategy, MailService],
+  providers: [UserService, JwtStrategy, MailService, DatabaseService],
   imports: [
     HttpModule,
     ConfigModule,
@@ -31,6 +32,6 @@ import { MailService } from 'src/mail/mail.service';
       }
     })
   ],
-  exports: [JwtStrategy, PassportModule, JwtModule],
+  exports: [PassportModule, JwtStrategy, JwtModule],
 })
 export class UserModule {}

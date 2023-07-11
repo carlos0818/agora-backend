@@ -12,6 +12,8 @@ import { environments } from './environments';
 import { QuestionModule } from './question/question.module';
 import { WallModule } from './wall/wall.module';
 import config from './config';
+// import { DatabaseService } from './database/database.service';
+import { FilesModule } from './files/files.module';
 
 @Module({
   imports: [
@@ -30,6 +32,8 @@ import config from './config';
     UserModule,
     QuestionModule,
     WallModule,
+    FilesModule,
   ],
+  // providers: [DatabaseService],
 })
 export class AppModule {}

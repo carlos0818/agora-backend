@@ -1,4 +1,6 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+
 import { WallService } from './wall.service';
 import { AgoraMessage } from './dto/agoraMessage.dto';
 import { CloseAgoraMessage } from './dto/closeAgoraMessage.dto';
@@ -9,6 +11,7 @@ export class WallController {
   constructor(private readonly wallService: WallService) {}
 
   @Get('agora-messages')
+  // @UseGuards(AuthGuard())
   listAgoraMessages(@Query() agoraMessage: AgoraMessage) {
     return this.wallService.listAgoraMessages(agoraMessage);
   }

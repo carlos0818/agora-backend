@@ -8,6 +8,7 @@ import { RegisterSocialUserDto } from './dto/register-social-user.dto';
 import { ActivateAccountDto } from './dto/activate-account.dto';
 import { LoginTokenDto } from './dto/login-token.dto';
 import { Login } from './entities/login.entity';
+import { VerifyUserDto } from './dto/verifyUser.dto';
 
 @ApiTags('Users')
 @Controller('user')
@@ -54,5 +55,10 @@ export class UserController {
   @ApiResponse({ status: 400, description: 'We cannot find your registered user / Your account has already been activated previously' })
   activateAccount(@Query() activateAccountDto: ActivateAccountDto) {
     return this.userService.activateAccount(activateAccountDto);
+  }
+
+  @Get('is-my-user')
+  isMyUser(@Query() verifyUserDto: VerifyUserDto) {
+    return this.userService.verifyUser(verifyUserDto);
   }
 }

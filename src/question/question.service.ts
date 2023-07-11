@@ -1,7 +1,6 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 
-import { InjectClient } from 'nest-mysql';
-import { Connection, RowDataPacket } from 'mysql2/promise';
+import { Pool, RowDataPacket } from 'mysql2/promise';
 
 import { UserAnswers } from './dto/userAnswers.dto';
 import { SaveQuestionDto } from './dto/saveQuestion.dto';
@@ -9,15 +8,16 @@ import { DeleteUserQuestionDto } from './dto/deleteUserQuestion.dto';
 import { SaveQuestionWithNoValidation } from './dto/saveQuestionWithoutValidation.dto';
 import { SubmitQuestionnaire } from './dto/submitQuestionnaire.dto';
 import { UserQuestion } from './entities/user-question.entity';
+import { DatabaseService } from 'src/database/database.service';
 
 @Injectable()
 export class QuestionService {
   constructor(
-    @InjectClient('MySQL') private connection: Connection,
+    @Inject('DATABASE_CONNECTION') private readonly pool: Pool,
   ){}
 
   async listQuestions() {
-    const questions = await this.connection.query<RowDataPacket[]>(`
+    const questions = await this.pool.query<RowDataPacket[]>(`
       SELECT qnbr, DATE_FORMAT(effdt, '%Y-%m-%d %H:%i:%s') effdt, descr, video, type, object, bobject, page FROM ag_entquest q
       WHERE q.status='A' AND q.effdt=(SELECT MAX(q_ed.effdt) FROM ag_entquest q_ed WHERE q.qnbr=q_ed.qnbr AND q_ed.effdt<=sysdate())
       ORDER BY q.page, q.orderby
@@ -27,7 +27,7 @@ export class QuestionService {
   }
 
   async listAnswers() {
-    const answers = await this.connection.query<RowDataPacket[]>(`
+    const answers = await this.pool.query<RowDataPacket[]>(`
       SELECT qnbr, DATE_FORMAT(effdt, '%Y-%m-%d %H:%i:%s') effdt, anbr, status, score, descr, \`show\`, hide FROM ag_entans a WHERE a.status='A'
       AND a.effdt=(SELECT MAX(q_ed.effdt) FROM ag_entans q_ed WHERE a.qnbr=q_ed.qnbr AND q_ed.effdt<=sysdate())
       ORDER BY a.orderby
@@ -37,7 +37,7 @@ export class QuestionService {
   }
 
   async userAnswers(userAnswers: UserAnswers) {
-    const respUserAnswers = await this.connection.query<RowDataPacket[]>(`
+    const respUserAnswers = await this.pool.query<RowDataPacket[]>(`
       SELECT a.qnbr, a.anbr, extravalue FROM ag_user_quest a
       WHERE a.email=?
       AND a.qeffdt=(SELECT MAX(a_ed.qeffdt) FROM ag_user_quest a_ed WHERE a.email=a_ed.email AND a.qnbr=a_ed.qnbr AND a.qeffdt=a_ed.qeffdt
@@ -48,7 +48,7 @@ export class QuestionService {
   }
 
   async getUserQuestionVersion(email: string) {
-    const maxVersion = await this.connection.query<RowDataPacket[]>(`
+    const maxVersion = await this.pool.query<RowDataPacket[]>(`
       SELECT CASE WHEN MAX(qversion) IS NULL THEN 1 ELSE MAX(qversion) + 1 END AS maxVersion FROM ag_user_form_version WHERE email=?
     `, [email]);
 
@@ -57,8 +57,8 @@ export class QuestionService {
 
   async saveUserQuestion(saveQuestionDto: SaveQuestionDto) {
     const maxVersion = await this.getUserQuestionVersion(saveQuestionDto.email)
-    
-    const userQuest = await this.connection.query<RowDataPacket[]>(`
+
+    const userQuest = await this.pool.query<RowDataPacket[]>(`
       SELECT 'EXISTS' FROM ag_user_quest a, ag_entans b
       WHERE qversion = ?
       AND b.qnbr=a.qnbr AND b.effdt=a.qeffdt AND b.anbr=a.anbr
@@ -68,16 +68,16 @@ export class QuestionService {
     `, [maxVersion, saveQuestionDto.effdt, saveQuestionDto.email, saveQuestionDto.qnbr]);
 
     if (userQuest[0].length > 0) {
-      await this.connection.query(`
+      await this.pool.query(`
         UPDATE ag_user_quest SET anbr=?, extravalue=? WHERE email=? AND qnbr=? AND qeffdt=? AND qversion=?
       `, [saveQuestionDto.anbr, saveQuestionDto.extravalue, saveQuestionDto.email, saveQuestionDto.qnbr, saveQuestionDto.effdt, maxVersion]);
     } else {
       if (saveQuestionDto.extravalue) {
-        await this.connection.query(`
+        await this.pool.query(`
           INSERT INTO ag_user_quest VALUES(?,?,?,?,?,?)
         `, [saveQuestionDto.email, saveQuestionDto.qnbr, saveQuestionDto.effdt, saveQuestionDto.anbr, maxVersion, saveQuestionDto.extravalue]);
       } else {
-        await this.connection.query(`
+        await this.pool.query(`
           INSERT INTO ag_user_quest(email, qnbr, qeffdt, anbr, qversion) VALUES(?,?,?,?,?)
         `, [saveQuestionDto.email, saveQuestionDto.qnbr, saveQuestionDto.effdt, saveQuestionDto.anbr, maxVersion]);
       }
@@ -85,30 +85,30 @@ export class QuestionService {
   }
 
   async deleteUserQuestion(deleteUserQuestion: DeleteUserQuestionDto) {
-    await this.connection.query(`
+    await this.pool.query(`
       DELETE FROM ag_user_quest WHERE email=? AND qnbr=? AND anbr=? AND qeffdt=? AND qversion=?
     `, [deleteUserQuestion.email, deleteUserQuestion.qnbr, deleteUserQuestion.anbr, deleteUserQuestion.qeffdt, deleteUserQuestion.qversion]);
   }
 
   async saveQuestionWithNoValidation(saveQuestionWithNoValidation: SaveQuestionWithNoValidation) {
     if (!saveQuestionWithNoValidation.extravalue) {
-      await this.connection.query(`
+      await this.pool.query(`
         INSERT INTO ag_user_quest VALUES(?, ?, ?, ?, ?, NULL)
       `, [saveQuestionWithNoValidation.email, saveQuestionWithNoValidation.qnbr, saveQuestionWithNoValidation.qeffdt, saveQuestionWithNoValidation.anbr, saveQuestionWithNoValidation.qversion]);
     } else {
-      await this.connection.query(`
+      await this.pool.query(`
         INSERT INTO ag_user_quest VALUES(?, ?, ?, ?, ?, ?)
       `, [saveQuestionWithNoValidation.email, saveQuestionWithNoValidation.qnbr, saveQuestionWithNoValidation.qeffdt, saveQuestionWithNoValidation.anbr, saveQuestionWithNoValidation.qversion, saveQuestionWithNoValidation.extravalue]);
     }
   }
 
   async submitQuestionnaire(submitQuestionnaire: SubmitQuestionnaire) {
-    const respQversion = await this.connection.query<RowDataPacket[]>(`
+    const respQversion = await this.pool.query<RowDataPacket[]>(`
       SELECT qversion + 1 qversion FROM ag_user WHERE email=?
     `, [submitQuestionnaire.email]);
     const qversion = respQversion[0][0].qversion;
 
-    const respQuestionsNotInTemplate = await this.connection.query<RowDataPacket[]>(`
+    const respQuestionsNotInTemplate = await this.pool.query<RowDataPacket[]>(`
       SELECT UQTOTAL.qnbr, UQTOTAL.qeffdt, UQTOTAL.anbr, UQ.anbr AS delete_is_null FROM ag_user_quest UQTOTAL LEFT OUTER JOIN ag_user_quest UQ ON 
       UQ.email=? AND UQ.qversion=?
       AND UQ.QEFFDT = (SELECT MAX(EFFDT) FROM ag_entquest ED WHERE ED.QNBR=UQ.QNBR AND ED.STATUS='A' AND ED.EFFDT <= sysdate())
@@ -125,13 +125,13 @@ export class QuestionService {
 
     questionsNotInTemplate.map(async (question: any) => {
       if (!question.delete_is_null) {
-        await this.connection.query(`
+        await this.pool.query(`
           DELETE FROM ag_user_quest WHERE email=? AND qversion=? AND qnbr=? AND anbr=?
         `, [submitQuestionnaire.email, qversion, question.qnbr, question.anbr]);
       }
     });
 
-    const respUserAnswersWithAction = await this.connection.query<RowDataPacket[]>(`
+    const respUserAnswersWithAction = await this.pool.query<RowDataPacket[]>(`
       SELECT uq.qnbr, uq.qeffdt, uq.anbr FROM ag_user_quest uq, ag_entans e WHERE uq.qnbr=e.qnbr AND uq.anbr=e.anbr AND uq.qeffdt=e.effdt
       AND uq.email=? AND uq.qversion=? AND e.status='A' AND e.hide IS NOT NULL
     `, [submitQuestionnaire.email, qversion]);
@@ -140,7 +140,7 @@ export class QuestionService {
     let hide: string[] = [];
 
     for (let i=0; i<userAnswersWithAction.length; i++) {
-      const respShowHide = await this.connection.query<RowDataPacket[]>(`
+      const respShowHide = await this.pool.query<RowDataPacket[]>(`
         SELECT \`show\`, \`hide\` FROM ag_entans WHERE qnbr=? AND effdt=? AND anbr=?
       `, [userAnswersWithAction[i].qnbr, userAnswersWithAction[i].qeffdt, userAnswersWithAction[i].anbr]);
       const showHide = respShowHide[0][0];
@@ -158,11 +158,11 @@ export class QuestionService {
     
     let hideString = hide.join(',');
 
-    await this.connection.query(`
+    await this.pool.query(`
       DELETE FROM ag_user_quest WHERE email=? AND qversion=? AND qnbr IN(${ hideString })
     `, [submitQuestionnaire.email, qversion]);
 
-    const respMissingAnswers = await this.connection.query<RowDataPacket[]>(`
+    const respMissingAnswers = await this.pool.query<RowDataPacket[]>(`
       SELECT A.QNBR, CASE WHEN UQ.QNBR IS NULL THEN 'NE' ELSE 'E' END AS \`EXISTS\` FROM ag_entans A LEFT OUTER JOIN ag_user_quest UQ ON UQ.QNBR=A.QNBR AND email=? AND qversion=?
       WHERE
       A.EFFDT = (SELECT MAX(EFFDT) FROM ag_entquest ED WHERE ED.QNBR=A.QNBR AND ED.STATUS='A' AND ED.EFFDT <= sysdate())
@@ -187,11 +187,12 @@ export class QuestionService {
 
     for (let i=0; i<missingAnswers.length; i++) {
       if (missingAnswers[i].EXISTS === 'NE') {
+
         throw new BadRequestException('Please complete the questionnaire');
       }
     }
 
-    await this.connection.query(`
+    await this.pool.query(`
       UPDATE ag_user SET qversion=qversion+1 WHERE email=?
     `, [submitQuestionnaire.email]);
 
@@ -199,7 +200,7 @@ export class QuestionService {
   }
 
   async validateCompleteQuestionnaire(submitQuestionnaire: SubmitQuestionnaire) {
-    const respValidate = await this.connection.query(`
+    const respValidate = await this.pool.query(`
       SELECT 'RESPONSE' FROM ag_user WHERE email=? AND qversion=(SELECT MAX(qversion) FROM ag_user_quest WHERE email=?)
     `, [submitQuestionnaire.email, submitQuestionnaire.email]);
     const validate = Object.assign([], respValidate[0]);
