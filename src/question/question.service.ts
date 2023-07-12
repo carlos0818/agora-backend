@@ -8,7 +8,6 @@ import { DeleteUserQuestionDto } from './dto/deleteUserQuestion.dto';
 import { SaveQuestionWithNoValidation } from './dto/saveQuestionWithoutValidation.dto';
 import { SubmitQuestionnaire } from './dto/submitQuestionnaire.dto';
 import { UserQuestion } from './entities/user-question.entity';
-import { DatabaseService } from 'src/database/database.service';
 
 @Injectable()
 export class QuestionService {

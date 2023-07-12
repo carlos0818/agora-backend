@@ -53,7 +53,6 @@ export class UserService {
 
     await this.pool.query('UPDATE ag_user SET lastlogindate=NOW() WHERE email=?', [loginUserDto.email]);
 
-
     return {
       fullname: user[0][0].fullname,
       email: user[0][0].email,

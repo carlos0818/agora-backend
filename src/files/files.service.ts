@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
+import { Pool } from 'mysql2/promise';
 
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 
 @Injectable()
 export class FilesService {
   constructor(
-    private readonly cloudinaryService: CloudinaryService
+    private readonly cloudinaryService: CloudinaryService,
   ){}
 
   async uploadProfilePicture(file: Express.Multer.File) {
