@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { Pool } from 'mysql2/promise';
 
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 
@@ -12,7 +11,8 @@ export class FilesService {
   async uploadProfilePicture(file: Express.Multer.File) {
     try {
       const result = await this.cloudinaryService.uploadProfilePicture(file);
-      return result.secure_url;
+      console.log(result);
+      return result.eager[0].secure_url;
     } catch (error) {
       console.log(error);
     }
