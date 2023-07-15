@@ -11,14 +11,16 @@ import { RegisterSocialUserDto } from './dto/register-social-user.dto';
 import { ActivateAccountDto } from './dto/activate-account.dto';
 import { LoginTokenDto } from './dto/login-token.dto';
 import { VerifyUserDto } from './dto/verifyUser.dto';
+import { User } from './entities/user.entity';
 
 import { MailService } from 'src/mail/mail.service';
 
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { lastValueFrom } from 'rxjs';
+import { UpdateUserInfoDto } from './dto/update-user-info.';
 
-type ValidateEmailSource = 
-  'ok' | 'register' | 'source'
+// type ValidateEmailSource = 
+//   User | 'register' | 'source'
 
 @Injectable()
 export class UserService {
@@ -126,7 +128,7 @@ export class UserService {
   async userExists(registerSocialUserDto: RegisterSocialUserDto) {
     const validateEmailAndSource = await this.validateEmailAndSource(registerSocialUserDto.email, registerSocialUserDto.source);
 
-    if(validateEmailAndSource === 'source' || validateEmailAndSource === 'register') {
+    if(validateEmailAndSource.response === 'source' || validateEmailAndSource.response === 'register') {
       throw new BadRequestException('The user does not exist, please click on Sign up');
     }
 
@@ -135,7 +137,7 @@ export class UserService {
     return {
       fullname: registerSocialUserDto.fullname,
       email: registerSocialUserDto.email,
-      type: registerSocialUserDto.type,
+      type: validateEmailAndSource.user.type,
       token: this.getJwt({
         email: registerSocialUserDto.email,
       })
@@ -147,14 +149,16 @@ export class UserService {
     
     const validateEmailAndSource = await this.validateEmailAndSource(registerSocialUserDto.email, registerSocialUserDto.source);
 
-    switch (validateEmailAndSource) {
+    console.log(validateEmailAndSource);
+
+    switch (validateEmailAndSource.response) {
       case 'ok':
         await this.pool.query('UPDATE ag_user SET lastlogindate=NOW() WHERE email=?', [registerSocialUserDto.email]);
         
         return {
           fullname: registerSocialUserDto.fullname,
           email: registerSocialUserDto.email,
-          type: registerSocialUserDto.type,
+          type: validateEmailAndSource.user.type,
           token: this.getJwt({
             email: registerSocialUserDto.email,
           })
@@ -243,6 +247,20 @@ export class UserService {
     // `, []);
   }
 
+  async updateUserInfo(updateUserInfoDto: UpdateUserInfoDto) {
+    await this.pool.query(`
+      UPDATE ag_user SET fullname=? WHERE email=?
+    `, [updateUserInfoDto.fullname, updateUserInfoDto.email]);
+  }
+
+  async loadUserData(verifyUserDto: VerifyUserDto) {
+    const user = await this.pool.query(`
+      SELECT email, fullname FROM ag_user WHERE email=?
+    `, [verifyUserDto.email]);
+
+    return user[0][0];
+  }
+
   // Generate JWT
   private getJwt(payload: JwtPayload) {
     return this.jwtService.sign(payload);
@@ -262,9 +280,9 @@ export class UserService {
   }
 
   // Validate if email and source is already exists
-  private async validateEmailAndSource(email: string, source: string): Promise<ValidateEmailSource> {
+  private async validateEmailAndSource(email: string, source: string) {
     const user = await this.pool.query<RowDataPacket[]>(`
-      SELECT email FROM ag_user WHERE email=?
+      SELECT fullname, email, type FROM ag_user WHERE email=?
     `, [email]);
 
     if (user[0].length > 0) {
@@ -273,13 +291,22 @@ export class UserService {
         `, [email, source]);
       
       if (response[0].length === 0) {
-        return 'source';
+        return {
+          response: 'source',
+          user: null
+        };
       }
 
-      return 'ok'
+      return {
+        response: 'ok',
+        user: user[0][0]
+      };
     }
 
-    return 'register';
+    return {
+      response: 'register',
+      user: null
+    };
   }
 
   // validate google captcha code

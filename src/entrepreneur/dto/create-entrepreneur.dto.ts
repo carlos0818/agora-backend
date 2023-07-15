@@ -27,20 +27,25 @@ export class CreateEntrepreneurDto {
     profilepic: string;
 
     @IsString()
+    @IsOptional()
     backpic: string;
 
     @IsString()
+    @IsOptional()
     videourl: string;
 
     @IsString()
     web: string;
 
     @IsString()
+    @IsOptional()
     facebook: string;
 
     @IsString()
+    @IsOptional()
     linkedin: string;
 
     @IsString()
+    @IsOptional()
     twitter: string;
 }

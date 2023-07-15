@@ -16,40 +16,42 @@ export class CloudinaryService {
           ]
         }, (error, result) => {
         if (error) return reject(error);
-        // const url = this.cropProfilePicture(result);
-        console.log(result);
         resolve(result);
       });
       toStream(file.buffer).pipe(upload);
     });
   }
 
-  // async uploadProfilePicture(
-  //   file: Express.Multer.File,
-  // ) {
-  //     console.log('FILE:', file);
-  //     v2.uploader.upload(file.originalname, { width: 300, height: 300, crop: 'fill' })
-  //       .then(result => {
-  //         console.log(result);
-  //       })
-  //       .catch(error => {
-  //         console.log(error);
-  //       });
-  //     // console.log('UPLOAD:', upload);
-  //     // toStream(file.buffer).pipe(upload);
-  // }
+  async uploadBackgroundPicture(
+    file: Express.Multer.File,
+  ): Promise<UploadApiErrorResponse | UploadApiResponse> {
+    return new Promise((resolve, reject) => {
+      const upload = v2.uploader.upload_stream(
+        {
+          eager_async: true,
+          eager: [
+            { width: 1280, height: 400, crop: 'fill' }
+          ]
+        }, (error, result) => {
+        if (error) return reject(error);
+        resolve(result);
+      });
+      toStream(file.buffer).pipe(upload);
+    });
+  }
 
-  async cropProfilePicture(urlString: string) {
-    // console.log('ORIGINAL:', original_filename);
-    // console.log('SECURE_URL:', secure_url);
-
-    const urlSplit = urlString.split('/');
-    const filename = urlSplit[urlSplit.length - 1];
-
-    const url = v2.image(filename, { width: 300, height: 300, crop: 'fill' });
-
-    console.log('URL:', url);
-
-    return url;
+  async uploadVideo(
+    file: Express.Multer.File,
+  ): Promise<UploadApiErrorResponse | UploadApiResponse> {
+    return new Promise((resolve, reject) => {
+      const upload = v2.uploader.upload_stream(
+        {
+          resource_type: 'video'
+        }, (error, result) => {
+        if (error) return reject(error);
+        resolve(result);
+      });
+      toStream(file.buffer).pipe(upload);
+    });
   }
 }

@@ -3,6 +3,7 @@ import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { Pool, RowDataPacket } from 'mysql2/promise';
 
 import { UpdateEntrepreneurInfoDto } from './dto/update-entrepreneur-info';
+import { UpdateEntrepreneurDto } from './dto/update-entrepreneur.dto';
 
 @Injectable()
 export class EntrepreneurService {
@@ -41,55 +42,55 @@ export class EntrepreneurService {
     if (updateEntrepreneurInfoDto.name) {
       query += 'name=?';
       field = 'name';
-      data = updateEntrepreneurInfoDto.name;
+      data = updateEntrepreneurInfoDto.name !== '' ? updateEntrepreneurInfoDto.name : null;
     } else if (updateEntrepreneurInfoDto.email_contact) {
       query += 'email_contact=?';
       field = 'email_contact';
-      data = updateEntrepreneurInfoDto.email_contact;
+      data = updateEntrepreneurInfoDto.email_contact !== '' ? updateEntrepreneurInfoDto.email_contact : null;
     } else if (updateEntrepreneurInfoDto.phone) {
       query += 'phone=?';
       field = 'phone';
-      data = updateEntrepreneurInfoDto.phone;
+      data = updateEntrepreneurInfoDto.phone !== '' ? updateEntrepreneurInfoDto.phone : null;
     } else if (updateEntrepreneurInfoDto.country) {
       query += 'country=?';
       field = 'country';
-      data = updateEntrepreneurInfoDto.country;
+      data = updateEntrepreneurInfoDto.country !== '' ? updateEntrepreneurInfoDto.country : null;
     } else if (updateEntrepreneurInfoDto.city) {
       query += 'city=?';
       field = 'city';
-      data = updateEntrepreneurInfoDto.city;
+      data = updateEntrepreneurInfoDto.city !== '' ? updateEntrepreneurInfoDto.city : null;
     } else if (updateEntrepreneurInfoDto.address) {
       query += 'address=?';
       field = 'address';
-      data = updateEntrepreneurInfoDto.address;
+      data = updateEntrepreneurInfoDto.address !== '' ? updateEntrepreneurInfoDto.address : null;
     } else if (updateEntrepreneurInfoDto.profilepic) {
       query += 'profilepic=?';
       field = 'profilepic';
-      data = updateEntrepreneurInfoDto.profilepic;
+      data = updateEntrepreneurInfoDto.profilepic !== '' ? updateEntrepreneurInfoDto.profilepic : null;
     } else if (updateEntrepreneurInfoDto.backpic) {
       query += 'backpic=?';
       field = 'backpic';
-      data = updateEntrepreneurInfoDto.backpic;
+      data = updateEntrepreneurInfoDto.backpic !== '' ? updateEntrepreneurInfoDto.backpic : null;
     } else if (updateEntrepreneurInfoDto.videourl) {
       query += 'videourl=?';
       field = 'videourl';
-      data = updateEntrepreneurInfoDto.videourl;
+      data = updateEntrepreneurInfoDto.videourl !== '' ? updateEntrepreneurInfoDto.videourl : null;
     } else if (updateEntrepreneurInfoDto.web) {
       query += 'web=?';
       field = 'web';
-      data = updateEntrepreneurInfoDto.web;
+      data = updateEntrepreneurInfoDto.web !== '' ? updateEntrepreneurInfoDto.web : null;
     } else if (updateEntrepreneurInfoDto.facebook) {
       query += 'facebook=?';
       field = 'facebook';
-      data = updateEntrepreneurInfoDto.facebook;
+      data = updateEntrepreneurInfoDto.facebook !== '' ? updateEntrepreneurInfoDto.facebook : null;
     } else if (updateEntrepreneurInfoDto.linkedin) {
       query += 'linkedin=?';
       field = 'linkedin';
-      data = updateEntrepreneurInfoDto.linkedin;
+      data = updateEntrepreneurInfoDto.linkedin !== '' ? updateEntrepreneurInfoDto.linkedin : null;
     } else if (updateEntrepreneurInfoDto.twitter) {
       query += 'twitter=?';
       field = 'twitter';
-      data = updateEntrepreneurInfoDto.twitter;
+      data = updateEntrepreneurInfoDto.twitter !== '' ? updateEntrepreneurInfoDto.twitter : null;
     }
 
     query += ' WHERE email=?';
@@ -103,5 +104,44 @@ export class EntrepreneurService {
     return {
       message: 'Entrepreneur saved'
     }
+  }
+
+  async update(updateEntrepreneurDto: UpdateEntrepreneurDto) {
+    let query = 'UPDATE ag_entrepreneur SET name=?, email_contact=?, phone=?, country=?, city=?, address=?, ';
+    let params = [
+      updateEntrepreneurDto.name,
+      updateEntrepreneurDto.email_contact,
+      updateEntrepreneurDto.phone,
+      updateEntrepreneurDto.country,
+      updateEntrepreneurDto.city,
+      updateEntrepreneurDto.address
+    ];
+
+    if(updateEntrepreneurDto.profilepic) {
+      query += 'profilepic=?, ';
+      params.push(updateEntrepreneurDto.profilepic);
+    }
+
+    if(updateEntrepreneurDto.backpic) {
+      query += 'backpic=?, ';
+      params.push(updateEntrepreneurDto.backpic);
+    }
+
+    if(updateEntrepreneurDto.videourl) {
+      query += 'videourl=?, ';
+      params.push(updateEntrepreneurDto.videourl);
+    }
+
+    query += 'web=?, facebook=?, linkedin=?, twitter=? WHERE email=?';
+    params.push(updateEntrepreneurDto.web);
+    params.push(updateEntrepreneurDto.facebook);
+    params.push(updateEntrepreneurDto.linkedin);
+    params.push(updateEntrepreneurDto.twitter);
+    params.push(updateEntrepreneurDto.email);
+
+    console.log('QUERY:', query);
+    console.log('PARAMS:', params);
+
+    await this.pool.query(query, params);
   }
 }

@@ -9,6 +9,7 @@ import { ActivateAccountDto } from './dto/activate-account.dto';
 import { LoginTokenDto } from './dto/login-token.dto';
 import { Login } from './entities/login.entity';
 import { VerifyUserDto } from './dto/verifyUser.dto';
+import { UpdateUserInfoDto } from './dto/update-user-info.';
 
 @ApiTags('Users')
 @Controller('user')
@@ -60,5 +61,15 @@ export class UserController {
   @Get('is-my-user')
   isMyUser(@Query() verifyUserDto: VerifyUserDto) {
     return this.userService.verifyUser(verifyUserDto);
+  }
+
+  @Post('update-user-info')
+  updateUserInfo(@Body() updateUserInfoDto: UpdateUserInfoDto) {
+    return this.userService.updateUserInfo(updateUserInfoDto);
+  }
+
+  @Get('load-user-data')
+  loadUserData(@Query() verifyUserDto: VerifyUserDto) {
+    return this.userService.loadUserData(verifyUserDto);
   }
 }
