@@ -11,11 +11,24 @@ export class EntrepreneurService {
     @Inject('DATABASE_CONNECTION') private pool: Pool,
   ){}
 
-  async loadData(updateEntrepreneurInfoDto: UpdateEntrepreneurInfoDto) {
+  async getDataByEmail(updateEntrepreneurInfoDto: UpdateEntrepreneurInfoDto) {
     const data = await this.pool.query(`
       SELECT name, email_contact, phone, country, city, address, profilepic, backpic, videourl, web, facebook, linkedin, twitter
       FROM ag_entrepreneur WHERE email=?
     `, [updateEntrepreneurInfoDto.email]);
+
+    return data[0][0];
+  }
+
+  async getDataById(updateEntrepreneurInfoDto: UpdateEntrepreneurInfoDto) {
+    const respEmail = await this.pool.query<RowDataPacket[]>(`
+      SELECT email FROM ag_user WHERE id=?
+    `, [updateEntrepreneurInfoDto.id]);
+
+    const data = await this.pool.query(`
+      SELECT name, email_contact, phone, country, city, address, profilepic, backpic, videourl, web, facebook, linkedin, twitter
+      FROM ag_entrepreneur WHERE email=?
+    `, [respEmail[0][0].email]);
 
     return data[0][0];
   }

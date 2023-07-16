@@ -8,9 +8,14 @@ import { UpdateEntrepreneurDto } from './dto/update-entrepreneur.dto';
 export class EntrepreneurController {
   constructor(private readonly entrepreneurService: EntrepreneurService) {}
 
-  @Get('get-data')
-  getData(@Query() updateEntrepreneurInfoDto: UpdateEntrepreneurInfoDto) {
-    return this.entrepreneurService.loadData(updateEntrepreneurInfoDto);
+  @Get('get-data-by-email')
+  getDataByEmail(@Query() updateEntrepreneurInfoDto: UpdateEntrepreneurInfoDto) {
+    return this.entrepreneurService.getDataByEmail(updateEntrepreneurInfoDto);
+  }
+
+  @Get('get-data-by-id')
+  getDataById(@Query() updateEntrepreneurInfoDto: UpdateEntrepreneurInfoDto) {
+    return this.entrepreneurService.getDataById(updateEntrepreneurInfoDto);
   }
 
   @Post('update-entrepreneur-info')

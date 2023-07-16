@@ -1,9 +1,11 @@
 import { BadRequestException, Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
+import { HttpService } from '@nestjs/axios';
+import { lastValueFrom } from 'rxjs';
 
 import { Pool, RowDataPacket } from 'mysql2/promise';
 import * as bcrypt from 'bcrypt';
-import { HttpService } from '@nestjs/axios';
 
 import { LoginUserDto } from './dto/login-user.dto';
 import { RegisterUserDto } from './dto/register-user.dto';
@@ -11,16 +13,12 @@ import { RegisterSocialUserDto } from './dto/register-social-user.dto';
 import { ActivateAccountDto } from './dto/activate-account.dto';
 import { LoginTokenDto } from './dto/login-token.dto';
 import { VerifyUserDto } from './dto/verifyUser.dto';
-import { User } from './entities/user.entity';
+import { UpdateUserInfoDto } from './dto/update-user-info.dto';
+import { FindByIdDto } from './dto/findById.dto';
 
 import { MailService } from 'src/mail/mail.service';
 
 import { JwtPayload } from './interfaces/jwt-payload.interface';
-import { lastValueFrom } from 'rxjs';
-import { UpdateUserInfoDto } from './dto/update-user-info.';
-
-// type ValidateEmailSource = 
-//   User | 'register' | 'source'
 
 @Injectable()
 export class UserService {
@@ -42,7 +40,7 @@ export class UserService {
     }
 
     const user = await this.pool.query<RowDataPacket[]>(`
-      SELECT fullname, password, email, type FROM ag_user WHERE email=? AND status='1' AND verified='1'
+      SELECT fullname, password, email, type, id FROM ag_user WHERE email=? AND status='1' AND verified='1'
     `, [loginUserDto.email]);
 
     if (user[0].length === 0) {
@@ -59,6 +57,7 @@ export class UserService {
       fullname: user[0][0].fullname,
       email: user[0][0].email,
       type: user[0][0].type,
+      id: user[0][0].id,
       token: this.getJwt({
         email: user[0][0].email,
       })
@@ -67,7 +66,7 @@ export class UserService {
 
   async loginToken(loginTokenDto: LoginTokenDto) {
     const user = await this.pool.query<RowDataPacket[]>(`
-      SELECT email, fullname, type, (CASE WHEN TIMESTAMPDIFF('minute', NOW() - creationdate) <= 15 THEN 'valid' ELSE 'not-valid' END) AS "valid"
+      SELECT email, fullname, type, id, (CASE WHEN TIMESTAMPDIFF('minute', NOW() - creationdate) <= 15 THEN 'valid' ELSE 'not-valid' END) AS "valid"
       FROM ag_user WHERE email=? AND token=?
     `, [loginTokenDto.email, loginTokenDto.token]);
 
@@ -81,6 +80,7 @@ export class UserService {
       fullname: user[0][0].fullname,
       email: user[0][0].email,
       type: user[0][0].type,
+      id: user[0][0].id,
       token: this.getJwt({
         email: user[0][0].email,
       })
@@ -102,17 +102,19 @@ export class UserService {
     }
   
     try {
-      const token = this.generateConfirmationToken()
+      const token = this.generateConfirmationToken();
+      const id = await this.generateUserId();
       const password = bcrypt.hashSync(registerUserDto.password, 10);
       await this.pool.query(`
-        INSERT INTO ag_user(email, password, status, type, fullname, lang, creationdate, lastdate, lastlogindate, creationadmin, source, token)
-        VALUES(?, ?, '1', ?, ?, 'en', now(), now(), now(), 'web', 'PR', ?)
+        INSERT INTO ag_user(email, password, status, type, fullname, lang, creationdate, lastdate, lastlogindate, creationadmin, source, token, id)
+        VALUES(?, ?, '1', ?, ?, 'en', now(), now(), now(), 'web', 'PR', ?, ?)
       `, [
           registerUserDto.email,
           password,
           registerUserDto.type,
           registerUserDto.fullname,
-          token
+          token,
+          id
         ]
       );
 
@@ -138,6 +140,7 @@ export class UserService {
       fullname: registerSocialUserDto.fullname,
       email: registerSocialUserDto.email,
       type: validateEmailAndSource.user.type,
+      id: validateEmailAndSource.user.id,
       token: this.getJwt({
         email: registerSocialUserDto.email,
       })
@@ -146,10 +149,9 @@ export class UserService {
 
   // login social
   async loginSocial(registerSocialUserDto: RegisterSocialUserDto) {
-    
     const validateEmailAndSource = await this.validateEmailAndSource(registerSocialUserDto.email, registerSocialUserDto.source);
 
-    console.log(validateEmailAndSource);
+    const id = await this.generateUserId();
 
     switch (validateEmailAndSource.response) {
       case 'ok':
@@ -159,19 +161,21 @@ export class UserService {
           fullname: registerSocialUserDto.fullname,
           email: registerSocialUserDto.email,
           type: validateEmailAndSource.user.type,
+          id: validateEmailAndSource.user.id,
           token: this.getJwt({
             email: registerSocialUserDto.email,
           })
         };
       case 'register':
         await this.pool.query(`
-          INSERT INTO ag_user(email, password, status, type, fullname, lang, creationdate, lastdate, lastlogindate, creationadmin, source)
-          VALUES(?, '$P@ssW0rd#', '1', ?, ?, 'en', now(), now(), now(), 'web', ?)
+          INSERT INTO ag_user(email, password, status, type, fullname, lang, creationdate, lastdate, lastlogindate, creationadmin, source, id)
+          VALUES(?, '$P@ssW0rd#', '1', ?, ?, 'en', now(), now(), now(), 'web', ?, ?)
         `, [
             registerSocialUserDto.email,
             registerSocialUserDto.type,
             registerSocialUserDto.fullname,
-            registerSocialUserDto.source
+            registerSocialUserDto.source,
+            id
           ]
         );
         
@@ -179,6 +183,7 @@ export class UserService {
           fullname: registerSocialUserDto.fullname,
           email: registerSocialUserDto.email,
           type: registerSocialUserDto.type,
+          id: validateEmailAndSource.user.id,
           token: this.getJwt({
             email: registerSocialUserDto.email,
           })
@@ -190,7 +195,7 @@ export class UserService {
 
   async activateAccount(activateAccountDto: ActivateAccountDto) {
     const user = await this.pool.query<RowDataPacket[]>(`
-      SELECT password, fullname, type FROM ag_user WHERE email=? AND token=?
+      SELECT password, fullname, type, id FROM ag_user WHERE email=? AND token=?
     `, [activateAccountDto.email, activateAccountDto.token]);
 
     if (user[0].length === 0) {
@@ -235,16 +240,23 @@ export class UserService {
       fullname: user[0][0].fullname,
       email: activateAccountDto.email,
       type: user[0][0].type,
+      id: user[0][0].id,
       token: this.getJwt({
         email: activateAccountDto.email,
       })
     }
   }
 
-  async verifyUser(verifyUserDto: VerifyUserDto) {
-    // const respVerify = await this.connection.query(`
-    //   SELECT
-    // `, []);
+  async isMyAccount(findByIdDto: FindByIdDto) {
+    const respVerify = await this.pool.query<RowDataPacket[]>(`
+      SELECT email, fullname FROM ag_user WHERE id=?
+    `, [findByIdDto.id]);
+
+    if (respVerify[0].length === 0) {
+      throw new BadRequestException('The user does not exist');
+    }
+
+    return respVerify[0][0];
   }
 
   async updateUserInfo(updateUserInfoDto: UpdateUserInfoDto) {
@@ -257,6 +269,18 @@ export class UserService {
     const user = await this.pool.query(`
       SELECT email, fullname FROM ag_user WHERE email=?
     `, [verifyUserDto.email]);
+
+    return user[0][0];
+  }
+
+  async idExists(findByIdDto: FindByIdDto) {
+    const user = await this.pool.query<RowDataPacket[]>(`
+      SELECT fullname, email FROM ag_user WHERE id=?
+    `, [findByIdDto.id]);
+
+    if (user[0].length === 0) {
+      throw new BadRequestException('The user does not exist');
+    }
 
     return user[0][0];
   }
@@ -282,7 +306,7 @@ export class UserService {
   // Validate if email and source is already exists
   private async validateEmailAndSource(email: string, source: string) {
     const user = await this.pool.query<RowDataPacket[]>(`
-      SELECT fullname, email, type FROM ag_user WHERE email=?
+      SELECT fullname, email, type, id FROM ag_user WHERE email=?
     `, [email]);
 
     if (user[0].length > 0) {
@@ -314,7 +338,7 @@ export class UserService {
     return await lastValueFrom(this.httpService.post(`https://www.google.com/recaptcha/api/siteverify?secret=${ process.env.CAPTCHA_SECRET }&response=${ captcha }`));
   }
 
-  private generateConfirmationToken = () => {
+  private generateConfirmationToken() {
     const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
     const tokenLength = 12;
     let token = '';
@@ -325,5 +349,28 @@ export class UserService {
     }
 
     return token;
+  }
+
+  private async generateUserId() {
+    const chars = '0123456789';
+    const charsWithoutZero = '123456789';
+    const tokenLength = 19;
+    let id = '';
+
+    for (var i = 0; i <= tokenLength; i++) {
+      let randomNumber = Math.floor(Math.random() * chars.length);
+      if (randomNumber === 0 && i === 0)
+        randomNumber = Math.floor(Math.random() * charsWithoutZero.length);
+      id += chars.substring(randomNumber, randomNumber +1);
+    }
+
+    const respVerify = await this.pool.query<RowDataPacket[]>(`SELECT id FROM ag_user WHERE id=${ id }`);
+    
+    if (respVerify[0].length > 0) {
+      await this.generateUserId();
+      return;
+    }
+
+    return id;
   }
 }

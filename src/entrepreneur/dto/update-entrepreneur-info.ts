@@ -2,7 +2,14 @@ import { IsEmail, IsNotEmpty, IsOptional, IsString } from "class-validator";
 
 export class UpdateEntrepreneurInfoDto {
     @IsString()
+    @IsOptional()
+    @IsNotEmpty()
+    id: string;
+
+    @IsString()
     @IsEmail()
+    @IsOptional()
+    @IsNotEmpty()
     email: string;
 
     @IsString()

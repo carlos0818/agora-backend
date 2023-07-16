@@ -9,7 +9,8 @@ import { ActivateAccountDto } from './dto/activate-account.dto';
 import { LoginTokenDto } from './dto/login-token.dto';
 import { Login } from './entities/login.entity';
 import { VerifyUserDto } from './dto/verifyUser.dto';
-import { UpdateUserInfoDto } from './dto/update-user-info.';
+import { UpdateUserInfoDto } from './dto/update-user-info.dto';
+import { FindByIdDto } from './dto/findById.dto';
 
 @ApiTags('Users')
 @Controller('user')
@@ -58,9 +59,9 @@ export class UserController {
     return this.userService.activateAccount(activateAccountDto);
   }
 
-  @Get('is-my-user')
-  isMyUser(@Query() verifyUserDto: VerifyUserDto) {
-    return this.userService.verifyUser(verifyUserDto);
+  @Get('is-my-account')
+  isMyAccount(@Query() findByIdDto: FindByIdDto) {
+    return this.userService.isMyAccount(findByIdDto);
   }
 
   @Post('update-user-info')
@@ -71,5 +72,10 @@ export class UserController {
   @Get('load-user-data')
   loadUserData(@Query() verifyUserDto: VerifyUserDto) {
     return this.userService.loadUserData(verifyUserDto);
+  }
+
+  @Get('id-exists')
+  idExists(@Query() findByIdDto: FindByIdDto) {
+    return this.userService.idExists(findByIdDto);
   }
 }
