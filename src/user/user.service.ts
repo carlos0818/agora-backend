@@ -137,7 +137,7 @@ export class UserService {
     await this.pool.query('UPDATE ag_user SET lastlogindate=NOW() WHERE email=?', [registerSocialUserDto.email]);
 
     return {
-      fullname: registerSocialUserDto.fullname,
+      fullname: validateEmailAndSource.user.fullname,
       email: registerSocialUserDto.email,
       type: validateEmailAndSource.user.type,
       id: validateEmailAndSource.user.id,
@@ -158,7 +158,7 @@ export class UserService {
         await this.pool.query('UPDATE ag_user SET lastlogindate=NOW() WHERE email=?', [registerSocialUserDto.email]);
         
         return {
-          fullname: registerSocialUserDto.fullname,
+          fullname: validateEmailAndSource.user.fullname,
           email: registerSocialUserDto.email,
           type: validateEmailAndSource.user.type,
           id: validateEmailAndSource.user.id,
