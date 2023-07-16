@@ -1,14 +1,18 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 
 import { Pool, RowDataPacket } from 'mysql2/promise';
 
 import { UpdateEntrepreneurInfoDto } from './dto/update-entrepreneur-info';
 import { UpdateEntrepreneurDto } from './dto/update-entrepreneur.dto';
+import { GetDataByIdDto } from './dto/get-data-by-id.dto';
+import { JwtService } from '@nestjs/jwt';
+import { JwtPayload } from 'src/user/interfaces/jwt-payload.interface';
 
 @Injectable()
 export class EntrepreneurService {
   constructor(
     @Inject('DATABASE_CONNECTION') private pool: Pool,
+    private readonly jwtService: JwtService,
   ){}
 
   async getDataByEmail(updateEntrepreneurInfoDto: UpdateEntrepreneurInfoDto) {
@@ -20,10 +24,10 @@ export class EntrepreneurService {
     return data[0][0];
   }
 
-  async getDataById(updateEntrepreneurInfoDto: UpdateEntrepreneurInfoDto) {
+  async getDataById(getDataByIdDto: GetDataByIdDto) {
     const respEmail = await this.pool.query<RowDataPacket[]>(`
       SELECT email FROM ag_user WHERE id=?
-    `, [updateEntrepreneurInfoDto.id]);
+    `, [getDataByIdDto.id]);
 
     const data = await this.pool.query(`
       SELECT name, email_contact, phone, country, city, address, profilepic, backpic, videourl, web, facebook, linkedin, twitter
@@ -152,9 +156,37 @@ export class EntrepreneurService {
     params.push(updateEntrepreneurDto.twitter);
     params.push(updateEntrepreneurDto.email);
 
-    console.log('QUERY:', query);
-    console.log('PARAMS:', params);
-
     await this.pool.query(query, params);
+  }
+
+  async validateRequiredData(getDataByIdDto: GetDataByIdDto, token: string) {
+    const decoded = this.jwtService.decode(token) as JwtPayload;
+    const respEmail = await this.pool.query<RowDataPacket[]>(`
+      SELECT email FROM ag_user WHERE id=?
+    `, [getDataByIdDto.id]);
+    const email = respEmail[0][0].email;
+
+    if (!decoded) {
+      throw new UnauthorizedException('');
+    }
+
+    if (decoded.email === email) {
+      return { response: 1 }
+    }
+
+    const respValidate = await this.pool.query<RowDataPacket[]>(`
+      SELECT COUNT(email) response FROM ag_entrepreneur
+      WHERE name IS NOT NULL AND email_contact IS NOT NULL AND phone IS NOT NULL AND country IS NOT NULL AND city IS NOT NULL AND address IS NOT NULL
+      AND profilepic IS NOT NULL AND email=?
+    `, [email]);
+
+    console.log(respValidate);
+
+    if (respValidate[0][0].response === 0) {
+      console.log('entró');
+      throw new BadRequestException('Required data is not completed');
+    }
+
+    return respValidate[0][0];
   }
 }

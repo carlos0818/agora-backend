@@ -273,17 +273,17 @@ export class UserService {
     return user[0][0];
   }
 
-  async idExists(findByIdDto: FindByIdDto) {
-    const user = await this.pool.query<RowDataPacket[]>(`
-      SELECT fullname, email FROM ag_user WHERE id=?
-    `, [findByIdDto.id]);
+  // async idExists(findByIdDto: FindByIdDto) {
+  //   const user = await this.pool.query<RowDataPacket[]>(`
+  //     SELECT fullname, email FROM ag_user WHERE id=?
+  //   `, [findByIdDto.id]);
 
-    if (user[0].length === 0) {
-      throw new BadRequestException('The user does not exist');
-    }
+  //   if (user[0].length === 0) {
+  //     throw new BadRequestException('The user does not exist');
+  //   }
 
-    return user[0][0];
-  }
+  //   return user[0][0];
+  // }
 
   // Generate JWT
   private getJwt(payload: JwtPayload) {

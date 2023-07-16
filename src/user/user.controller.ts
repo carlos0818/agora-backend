@@ -74,8 +74,8 @@ export class UserController {
     return this.userService.loadUserData(verifyUserDto);
   }
 
-  @Get('id-exists')
-  idExists(@Query() findByIdDto: FindByIdDto) {
-    return this.userService.idExists(findByIdDto);
-  }
+  // @Get('id-exists')
+  // idExists(@Query() findByIdDto: FindByIdDto) {
+  //   return this.userService.idExists(findByIdDto);
+  // }
 }

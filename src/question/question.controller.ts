@@ -9,6 +9,8 @@ import { SaveQuestionDto } from './dto/saveQuestion.dto';
 import { DeleteUserQuestionDto } from './dto/deleteUserQuestion.dto';
 import { SaveQuestionWithNoValidation } from './dto/saveQuestionWithoutValidation.dto';
 import { SubmitQuestionnaire } from './dto/submitQuestionnaire.dto';
+import { ValidateQuestionnaireByEmailDto } from './dto/validateQuestionnaireByEmail.dto';
+import { ValidateQuestionnaireByIdDto } from './dto/validateQuestionnaireById.dto';
 
 @ApiTags('Questions')
 @Controller('question')
@@ -57,8 +59,13 @@ export class QuestionController {
     return this.questionService.submitQuestionnaire(submitQuestionnaire);
   }
 
-  @Get('validate-complete-questionnaire')
-  validateCompleteQuestionnaire(@Query() submitQuestionnaire: SubmitQuestionnaire) {
-    return this.questionService.validateCompleteQuestionnaire(submitQuestionnaire);
+  @Get('validate-complete-questionnaire-by-email')
+  validateCompleteQuestionnaireByEmail(@Query() submitQuestionnaire: SubmitQuestionnaire) {
+    return this.questionService.validateCompleteQuestionnaireByEmail(submitQuestionnaire);
+  }
+
+  @Get('validate-complete-questionnaire-by-id')
+  validateCompleteQuestionnaireById(@Query() validateQuestionnaireByIdDto: ValidateQuestionnaireByIdDto) {
+    return this.questionService.validateCompleteQuestionnaireById(validateQuestionnaireByIdDto);
   }
 }

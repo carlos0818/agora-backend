@@ -1,8 +1,10 @@
-import { Controller, Get, Post, Body, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query, Req } from '@nestjs/common';
 
 import { EntrepreneurService } from './entrepreneur.service';
 import { UpdateEntrepreneurInfoDto } from './dto/update-entrepreneur-info';
 import { UpdateEntrepreneurDto } from './dto/update-entrepreneur.dto';
+import { GetDataByIdDto } from './dto/get-data-by-id.dto';
+import { Request } from 'express';
 
 @Controller('entrepreneur')
 export class EntrepreneurController {
@@ -14,8 +16,8 @@ export class EntrepreneurController {
   }
 
   @Get('get-data-by-id')
-  getDataById(@Query() updateEntrepreneurInfoDto: UpdateEntrepreneurInfoDto) {
-    return this.entrepreneurService.getDataById(updateEntrepreneurInfoDto);
+  getDataById(@Query() getDataByIdDto: GetDataByIdDto) {
+    return this.entrepreneurService.getDataById(getDataByIdDto);
   }
 
   @Post('update-entrepreneur-info')
@@ -25,6 +27,12 @@ export class EntrepreneurController {
 
   @Post('update')
   update(@Body() updateEntrepreneurDto: UpdateEntrepreneurDto) {
-    this.entrepreneurService.update(updateEntrepreneurDto);
+    return this.entrepreneurService.update(updateEntrepreneurDto);
+  }
+
+  @Get('validate-required-data')
+  validateRequiredData(@Query() getDataByIdDto: GetDataByIdDto, @Req() req: Request) {
+    const token = req.headers.authorization ? req.headers?.authorization.split(' ')[1] : '';
+    return this.entrepreneurService.validateRequiredData(getDataByIdDto, token);
   }
 }

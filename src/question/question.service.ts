@@ -8,6 +8,8 @@ import { DeleteUserQuestionDto } from './dto/deleteUserQuestion.dto';
 import { SaveQuestionWithNoValidation } from './dto/saveQuestionWithoutValidation.dto';
 import { SubmitQuestionnaire } from './dto/submitQuestionnaire.dto';
 import { UserQuestion } from './entities/user-question.entity';
+import { ValidateQuestionnaireByEmailDto } from './dto/validateQuestionnaireByEmail.dto';
+import { ValidateQuestionnaireByIdDto } from './dto/validateQuestionnaireById.dto';
 
 @Injectable()
 export class QuestionService {
@@ -198,10 +200,33 @@ export class QuestionService {
     return { message: 'Questionnaire saved' };
   }
 
-  async validateCompleteQuestionnaire(submitQuestionnaire: SubmitQuestionnaire) {
+  async validateCompleteQuestionnaireByEmail(validateQuestionnaireByEmailDto: ValidateQuestionnaireByEmailDto) {
     const respValidate = await this.pool.query(`
       SELECT 'RESPONSE' FROM ag_user WHERE email=? AND qversion=(SELECT MAX(qversion) FROM ag_user_quest WHERE email=?)
-    `, [submitQuestionnaire.email, submitQuestionnaire.email]);
+    `, [validateQuestionnaireByEmailDto.email, validateQuestionnaireByEmailDto.email]);
+    const validate = Object.assign([], respValidate[0]);
+
+    if (validate.length > 0) {
+      throw new BadRequestException('The questionnaire has already been completed');
+    }
+
+    return { message: 'Ok' };
+  }
+
+  async validateCompleteQuestionnaireById(validateQuestionnaireByIdDto: ValidateQuestionnaireByIdDto) {
+    const respEmail = await this.pool.query<RowDataPacket[]>(`
+      SELECT email FROM ag_user WHERE id=?
+    `, [validateQuestionnaireByIdDto.id]);
+
+    if (respEmail[0].length === 0) {
+      throw new BadRequestException('The user does not exist');
+    }
+
+    const email = respEmail[0][0].email;
+
+    const respValidate = await this.pool.query(`
+      SELECT 'RESPONSE' FROM ag_user WHERE id=? AND qversion=(SELECT MAX(qversion) FROM ag_user_quest WHERE id=?)
+    `, [email, email]);
     const validate = Object.assign([], respValidate[0]);
 
     if (validate.length > 0) {
