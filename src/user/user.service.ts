@@ -243,7 +243,7 @@ export class UserService {
 
     return {
       fullname: user[0][0].fullname,
-      name: user[0][0].user.fullname,
+      name: user[0][0].fullname,
       email: activateAccountDto.email,
       type: user[0][0].type,
       id: user[0][0].id,
