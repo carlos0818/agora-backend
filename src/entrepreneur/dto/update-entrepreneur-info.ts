@@ -69,4 +69,14 @@ export class UpdateEntrepreneurInfoDto {
     @IsOptional()
     @IsNotEmpty()
     twitter: string;
+
+    @IsString()
+    @IsOptional()
+    @IsNotEmpty()
+    aboutus: string;
+
+    @IsString()
+    @IsOptional()
+    @IsNotEmpty()
+    videodesc: string;
 }

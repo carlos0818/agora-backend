@@ -30,7 +30,7 @@ export class EntrepreneurService {
     `, [getDataByIdDto.id]);
 
     const data = await this.pool.query(`
-      SELECT name, email_contact, phone, country, city, address, profilepic, backpic, videourl, web, facebook, linkedin, twitter
+      SELECT name, email_contact, phone, country, city, address, profilepic, backpic, videourl, web, facebook, linkedin, twitter, aboutus, videodesc
       FROM ag_entrepreneur WHERE email=?
     `, [respEmail[0][0].email]);
 
@@ -108,6 +108,14 @@ export class EntrepreneurService {
       query += 'twitter=?';
       field = 'twitter';
       data = updateEntrepreneurInfoDto.twitter !== '' ? updateEntrepreneurInfoDto.twitter : null;
+    } else if (updateEntrepreneurInfoDto.aboutus) {
+      query += 'aboutus=?';
+      field = 'aboutus';
+      data = updateEntrepreneurInfoDto.aboutus !== '' ? updateEntrepreneurInfoDto.aboutus : null;
+    } else if (updateEntrepreneurInfoDto.videodesc) {
+      query += 'videodesc=?';
+      field = 'videodesc';
+      data = updateEntrepreneurInfoDto.videodesc !== '' ? updateEntrepreneurInfoDto.videodesc : null;
     }
 
     query += ' WHERE email=?';
