@@ -180,8 +180,6 @@ export class EntrepreneurService {
       AND profilepic IS NOT NULL AND email=?
     `, [email]);
 
-    console.log(respValidate);
-
     if (respValidate[0][0].response === 0) {
       console.log('entró');
       throw new BadRequestException('Required data is not completed');
