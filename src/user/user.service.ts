@@ -55,6 +55,7 @@ export class UserService {
 
     return {
       fullname: user[0][0].fullname,
+      name: user[0][0].fullname,
       email: user[0][0].email,
       type: user[0][0].type,
       id: user[0][0].id,
@@ -78,6 +79,7 @@ export class UserService {
 
     return {
       fullname: user[0][0].fullname,
+      name: user[0][0].fullname,
       email: user[0][0].email,
       type: user[0][0].type,
       id: user[0][0].id,
@@ -138,6 +140,7 @@ export class UserService {
 
     return {
       fullname: validateEmailAndSource.user.fullname,
+      name: validateEmailAndSource.user.fullname,
       email: registerSocialUserDto.email,
       type: validateEmailAndSource.user.type,
       id: validateEmailAndSource.user.id,
@@ -159,6 +162,7 @@ export class UserService {
         
         return {
           fullname: validateEmailAndSource.user.fullname,
+          name: validateEmailAndSource.user.fullname,
           email: registerSocialUserDto.email,
           type: validateEmailAndSource.user.type,
           id: validateEmailAndSource.user.id,
@@ -181,6 +185,7 @@ export class UserService {
         
         return {
           fullname: registerSocialUserDto.fullname,
+          name: registerSocialUserDto.fullname,
           email: registerSocialUserDto.email,
           type: registerSocialUserDto.type,
           id: validateEmailAndSource.user.id,
@@ -238,6 +243,7 @@ export class UserService {
 
     return {
       fullname: user[0][0].fullname,
+      name: user[0][0].user.fullname,
       email: activateAccountDto.email,
       type: user[0][0].type,
       id: user[0][0].id,
