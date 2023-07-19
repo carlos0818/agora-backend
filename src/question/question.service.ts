@@ -19,7 +19,8 @@ export class QuestionService {
 
   async listQuestions() {
     const questions = await this.pool.query<RowDataPacket[]>(`
-      SELECT qnbr, DATE_FORMAT(effdt, '%Y-%m-%d %H:%i:%s') effdt, descr, video, type, object, bobject, page FROM ag_entquest q
+      SELECT q.qnbr, DATE_FORMAT(q.effdt, '%Y-%m-%d %H:%i:%s') effdt, q.descr, v.video, q.type, q.object, q.bobject, q.page
+      FROM ag_entquest q left outer join ag_entquest_video v on q.qnbr=v.qnbr and q.effdt=v.effdt and v.lang='EN'
       WHERE q.status='A' AND q.effdt=(SELECT MAX(q_ed.effdt) FROM ag_entquest q_ed WHERE q.qnbr=q_ed.qnbr AND q_ed.effdt<=sysdate())
       ORDER BY q.page, q.orderby
     `);
