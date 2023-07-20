@@ -67,7 +67,7 @@ export class UserService {
 
   async loginToken(loginTokenDto: LoginTokenDto) {
     const user = await this.pool.query<RowDataPacket[]>(`
-      SELECT email, fullname, type, id, (CASE WHEN TIMESTAMPDIFF('minute', NOW() - creationdate) <= 15 THEN 'valid' ELSE 'not-valid' END) AS "valid"
+      SELECT email, fullname, type, id, (CASE WHEN TIMESTAMPDIFF(MINUTE, creationdate, NOW()) <= 15 THEN 'valid' ELSE 'not-valid' END) AS valid
       FROM ag_user WHERE email=? AND token=?
     `, [loginTokenDto.email, loginTokenDto.token]);
 
