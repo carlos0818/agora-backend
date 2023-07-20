@@ -1,12 +1,12 @@
 import { BadRequestException, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 
 import { Pool, RowDataPacket } from 'mysql2/promise';
 
+import { JwtPayload } from 'src/user/interfaces/jwt-payload.interface';
 import { UpdateEntrepreneurInfoDto } from './dto/update-entrepreneur-info';
 import { UpdateEntrepreneurDto } from './dto/update-entrepreneur.dto';
 import { GetDataByIdDto } from './dto/get-data-by-id.dto';
-import { JwtService } from '@nestjs/jwt';
-import { JwtPayload } from 'src/user/interfaces/jwt-payload.interface';
 
 @Injectable()
 export class EntrepreneurService {
@@ -165,6 +165,10 @@ export class EntrepreneurService {
     params.push(updateEntrepreneurDto.email);
 
     await this.pool.query(query, params);
+
+    return {
+      message: 'Entrepreneur saved'
+    }
   }
 
   async validateRequiredData(getDataByIdDto: GetDataByIdDto, token: string) {
@@ -189,7 +193,6 @@ export class EntrepreneurService {
     `, [email]);
 
     if (respValidate[0][0].response === 0) {
-      console.log('entró');
       throw new BadRequestException('Required data is not completed');
     }
 

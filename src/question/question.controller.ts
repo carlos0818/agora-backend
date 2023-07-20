@@ -17,16 +17,28 @@ import { ValidateQuestionnaireByIdDto } from './dto/validateQuestionnaireById.dt
 export class QuestionController {
   constructor(private readonly questionService: QuestionService) {}
 
-  @Get()
+  @Get('entrepreneur')
   @ApiResponse({ status: 200, description: 'List of questions', type: [Question] })
-  listQuestions() {
-    return this.questionService.listQuestions();
+  listQuestionsEntrepreneur() {
+    return this.questionService.listQuestionsEntrepreneur();
   }
 
-  @Get('answer')
+  @Get('investor')
+  @ApiResponse({ status: 200, description: 'List of questions', type: [Question] })
+  listQuestionsInvestor() {
+    return this.questionService.listQuestionsInvestor();
+  }
+
+  @Get('answer-entrepreneur')
   @ApiResponse({ status: 200, description: 'List of answers', type: [Answer] })
-  listAnswers() {
-    return this.questionService.listAnswers();
+  listAnswersEntrepreneur() {
+    return this.questionService.listAnswersEntrepreneur();
+  }
+
+  @Get('answer-investor')
+  @ApiResponse({ status: 200, description: 'List of answers', type: [Answer] })
+  listAnswersInvestor() {
+    return this.questionService.listAnswersInvestor();
   }
 
   @Get('user-answers')
@@ -54,9 +66,14 @@ export class QuestionController {
     return this.questionService.saveQuestionWithNoValidation(saveQuestionWithNoValidation);
   }
 
-  @Post('submit-questionnaire')
-  submitQuestionnaire(@Body() submitQuestionnaire: SubmitQuestionnaire) {
-    return this.questionService.submitQuestionnaire(submitQuestionnaire);
+  @Post('submit-questionnaire-entrepreneur')
+  submitQuestionnaireEntrepreneur(@Body() submitQuestionnaire: SubmitQuestionnaire) {
+    return this.questionService.submitQuestionnaireEntrepreneur(submitQuestionnaire);
+  }
+
+  @Post('submit-questionnaire-investor')
+  submitQuestionnaireInvestor(@Body() submitQuestionnaire: SubmitQuestionnaire) {
+    return this.questionService.submitQuestionnaireInvestor(submitQuestionnaire);
   }
 
   @Get('validate-complete-questionnaire-by-email')

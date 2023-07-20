@@ -1,10 +1,10 @@
 import { Controller, Get, Post, Body, Query, Req } from '@nestjs/common';
+import { Request } from 'express';
 
 import { EntrepreneurService } from './entrepreneur.service';
 import { UpdateEntrepreneurInfoDto } from './dto/update-entrepreneur-info';
 import { UpdateEntrepreneurDto } from './dto/update-entrepreneur.dto';
 import { GetDataByIdDto } from './dto/get-data-by-id.dto';
-import { Request } from 'express';
 
 @Controller('entrepreneur')
 export class EntrepreneurController {

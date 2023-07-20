@@ -15,6 +15,8 @@ import config from './config';
 // import { DatabaseService } from './database/database.service';
 import { FilesModule } from './files/files.module';
 import { EntrepreneurModule } from './entrepreneur/entrepreneur.module';
+import { InvestorModule } from './investor/investor.module';
+import { ExpertModule } from './expert/expert.module';
 
 @Module({
   imports: [
@@ -35,6 +37,8 @@ import { EntrepreneurModule } from './entrepreneur/entrepreneur.module';
     WallModule,
     FilesModule,
     EntrepreneurModule,
+    InvestorModule,
+    ExpertModule,
   ],
 })
 export class AppModule {}

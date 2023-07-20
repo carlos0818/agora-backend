@@ -1,6 +1,6 @@
-import { IsEmail, IsOptional, IsString } from "class-validator";
+import { IsEmail, IsOptional, IsString, Matches, MinLength } from "class-validator";
 
-export class CreateEntrepreneurDto {
+export class CreateExpertDto {
     @IsString()
     @IsEmail()
     email: string;
