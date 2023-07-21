@@ -64,7 +64,7 @@ export class QuestionController {
   }
 
   @Post('save-question')
-  saveUserQuestion(@Body() saveQuestionDto: SaveQuestionDto) {
+  saveUserQuestionEntrepreneur(@Body() saveQuestionDto: SaveQuestionDto) {
     return this.questionService.saveUserQuestion(saveQuestionDto);
   }
 

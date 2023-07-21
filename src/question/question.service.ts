@@ -102,14 +102,32 @@ export class QuestionService {
   async saveUserQuestion(saveQuestionDto: SaveQuestionDto) {
     const maxVersion = await this.getUserQuestionVersion(saveQuestionDto.email)
 
-    const userQuest = await this.pool.query<RowDataPacket[]>(`
-      SELECT 'EXISTS' FROM ag_user_quest a, ag_entans b
-      WHERE qversion = ?
-      AND b.qnbr=a.qnbr AND b.effdt=a.qeffdt AND b.anbr=a.anbr
-      AND b.effdt = ?
-      AND a.email = ?
-      AND a.qnbr = ?
-    `, [maxVersion, saveQuestionDto.effdt, saveQuestionDto.email, saveQuestionDto.qnbr]);
+    let query = '';
+
+    if (saveQuestionDto.type === 'E') {
+      query = `SELECT 'EXISTS' FROM ag_user_quest a, ag_entans b
+              WHERE qversion = ?
+              AND b.qnbr=a.qnbr AND b.effdt=a.qeffdt AND b.anbr=a.anbr
+              AND b.effdt = ?
+              AND a.email = ?
+              AND a.qnbr = ?`;
+    } else if (saveQuestionDto.type === 'I') {
+      query = `SELECT 'EXISTS' FROM ag_user_quest a, ag_invans b
+              WHERE qversion = ?
+              AND b.qnbr=a.qnbr AND b.effdt=a.qeffdt AND b.anbr=a.anbr
+              AND b.effdt = ?
+              AND a.email = ?
+              AND a.qnbr = ?`;
+    } else {
+      query = `SELECT 'EXISTS' FROM ag_user_quest a, ag_expans b
+              WHERE qversion = ?
+              AND b.qnbr=a.qnbr AND b.effdt=a.qeffdt AND b.anbr=a.anbr
+              AND b.effdt = ?
+              AND a.email = ?
+              AND a.qnbr = ?`;
+    }
+
+    const userQuest = await this.pool.query<RowDataPacket[]>(query, [maxVersion, saveQuestionDto.effdt, saveQuestionDto.email, saveQuestionDto.qnbr]);
 
     if (userQuest[0].length > 0) {
       await this.pool.query(`
