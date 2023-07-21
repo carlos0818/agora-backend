@@ -88,6 +88,11 @@ export class QuestionController {
     return this.questionService.submitQuestionnaireInvestor(submitQuestionnaire);
   }
 
+  @Post('submit-questionnaire-expert')
+  submitQuestionnaireExpert(@Body() submitQuestionnaire: SubmitQuestionnaire) {
+    return this.questionService.submitQuestionnaireExpert(submitQuestionnaire);
+  }
+
   @Get('validate-complete-questionnaire-by-email')
   validateCompleteQuestionnaireByEmail(@Query() submitQuestionnaire: SubmitQuestionnaire) {
     return this.questionService.validateCompleteQuestionnaireByEmail(submitQuestionnaire);
