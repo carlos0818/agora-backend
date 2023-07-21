@@ -29,6 +29,12 @@ export class QuestionController {
     return this.questionService.listQuestionsInvestor();
   }
 
+  @Get('expert')
+  @ApiResponse({ status: 200, description: 'List of questions', type: [Question] })
+  listQuestionsExpert() {
+    return this.questionService.listQuestionsExpert();
+  }
+
   @Get('answer-entrepreneur')
   @ApiResponse({ status: 200, description: 'List of answers', type: [Answer] })
   listAnswersEntrepreneur() {
@@ -39,6 +45,12 @@ export class QuestionController {
   @ApiResponse({ status: 200, description: 'List of answers', type: [Answer] })
   listAnswersInvestor() {
     return this.questionService.listAnswersInvestor();
+  }
+
+  @Get('answer-expert')
+  @ApiResponse({ status: 200, description: 'List of answers', type: [Answer] })
+  listAnswersExpert() {
+    return this.questionService.listAnswersExpert();
   }
 
   @Get('user-answers')

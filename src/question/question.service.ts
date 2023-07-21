@@ -39,6 +39,17 @@ export class QuestionService {
     return questions[0];
   }
 
+  async listQuestionsExpert() {
+    const questions = await this.pool.query<RowDataPacket[]>(`
+      SELECT q.qnbr, DATE_FORMAT(q.effdt, '%Y-%m-%d %H:%i:%s') effdt, q.descr, v.video, q.type, q.object, q.bobject, q.page
+      FROM ag_expquest q left outer join ag_expquest_video v on q.qnbr=v.qnbr and q.effdt=v.effdt and v.lang='EN'
+      WHERE q.status='A' AND q.effdt=(SELECT MAX(q_ed.effdt) FROM ag_expquest q_ed WHERE q.qnbr=q_ed.qnbr AND q_ed.effdt<=sysdate())
+      ORDER BY q.page, q.orderby
+    `);
+
+    return questions[0];
+  }
+
   async listAnswersEntrepreneur() {
     const answers = await this.pool.query<RowDataPacket[]>(`
       SELECT qnbr, DATE_FORMAT(effdt, '%Y-%m-%d %H:%i:%s') effdt, anbr, status, score, descr, \`show\`, hide FROM ag_entans a WHERE a.status='A'
@@ -53,6 +64,16 @@ export class QuestionService {
     const answers = await this.pool.query<RowDataPacket[]>(`
       SELECT qnbr, DATE_FORMAT(effdt, '%Y-%m-%d %H:%i:%s') effdt, anbr, status, score, descr, \`show\`, hide FROM ag_invans a WHERE a.status='A'
       AND a.effdt=(SELECT MAX(q_ed.effdt) FROM ag_invans q_ed WHERE a.qnbr=q_ed.qnbr AND q_ed.effdt<=sysdate())
+      ORDER BY a.orderby
+    `);
+
+    return answers[0];
+  }
+
+  async listAnswersExpert() {
+    const answers = await this.pool.query<RowDataPacket[]>(`
+      SELECT qnbr, DATE_FORMAT(effdt, '%Y-%m-%d %H:%i:%s') effdt, anbr, status, score, descr, \`show\`, hide FROM ag_expans a WHERE a.status='A'
+      AND a.effdt=(SELECT MAX(q_ed.effdt) FROM ag_expans q_ed WHERE a.qnbr=q_ed.qnbr AND q_ed.effdt<=sysdate())
       ORDER BY a.orderby
     `);
 
@@ -260,7 +281,7 @@ export class QuestionService {
 
     for (let i=0; i<userAnswersWithAction.length; i++) {
       const respShowHide = await this.pool.query<RowDataPacket[]>(`
-        SELECT \`show\`, \`hide\` FROM ag_entans WHERE qnbr=? AND effdt=? AND anbr=?
+        SELECT \`show\`, \`hide\` FROM ag_invans WHERE qnbr=? AND effdt=? AND anbr=?
       `, [userAnswersWithAction[i].qnbr, userAnswersWithAction[i].qeffdt, userAnswersWithAction[i].anbr]);
       const showHide = respShowHide[0][0];
   
@@ -297,6 +318,102 @@ export class QuestionService {
       GROUP BY A.QNBR, A.BOBJECT
       UNION
       SELECT A.QNBR, CASE WHEN UQ.EXTRAVALUE IS NULL THEN 'NE' ELSE 'E' END AS \`EXISTS\` FROM ag_invquest A LEFT OUTER JOIN ag_user_quest UQ ON UQ.QNBR=A.QNBR AND UQ.QEFFDT=A.EFFDT AND email=? AND qversion=?
+      WHERE object='B'
+      AND type = 'Q'
+      AND A.QNBR NOT IN (${ hideString })
+      GROUP BY A.QNBR
+    `, [submitQuestionnaire.email, qversion, submitQuestionnaire.email, qversion, submitQuestionnaire.email, qversion]);
+    const missingAnswers = Object.assign([{}], respMissingAnswers[0]);
+
+    for (let i=0; i<missingAnswers.length; i++) {
+      if (missingAnswers[i].EXISTS === 'NE') {
+        throw new BadRequestException('Please complete the questionnaire');
+      }
+    }
+
+    await this.pool.query(`
+      UPDATE ag_user SET qversion=qversion+1 WHERE email=?
+    `, [submitQuestionnaire.email]);
+
+    return { message: 'Questionnaire saved' };
+  }
+
+  async submitQuestionnaireExpert(submitQuestionnaire: SubmitQuestionnaire) {
+    const respQversion = await this.pool.query<RowDataPacket[]>(`
+      SELECT qversion + 1 qversion FROM ag_user WHERE email=?
+    `, [submitQuestionnaire.email]);
+    const qversion = respQversion[0][0].qversion;
+
+    const respQuestionsNotInTemplate = await this.pool.query<RowDataPacket[]>(`
+      SELECT UQTOTAL.qnbr, UQTOTAL.qeffdt, UQTOTAL.anbr, UQ.anbr AS delete_is_null FROM ag_user_quest UQTOTAL LEFT OUTER JOIN ag_user_quest UQ ON 
+      UQ.email=? AND UQ.qversion=?
+      AND UQ.QEFFDT = (SELECT MAX(EFFDT) FROM ag_expquest ED WHERE ED.QNBR=UQ.QNBR AND ED.STATUS='A' AND ED.EFFDT <= sysdate())
+      AND UQ.ANBR = (SELECT ANS.ANBR FROM ag_expans ANS WHERE ANS.QNBR=UQ.QNBR AND ANS.EFFDT=UQ.QEFFDT AND ANS.ANBR=UQ.ANBR AND ANS.STATUS='A')
+      AND UQ.qnbr=UQTOTAL.qnbr AND UQ.anbr=UQTOTAL.anbr
+      WHERE UQTOTAL.email=? AND UQTOTAL.qversion=?
+      ORDER BY QNBR
+    `, [submitQuestionnaire.email, qversion, submitQuestionnaire.email, qversion]);
+    const questionsNotInTemplate = Object.assign([], respQuestionsNotInTemplate[0]);
+
+    if (questionsNotInTemplate.length === 0) {
+      throw new BadRequestException('Please complete the questionnaire');
+    }
+
+    questionsNotInTemplate.map(async (question: any) => {
+      if (!question.delete_is_null) {
+        await this.pool.query(`
+          DELETE FROM ag_user_quest WHERE email=? AND qversion=? AND qnbr=? AND anbr=?
+        `, [submitQuestionnaire.email, qversion, question.qnbr, question.anbr]);
+      }
+    });
+
+    const respUserAnswersWithAction = await this.pool.query<RowDataPacket[]>(`
+      SELECT uq.qnbr, uq.qeffdt, uq.anbr FROM ag_user_quest uq, ag_expans e WHERE uq.qnbr=e.qnbr AND uq.anbr=e.anbr AND uq.qeffdt=e.effdt
+      AND uq.email=? AND uq.qversion=? AND e.status='A' AND e.hide IS NOT NULL
+    `, [submitQuestionnaire.email, qversion]);
+    const userAnswersWithAction = Object.assign([{}], respUserAnswersWithAction[0]);
+
+    let hide: string[] = [];
+
+    for (let i=0; i<userAnswersWithAction.length; i++) {
+      const respShowHide = await this.pool.query<RowDataPacket[]>(`
+        SELECT \`show\`, \`hide\` FROM ag_expans WHERE qnbr=? AND effdt=? AND anbr=?
+      `, [userAnswersWithAction[i].qnbr, userAnswersWithAction[i].qeffdt, userAnswersWithAction[i].anbr]);
+      const showHide = respShowHide[0][0];
+  
+      let respHideSplit: any;
+  
+      if (showHide.hide?.substring(0, 4) !== 'qnbr') {
+        respHideSplit = showHide.hide?.split(',') || null;
+      }
+  
+      if(respHideSplit) {
+        hide.push(...respHideSplit);
+      }
+    }
+    
+    let hideString = hide.join(',');
+
+    await this.pool.query(`
+      DELETE FROM ag_user_quest WHERE email=? AND qversion=? AND qnbr IN(${ hideString })
+    `, [submitQuestionnaire.email, qversion]);
+
+    const respMissingAnswers = await this.pool.query<RowDataPacket[]>(`
+      SELECT A.QNBR, CASE WHEN UQ.QNBR IS NULL THEN 'NE' ELSE 'E' END AS \`EXISTS\` FROM ag_expans A LEFT OUTER JOIN ag_user_quest UQ ON UQ.QNBR=A.QNBR AND email=? AND qversion=?
+      WHERE
+      A.EFFDT = (SELECT MAX(EFFDT) FROM ag_expquest ED WHERE ED.QNBR=A.QNBR AND ED.STATUS='A' AND ED.EFFDT <= sysdate())
+      AND A.ANBR = (SELECT ANS.ANBR FROM ag_expans ANS WHERE ANS.QNBR=A.QNBR AND ANS.EFFDT=A.EFFDT AND ANS.ANBR=A.ANBR AND ANS.STATUS='A')
+      AND A.QNBR NOT IN (${ hideString })
+      AND A.QNBR IN (SELECT QNBR FROM ag_expquest WHERE object IN ('C','Y','F','L') AND TYPE='Q')
+      GROUP BY A.QNBR
+      UNION
+      SELECT A.QNBR, CASE WHEN COUNT(UQ.ANBR) BETWEEN SUBSTR(A.BOBJECT,1,1) AND SUBSTR(A.BOBJECT,3,1) THEN 'E' ELSE 'NE' END AS \`EXISTS\` FROM ag_expquest A LEFT OUTER JOIN ag_user_quest UQ ON UQ.QNBR=A.QNBR AND UQ.QEFFDT=A.EFFDT AND email=? AND qversion=?
+      WHERE object='M'
+      AND type = 'Q'
+      AND A.QNBR NOT IN (${ hideString })
+      GROUP BY A.QNBR, A.BOBJECT
+      UNION
+      SELECT A.QNBR, CASE WHEN UQ.EXTRAVALUE IS NULL THEN 'NE' ELSE 'E' END AS \`EXISTS\` FROM ag_expquest A LEFT OUTER JOIN ag_user_quest UQ ON UQ.QNBR=A.QNBR AND UQ.QEFFDT=A.EFFDT AND email=? AND qversion=?
       WHERE object='B'
       AND type = 'Q'
       AND A.QNBR NOT IN (${ hideString })
