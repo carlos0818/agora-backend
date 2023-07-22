@@ -255,7 +255,7 @@ export class UserService {
 
   async isMyAccount(findByIdDto: FindByIdDto) {
     const respVerify = await this.pool.query<RowDataPacket[]>(`
-      SELECT email, fullname FROM ag_user WHERE id=?
+      SELECT email, fullname, type FROM ag_user WHERE id=?
     `, [findByIdDto.id]);
 
     if (respVerify[0].length === 0) {
