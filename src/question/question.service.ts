@@ -103,6 +103,7 @@ export class QuestionService {
     const maxVersion = await this.getUserQuestionVersion(saveQuestionDto.email)
 
     let query = '';
+    let query2 = '';
 
     if (saveQuestionDto.type === 'E') {
       query = `SELECT 'EXISTS' FROM ag_user_quest a, ag_entans b
@@ -111,6 +112,7 @@ export class QuestionService {
               AND b.effdt = ?
               AND a.email = ?
               AND a.qnbr = ?`;
+      query2 = `SELECT hide FROM ag_entans WHERE qnbr=? AND anbr=?`;
     } else if (saveQuestionDto.type === 'I') {
       query = `SELECT 'EXISTS' FROM ag_user_quest a, ag_invans b
               WHERE qversion = ?
@@ -118,6 +120,7 @@ export class QuestionService {
               AND b.effdt = ?
               AND a.email = ?
               AND a.qnbr = ?`;
+      query2 = `SELECT hide FROM ag_invans WHERE qnbr=? AND anbr=?`;
     } else {
       query = `SELECT 'EXISTS' FROM ag_user_quest a, ag_expans b
               WHERE qversion = ?
@@ -125,6 +128,7 @@ export class QuestionService {
               AND b.effdt = ?
               AND a.email = ?
               AND a.qnbr = ?`;
+      query2 = `SELECT hide FROM ag_expans WHERE qnbr=? AND anbr=?`;
     }
 
     const userQuest = await this.pool.query<RowDataPacket[]>(query, [maxVersion, saveQuestionDto.effdt, saveQuestionDto.email, saveQuestionDto.qnbr]);
@@ -144,6 +148,14 @@ export class QuestionService {
         `, [saveQuestionDto.email, saveQuestionDto.qnbr, saveQuestionDto.effdt, saveQuestionDto.anbr, maxVersion]);
       }
     }
+
+    const respAnswers = await this.pool.query(query2, [saveQuestionDto.qnbr, saveQuestionDto.anbr]);
+    const hide = respAnswers[0][0].hide
+
+    await this.pool.query(`
+      DELETE FROM ag_user_quest WHERE email=? AND qnbr > 4
+      AND qnbr not in (${ hide })
+    `, [saveQuestionDto.email]);
   }
 
   async deleteUserQuestion(deleteUserQuestion: DeleteUserQuestionDto) {
