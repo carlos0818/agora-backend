@@ -98,13 +98,13 @@ export class UserService {
     if (!data.success && registerUserDto.captcha !== '$#C@pTchA12647982$=') {
       throw new BadRequestException(`Incorrect captcha`);
     }
-  
+
     const validateEmail = await this.validateEmail(registerUserDto.email);
-  
+
     if (validateEmail) {
       throw new BadRequestException(`Email ${ registerUserDto.email } is already exists`);
     }
-  
+
     try {
       const token = this.generateConfirmationToken();
       const id = await this.generateUserId();
