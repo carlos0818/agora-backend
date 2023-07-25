@@ -19,5 +19,5 @@ export class SaveQuestionDto {
 
     @IsString()
     @IsOptional()
-    extravalue: string
+    extravalue?: string
 }

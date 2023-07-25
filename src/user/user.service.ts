@@ -1,6 +1,5 @@
 import { BadRequestException, Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { lastValueFrom } from 'rxjs';
 
@@ -17,8 +16,10 @@ import { UpdateUserInfoDto } from './dto/update-user-info.dto';
 import { FindByIdDto } from './dto/findById.dto';
 
 import { MailService } from 'src/mail/mail.service';
+import { QuestionService } from 'src/question/question.service';
 
 import { JwtPayload } from './interfaces/jwt-payload.interface';
+import { SaveQuestionDto } from 'src/question/dto/saveQuestion.dto';
 
 @Injectable()
 export class UserService {
@@ -27,6 +28,7 @@ export class UserService {
     private readonly jwtService: JwtService,
     private readonly httpService: HttpService,
     private readonly mailService: MailService,
+    private readonly questionService: QuestionService,
   ){}
 
   // User login
@@ -120,11 +122,12 @@ export class UserService {
         ]
       );
 
+      await this.insertUserQuestion(registerUserDto.type, registerUserDto.email);
+
       await this.mailService.sendUserRegister(registerUserDto.email, process.env.ACTIVATE_ACCOUNT_URL, token);
 
       return { message: 'User was created' }
     } catch (error) {
-      
       throw new InternalServerErrorException('Unexpected error, try again.' + error);
     }
   }
@@ -182,13 +185,15 @@ export class UserService {
             id
           ]
         );
+
+        await this.insertUserQuestion(registerSocialUserDto.type, registerSocialUserDto.email);
         
         return {
           fullname: registerSocialUserDto.fullname,
           name: registerSocialUserDto.fullname,
           email: registerSocialUserDto.email,
           type: registerSocialUserDto.type,
-          id: validateEmailAndSource.user.id,
+          id,
           token: this.getJwt({
             email: registerSocialUserDto.email,
           })
@@ -378,5 +383,35 @@ export class UserService {
     }
 
     return id;
+  }
+
+  private async insertUserQuestion(type: string, email: string) {
+    let query = '';
+    if (type === 'E') {
+      query = `SELECT DATE_FORMAT(q.effdt, '%Y-%m-%d %H:%i:%s') effdt
+                FROM ag_entquest q
+                WHERE q.status='A' AND q.effdt=(SELECT MAX(q_ed.effdt) FROM ag_entquest q_ed WHERE q.qnbr=q_ed.qnbr AND q_ed.effdt<=sysdate())
+                ORDER BY q.page, q.orderby LIMIT 1`;
+    } else if (type === 'I') {
+      query = `SELECT DATE_FORMAT(q.effdt, '%Y-%m-%d %H:%i:%s') effdt
+                FROM ag_invquest q
+                WHERE q.status='A' AND q.effdt=(SELECT MAX(q_ed.effdt) FROM ag_invquest q_ed WHERE q.qnbr=q_ed.qnbr AND q_ed.effdt<=sysdate())
+                ORDER BY q.page, q.orderby LIMIT 1`;
+    } else if (type === 'X') {
+      query = `SELECT DATE_FORMAT(q.effdt, '%Y-%m-%d %H:%i:%s') effdt
+                FROM ag_expquest q
+                WHERE q.status='A' AND q.effdt=(SELECT MAX(q_ed.effdt) FROM ag_expquest q_ed WHERE q.qnbr=q_ed.qnbr AND q_ed.effdt<=sysdate())
+                ORDER BY q.page, q.orderby LIMIT 1`;
+    }
+
+    const respMaxEffdt = await this.pool.query(query);
+
+    this.questionService.saveUserQuestion({
+      qnbr: '0',
+      anbr: '1',
+      effdt: respMaxEffdt[0][0].effdt,
+      email,
+      type
+    })
   }
 }
