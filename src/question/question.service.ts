@@ -153,9 +153,9 @@ export class QuestionService {
     const hide = respAnswers[0][0].hide
 
     await this.pool.query(`
-      DELETE FROM ag_user_quest WHERE email=? AND qnbr > 4
+      DELETE FROM ag_user_quest WHERE email=? AND qnbr > ?
       AND qnbr not in (${ hide })
-    `, [saveQuestionDto.email]);
+    `, [saveQuestionDto.email, saveQuestionDto.qnbr]);
   }
 
   async deleteUserQuestion(deleteUserQuestion: DeleteUserQuestionDto) {
