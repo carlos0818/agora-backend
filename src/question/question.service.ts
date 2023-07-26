@@ -154,7 +154,7 @@ export class QuestionService {
 
     await this.pool.query(`
       DELETE FROM ag_user_quest WHERE email=? AND qnbr > ?
-      AND qnbr not in (${ hide })
+      AND qnbr IN (${ hide })
     `, [saveQuestionDto.email, saveQuestionDto.qnbr]);
   }
 
