@@ -211,26 +211,52 @@ export class QuestionService {
     `, [submitQuestionnaire.email, qversion]);
     const userAnswersWithAction = Object.assign([{}], respUserAnswersWithAction[0]);
 
-    let hide: string[] = [];
+    let hideArr: string[] = [];
 
     for (let i=0; i<userAnswersWithAction.length; i++) {
       const respShowHide = await this.pool.query<RowDataPacket[]>(`
         SELECT \`show\`, \`hide\` FROM ag_entans WHERE qnbr=? AND effdt=? AND anbr=?
       `, [userAnswersWithAction[i].qnbr, userAnswersWithAction[i].qeffdt, userAnswersWithAction[i].anbr]);
       const showHide = respShowHide[0][0];
-  
-      let respHideSplit: any;
-  
-      if (showHide.hide?.substring(0, 4) !== 'qnbr') {
-        respHideSplit = showHide.hide?.split(',') || null;
+
+      const respShowSplit = showHide.show?.split(',') || null
+      const respHideSplit = showHide.hide?.split(',') || null
+
+      if (respShowSplit) {
+          if (respShowSplit.length > 0) {
+              for (let k=0; k<respShowSplit.length; k++) {
+                  const showSplit = respShowSplit[k]
+                  for(let l=0; l<hideArr.length; l++) {
+                      const hide = hideArr[l]
+                      if (showSplit === hide) {
+                          hideArr.splice(l, 1)
+                      }
+                  }
+              }
+          }
       }
-  
-      if(respHideSplit) {
-        hide.push(...respHideSplit);
+
+      if (respHideSplit) {
+          if(respHideSplit.length > 0) {
+              for (let k=0; k<respHideSplit.length; k++) {
+                  const hideSplit = respHideSplit[k]
+                  let flag = false
+                  for (let l=0; l<hideArr.length; l++) {
+                      const hide = hideArr[l]
+                      if (hideSplit === hide) {
+                          flag = true
+                      }
+                  }
+
+                  if (!flag) {
+                      hideArr.push(hideSplit)
+                  }
+              }
+          }
       }
     }
     
-    let hideString = hide.join(',');
+    let hideString = hideArr.join(',');
 
     await this.pool.query(`
       DELETE FROM ag_user_quest WHERE email=? AND qversion=? AND qnbr IN(${ hideString })
@@ -307,7 +333,7 @@ export class QuestionService {
     `, [submitQuestionnaire.email, qversion]);
     const userAnswersWithAction = Object.assign([{}], respUserAnswersWithAction[0]);
 
-    let hide: string[] = [];
+    let hideArr: string[] = [];
 
     for (let i=0; i<userAnswersWithAction.length; i++) {
       const respShowHide = await this.pool.query<RowDataPacket[]>(`
@@ -315,18 +341,44 @@ export class QuestionService {
       `, [userAnswersWithAction[i].qnbr, userAnswersWithAction[i].qeffdt, userAnswersWithAction[i].anbr]);
       const showHide = respShowHide[0][0];
   
-      let respHideSplit: any;
-  
-      if (showHide.hide?.substring(0, 4) !== 'qnbr') {
-        respHideSplit = showHide.hide?.split(',') || null;
+      const respShowSplit = showHide.show?.split(',') || null
+      const respHideSplit = showHide.hide?.split(',') || null
+
+      if (respShowSplit) {
+          if (respShowSplit.length > 0) {
+              for (let k=0; k<respShowSplit.length; k++) {
+                  const showSplit = respShowSplit[k]
+                  for(let l=0; l<hideArr.length; l++) {
+                      const hide = hideArr[l]
+                      if (showSplit === hide) {
+                          hideArr.splice(l, 1)
+                      }
+                  }
+              }
+          }
       }
-  
-      if(respHideSplit) {
-        hide.push(...respHideSplit);
+
+      if (respHideSplit) {
+          if(respHideSplit.length > 0) {
+              for (let k=0; k<respHideSplit.length; k++) {
+                  const hideSplit = respHideSplit[k]
+                  let flag = false
+                  for (let l=0; l<hideArr.length; l++) {
+                      const hide = hideArr[l]
+                      if (hideSplit === hide) {
+                          flag = true
+                      }
+                  }
+
+                  if (!flag) {
+                      hideArr.push(hideSplit)
+                  }
+              }
+          }
       }
     }
     
-    let hideString = hide.join(',');
+    let hideString = hideArr.join(',');
 
     await this.pool.query(`
       DELETE FROM ag_user_quest WHERE email=? AND qversion=? AND qnbr IN(${ hideString })
@@ -403,7 +455,7 @@ export class QuestionService {
     `, [submitQuestionnaire.email, qversion]);
     const userAnswersWithAction = Object.assign([{}], respUserAnswersWithAction[0]);
 
-    let hide: string[] = [];
+    let hideArr: string[] = [];
 
     for (let i=0; i<userAnswersWithAction.length; i++) {
       const respShowHide = await this.pool.query<RowDataPacket[]>(`
@@ -411,18 +463,44 @@ export class QuestionService {
       `, [userAnswersWithAction[i].qnbr, userAnswersWithAction[i].qeffdt, userAnswersWithAction[i].anbr]);
       const showHide = respShowHide[0][0];
   
-      let respHideSplit: any;
-  
-      if (showHide.hide?.substring(0, 4) !== 'qnbr') {
-        respHideSplit = showHide.hide?.split(',') || null;
+      const respShowSplit = showHide.show?.split(',') || null
+      const respHideSplit = showHide.hide?.split(',') || null
+
+      if (respShowSplit) {
+          if (respShowSplit.length > 0) {
+              for (let k=0; k<respShowSplit.length; k++) {
+                  const showSplit = respShowSplit[k]
+                  for(let l=0; l<hideArr.length; l++) {
+                      const hide = hideArr[l]
+                      if (showSplit === hide) {
+                          hideArr.splice(l, 1)
+                      }
+                  }
+              }
+          }
       }
-  
-      if(respHideSplit) {
-        hide.push(...respHideSplit);
+
+      if (respHideSplit) {
+          if(respHideSplit.length > 0) {
+              for (let k=0; k<respHideSplit.length; k++) {
+                  const hideSplit = respHideSplit[k]
+                  let flag = false
+                  for (let l=0; l<hideArr.length; l++) {
+                      const hide = hideArr[l]
+                      if (hideSplit === hide) {
+                          flag = true
+                      }
+                  }
+
+                  if (!flag) {
+                      hideArr.push(hideSplit)
+                  }
+              }
+          }
       }
     }
     
-    let hideString = hide.join(',');
+    let hideString = hideArr.join(',');
 
     await this.pool.query(`
       DELETE FROM ag_user_quest WHERE email=? AND qversion=? AND qnbr IN(${ hideString })
