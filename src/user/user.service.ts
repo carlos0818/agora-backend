@@ -264,10 +264,10 @@ export class UserService {
     `, [findByIdDto.id]);
 
     if (respVerify[0].length === 0) {
-      throw new BadRequestException('The user does not exist');
+      return { response: '0', data: {} };
     }
 
-    return respVerify[0][0];
+    return { response: '1', data: respVerify[0][0] };
   }
 
   async updateUserInfo(updateUserInfoDto: UpdateUserInfoDto) {

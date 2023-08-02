@@ -212,7 +212,7 @@ export class EntrepreneurService {
 
   async search(searchDto: SearchDto) {
     let query = `
-      SELECT E.name, E.country, UQ2.extravalue, A.descr from ag_entans A, ag_user U, ag_user_quest UQ, ag_user_quest UQ2, ag_entrepreneur E
+      SELECT U.id, E.name, E.country, UQ2.extravalue, A.descr from ag_entans A, ag_user U, ag_user_quest UQ, ag_user_quest UQ2, ag_entrepreneur E
       WHERE
       E.email=UQ.email
       AND U.email=UQ.email
@@ -250,8 +250,6 @@ export class EntrepreneurService {
     } else if (searchDto.funding && searchDto.funding !== '') {
       query += ` ORDER BY 3`;
     }
-
-    console.log(query);
 
     const types = await this.pool.query(query);
 

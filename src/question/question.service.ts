@@ -561,7 +561,7 @@ export class QuestionService {
     `, [validateQuestionnaireByIdDto.id]);
 
     if (respEmail[0].length === 0) {
-      throw new BadRequestException('The user does not exist');
+      return { response: 0, message: 'The user does not exist' };
     }
 
     const email = respEmail[0][0].email;
@@ -572,9 +572,9 @@ export class QuestionService {
     const validate = Object.assign([], respValidate[0]);
 
     if (validate.length > 0) {
-      throw new BadRequestException('The questionnaire has already been completed');
+      return { response: 0, message: 'The questionnaire has already been completed' };
     }
 
-    return { message: 'Ok' };
+    return { response: 1, message: 'Ok' };
   }
 }
