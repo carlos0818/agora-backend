@@ -271,7 +271,7 @@ export class QuestionService {
       AND A.QNBR IN (SELECT QNBR FROM ag_entquest WHERE object IN ('C','Y','F','L','T','A') AND TYPE='Q')
       GROUP BY A.QNBR
       UNION
-      SELECT A.QNBR, CASE WHEN COUNT(UQ.ANBR) BETWEEN SUBSTR(A.BOBJECT,1,1) AND SUBSTR(A.BOBJECT,3,1) THEN 'E' ELSE 'NE' END AS \`EXISTS\` FROM ag_entquest A LEFT OUTER JOIN ag_user_quest UQ ON UQ.QNBR=A.QNBR AND UQ.QEFFDT=A.EFFDT AND email=? AND qversion=?
+      SELECT A.QNBR, CASE WHEN COUNT(UQ.ANBR) BETWEEN substring_index(A.bobject,',',1) AND substring_index(A.bobject,',',-1) THEN 'E' ELSE 'NE' END AS \`EXISTS\` FROM ag_entquest A LEFT OUTER JOIN ag_user_quest UQ ON UQ.QNBR=A.QNBR AND UQ.QEFFDT=A.EFFDT AND email=? AND qversion=?
       WHERE object='M'
       AND type = 'Q'
       AND A.QNBR NOT IN (${ hideString })
@@ -393,7 +393,7 @@ export class QuestionService {
       AND A.QNBR IN (SELECT QNBR FROM ag_invquest WHERE object IN ('C','Y','F','L','T','A') AND TYPE='Q')
       GROUP BY A.QNBR
       UNION
-      SELECT A.QNBR, CASE WHEN COUNT(UQ.ANBR) BETWEEN SUBSTR(A.BOBJECT,1,1) AND SUBSTR(A.BOBJECT,3,1) THEN 'E' ELSE 'NE' END AS \`EXISTS\` FROM ag_invquest A LEFT OUTER JOIN ag_user_quest UQ ON UQ.QNBR=A.QNBR AND UQ.QEFFDT=A.EFFDT AND email=? AND qversion=?
+      SELECT A.QNBR, CASE WHEN COUNT(UQ.ANBR) BETWEEN substring_index(A.bobject,',',1) AND substring_index(A.bobject,',',-1) THEN 'E' ELSE 'NE' END AS \`EXISTS\` FROM ag_invquest A LEFT OUTER JOIN ag_user_quest UQ ON UQ.QNBR=A.QNBR AND UQ.QEFFDT=A.EFFDT AND email=? AND qversion=?
       WHERE object='M'
       AND type = 'Q'
       AND A.QNBR NOT IN (${ hideString })
@@ -409,7 +409,7 @@ export class QuestionService {
 
     for (let i=0; i<missingAnswers.length; i++) {
       if (missingAnswers[i].EXISTS === 'NE') {
-        throw new BadRequestException('Please complete the questionnaire');
+        throw new BadRequestException('Please complete the questionnaire' + hideString);
       }
     }
 
@@ -515,7 +515,7 @@ export class QuestionService {
       AND A.QNBR IN (SELECT QNBR FROM ag_expquest WHERE object IN ('C','Y','F','L','T','A') AND TYPE='Q')
       GROUP BY A.QNBR
       UNION
-      SELECT A.QNBR, CASE WHEN COUNT(UQ.ANBR) BETWEEN SUBSTR(A.BOBJECT,1,1) AND SUBSTR(A.BOBJECT,3,1) THEN 'E' ELSE 'NE' END AS \`EXISTS\` FROM ag_expquest A LEFT OUTER JOIN ag_user_quest UQ ON UQ.QNBR=A.QNBR AND UQ.QEFFDT=A.EFFDT AND email=? AND qversion=?
+      SELECT A.QNBR, CASE WHEN COUNT(UQ.ANBR) BETWEEN substring_index(A.bobject,',',1) AND substring_index(A.bobject,',',-1) THEN 'E' ELSE 'NE' END AS \`EXISTS\` FROM ag_expquest A LEFT OUTER JOIN ag_user_quest UQ ON UQ.QNBR=A.QNBR AND UQ.QEFFDT=A.EFFDT AND email=? AND qversion=?
       WHERE object='M'
       AND type = 'Q'
       AND A.QNBR NOT IN (${ hideString })
@@ -531,7 +531,7 @@ export class QuestionService {
 
     for (let i=0; i<missingAnswers.length; i++) {
       if (missingAnswers[i].EXISTS === 'NE') {
-        throw new BadRequestException('Please complete the questionnaire' + hideString);
+        throw new BadRequestException('Please complete the questionnaire');
       }
     }
 

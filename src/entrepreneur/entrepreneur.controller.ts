@@ -5,6 +5,7 @@ import { EntrepreneurService } from './entrepreneur.service';
 import { UpdateEntrepreneurInfoDto } from './dto/update-entrepreneur-info';
 import { UpdateEntrepreneurDto } from './dto/update-entrepreneur.dto';
 import { GetDataByIdDto } from './dto/get-data-by-id.dto';
+import { SearchDto } from './dto/search.dto';
 
 @Controller('entrepreneur')
 export class EntrepreneurController {
@@ -39,5 +40,10 @@ export class EntrepreneurController {
   @Get('get-types')
   getTypes() {
     return this.entrepreneurService.getTypes();
+  }
+
+  @Get('search')
+  search(@Query() searchDto: SearchDto) {
+    return this.entrepreneurService.search(searchDto);
   }
 }

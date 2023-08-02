@@ -7,6 +7,7 @@ import { JwtPayload } from 'src/user/interfaces/jwt-payload.interface';
 import { UpdateEntrepreneurInfoDto } from './dto/update-entrepreneur-info';
 import { UpdateEntrepreneurDto } from './dto/update-entrepreneur.dto';
 import { GetDataByIdDto } from './dto/get-data-by-id.dto';
+import { SearchDto } from './dto/search.dto';
 
 @Injectable()
 export class EntrepreneurService {
@@ -205,6 +206,54 @@ export class EntrepreneurService {
       WHERE ANS.QNBR=A.QNBR AND ANS.EFFDT=A.EFFDT AND ANS.ANBR=A.ANBR AND ANS.STATUS='A' AND ANS.EFFDT <= SYSDATE())
       ORDER BY orderby
     `);
+
+    return types[0];
+  }
+
+  async search(searchDto: SearchDto) {
+    let query = `
+      SELECT E.name, E.country, UQ2.extravalue, A.descr from ag_entans A, ag_user U, ag_user_quest UQ, ag_user_quest UQ2, ag_entrepreneur E
+      WHERE
+      E.email=UQ.email
+      AND U.email=UQ.email
+      AND U.qversion=UQ.qversion
+      AND U.email=UQ2.email
+      AND U.qversion=UQ2.qversion
+      AND UQ.qnbr=A.qnbr
+      AND UQ.qeffdt=A.effdt
+      AND UQ.anbr=A.anbr
+      AND A.EFFDT= (SELECT MAX(ANS.EFFDT) FROM ag_entans ANS WHERE ANS.QNBR=A.QNBR AND ANS.EFFDT=A.EFFDT AND ANS.ANBR=A.ANBR AND ANS.STATUS='A' AND ANS.EFFDT <= SYSDATE())
+      AND UQ.qnbr=4
+      AND UQ2.qnbr=144
+    `;
+
+    if (searchDto.term && searchDto.term !== '') {
+      query += ` AND E.name LIKE '%${ searchDto.term }%'`;
+    }
+
+    if (searchDto.country && searchDto.country !== '') {
+      query += ` AND E.country = '${ searchDto.country }'`;
+    }
+
+    if (searchDto.from && searchDto.to && searchDto.from !== '' && searchDto.to !== '') {
+      query += ` AND UQ2.extravalue BETWEEN ${ searchDto.from } AND ${ searchDto.to }`;
+    }
+
+    if (searchDto.anbr && searchDto.anbr !== '') {
+      query += ` AND A.anbr = ${ searchDto.anbr }`;
+    }
+
+    if (searchDto.alphabetical && searchDto.alphabetical !== '' && searchDto.funding && searchDto.funding !== '') {
+      query += ` ORDER BY 3,1`;
+    } else if (searchDto.alphabetical && searchDto.alphabetical !== '') {
+      query += ` ORDER BY 1`;
+    } else if (searchDto.funding && searchDto.funding !== '') {
+      query += ` ORDER BY 3`;
+    }
+
+    console.log(query);
+
+    const types = await this.pool.query(query);
 
     return types[0];
   }
