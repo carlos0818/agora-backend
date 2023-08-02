@@ -531,7 +531,7 @@ export class QuestionService {
 
     for (let i=0; i<missingAnswers.length; i++) {
       if (missingAnswers[i].EXISTS === 'NE') {
-        throw new BadRequestException('Please complete the questionnaire');
+        throw new BadRequestException('Please complete the questionnaire' + hideString);
       }
     }
 
