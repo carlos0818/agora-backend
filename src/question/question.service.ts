@@ -200,7 +200,7 @@ export class QuestionService {
     questionsNotInTemplate.map(async (question: any) => {
       if (!question.delete_is_null) {
         await this.pool.query(`
-          DELETE FROM ag_user_quest WHERE email=? AND qversion=? AND qnbr=? AND anbr=?
+          DELETE FROM ag_user_quest WHERE email=? AND qversion=? AND qnbr=? AND anbr=? AND qnbr <> 0
         `, [submitQuestionnaire.email, qversion, question.qnbr, question.anbr]);
       }
     });
@@ -259,7 +259,7 @@ export class QuestionService {
     let hideString = hideArr.join(',');
 
     await this.pool.query(`
-      DELETE FROM ag_user_quest WHERE email=? AND qversion=? AND qnbr IN(${ hideString })
+      DELETE FROM ag_user_quest WHERE email=? AND qversion=? AND qnbr IN(${ hideString }) AND qnbr <> 0
     `, [submitQuestionnaire.email, qversion]);
 
     const respMissingAnswers = await this.pool.query<RowDataPacket[]>(`
@@ -322,7 +322,7 @@ export class QuestionService {
     questionsNotInTemplate.map(async (question: any) => {
       if (!question.delete_is_null) {
         await this.pool.query(`
-          DELETE FROM ag_user_quest WHERE email=? AND qversion=? AND qnbr=? AND anbr=?
+          DELETE FROM ag_user_quest WHERE email=? AND qversion=? AND qnbr=? AND anbr=? AND qnbr <> 0
         `, [submitQuestionnaire.email, qversion, question.qnbr, question.anbr]);
       }
     });
@@ -381,7 +381,7 @@ export class QuestionService {
     let hideString = hideArr.join(',');
 
     await this.pool.query(`
-      DELETE FROM ag_user_quest WHERE email=? AND qversion=? AND qnbr IN(${ hideString })
+      DELETE FROM ag_user_quest WHERE email=? AND qversion=? AND qnbr IN(${ hideString }) AND qnbr <> 0
     `, [submitQuestionnaire.email, qversion]);
 
     const respMissingAnswers = await this.pool.query<RowDataPacket[]>(`
@@ -444,7 +444,7 @@ export class QuestionService {
     questionsNotInTemplate.map(async (question: any) => {
       if (!question.delete_is_null) {
         await this.pool.query(`
-          DELETE FROM ag_user_quest WHERE email=? AND qversion=? AND qnbr=? AND anbr=?
+          DELETE FROM ag_user_quest WHERE email=? AND qversion=? AND qnbr=? AND anbr=? AND qnbr <> 0
         `, [submitQuestionnaire.email, qversion, question.qnbr, question.anbr]);
       }
     });
@@ -503,7 +503,7 @@ export class QuestionService {
     let hideString = hideArr.join(',');
 
     await this.pool.query(`
-      DELETE FROM ag_user_quest WHERE email=? AND qversion=? AND qnbr IN(${ hideString })
+      DELETE FROM ag_user_quest WHERE email=? AND qversion=? AND qnbr IN(${ hideString }) AND qnbr <> 0
     `, [submitQuestionnaire.email, qversion]);
 
     const respMissingAnswers = await this.pool.query<RowDataPacket[]>(`

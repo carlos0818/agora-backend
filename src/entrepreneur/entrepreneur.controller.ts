@@ -35,4 +35,9 @@ export class EntrepreneurController {
     const token = req.headers.authorization ? req.headers?.authorization.split(' ')[1] : '';
     return this.entrepreneurService.validateRequiredData(getDataByIdDto, token);
   }
+
+  @Get('get-types')
+  getTypes() {
+    return this.entrepreneurService.getTypes();
+  }
 }

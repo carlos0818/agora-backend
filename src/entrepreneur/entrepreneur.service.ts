@@ -198,4 +198,14 @@ export class EntrepreneurService {
 
     return respValidate[0][0];
   }
+
+  async getTypes() {
+    const types = await this.pool.query(`
+      SELECT anbr, descr FROM ag_entans A WHERE A.QNBR=4 AND A.EFFDT= (SELECT MAX(ANS.EFFDT) FROM ag_entans ANS
+      WHERE ANS.QNBR=A.QNBR AND ANS.EFFDT=A.EFFDT AND ANS.ANBR=A.ANBR AND ANS.STATUS='A' AND ANS.EFFDT <= SYSDATE())
+      ORDER BY orderby
+    `);
+
+    return types[0];
+  }
 }
