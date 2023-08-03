@@ -202,10 +202,11 @@ export class ExpertService {
 
   async search(searchDto: SearchDto) {
     let query = `
-      SELECT id, name, country, typeexpert front1, concat(group_concat(tipo SEPARATOR ' ,'),', etc.') as front2, yearsexp back1, prjlen back2
+      SELECT * FROM (
+      SELECT id, profilepic, name, country, typeexpert front1, concat(group_concat(tipo SEPARATOR ' ,'),', etc.') as front2, yearsexp back1, prjlen back2
       from
       (
-      select distinct U.id, E.name, E.country, A.descr as typeexpert, case 
+      select distinct U.id, E.profilepic, E.name, E.country, A.descr as typeexpert, case 
       when substr(A2.orderby,1,length(A2.orderby) -2) = 5 then 'Financing'
       when substr(A2.orderby,1,length(A2.orderby) -2) = 6 then 'Financial management'
       when substr(A2.orderby,1,length(A2.orderby) -2) = 7 then 'Legal'
@@ -258,12 +259,10 @@ export class ExpertService {
     query += `
       ORDER BY 1
       LIMIT 3
-      ) expert
+      ) expert ) expert2 WHERE front2 IS NOT NULL
     `;
 
     const types = await this.pool.query(query);
-
-    console.log(types[0]);
 
     return types[0];
   }

@@ -202,6 +202,7 @@ export class InvestorService {
 
   async search(searchDto: SearchDto) {
     let query = `
+      SELECT * FROM (
       SELECT id, profilepic, name, country, concat(group_concat(actareas SEPARATOR ', '),', etc.') as front1, opinv as front2, RiskPref as back1, invOffered as back2, MinInvest as back3
       from
       (
@@ -257,6 +258,7 @@ export class InvestorService {
       ORDER BY 1
       LIMIT 3
       ) INV
+      ) INV2 WHERE front1 IS NOT NULL
     `;
 
     const types = await this.pool.query(query);
