@@ -37,9 +37,9 @@ export class EntrepreneurController {
     return this.entrepreneurService.validateRequiredData(getDataByIdDto, token);
   }
 
-  @Get('get-types')
-  getTypes() {
-    return this.entrepreneurService.getTypes();
+  @Get('get-company-size')
+  getCompanySize() {
+    return this.entrepreneurService.getCompanySize();
   }
 
   @Get('search')

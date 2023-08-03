@@ -5,6 +5,7 @@ import { InvestorService } from './investor.service';
 import { UpdateInvestorDto } from './dto/update-investor.dto';
 import { UpdateInvestorInfoDto } from './dto/update-investor-info';
 import { GetDataByIdDto } from './dto/get-data-by-id.dto';
+import { SearchDto } from './dto/search.dto';
 
 @Controller('investor')
 export class InvestorController {
@@ -34,5 +35,10 @@ export class InvestorController {
   validateRequiredData(@Query() getDataByIdDto: GetDataByIdDto, @Req() req: Request) {
     const token = req.headers.authorization ? req.headers?.authorization.split(' ')[1] : '';
     return this.investorService.validateRequiredData(getDataByIdDto, token);
+  }
+
+  @Get('search')
+  search(@Query() searchDto: SearchDto) {
+    return this.investorService.search(searchDto);
   }
 }

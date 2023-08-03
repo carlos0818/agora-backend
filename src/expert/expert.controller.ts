@@ -5,6 +5,7 @@ import { ExpertService } from './expert.service';
 import { UpdateExpertInfoDto } from './dto/update-expert-info';
 import { GetDataByIdDto } from './dto/get-data-by-id.dto';
 import { UpdateExpertDto } from './dto/update-expert.dto';
+import { SearchDto } from './dto/search.dto';
 
 @Controller('expert')
 export class ExpertController {
@@ -34,5 +35,10 @@ export class ExpertController {
   validateRequiredData(@Query() getDataByIdDto: GetDataByIdDto, @Req() req: Request) {
     const token = req.headers.authorization ? req.headers?.authorization.split(' ')[1] : '';
     return this.expertService.validateRequiredData(getDataByIdDto, token);
+  }
+
+  @Get('search')
+  search(@Query() searchDto: SearchDto) {
+    return this.expertService.search(searchDto);
   }
 }

@@ -200,7 +200,7 @@ export class EntrepreneurService {
     return respValidate[0][0];
   }
 
-  async getTypes() {
+  async getCompanySize() {
     const types = await this.pool.query(`
       SELECT anbr, descr FROM ag_entans A WHERE A.QNBR=4 AND A.EFFDT= (SELECT MAX(ANS.EFFDT) FROM ag_entans ANS
       WHERE ANS.QNBR=A.QNBR AND ANS.EFFDT=A.EFFDT AND ANS.ANBR=A.ANBR AND ANS.STATUS='A' AND ANS.EFFDT <= SYSDATE())
@@ -212,19 +212,40 @@ export class EntrepreneurService {
 
   async search(searchDto: SearchDto) {
     let query = `
-      SELECT U.id, E.name, E.country, UQ2.extravalue, A.descr from ag_entans A, ag_user U, ag_user_quest UQ, ag_user_quest UQ2, ag_entrepreneur E
+      select U.id, E.profilepic, E.name, E.country, A2.descr as front1, A.descr as front2, UQ3.extravalue as back1, A4.descr as back2, A5.descr as back3 from ag_user U, ag_user_quest UQ, ag_entans A, ag_user_quest UQ2, ag_entans A2, ag_user_quest UQ3, ag_user_quest UQ4, ag_entans A4, ag_user_quest UQ5, ag_entans A5, ag_entrepreneur E
       WHERE
       E.email=UQ.email
-      AND U.email=UQ.email
-      AND U.qversion=UQ.qversion
-      AND U.email=UQ2.email
-      AND U.qversion=UQ2.qversion
-      AND UQ.qnbr=A.qnbr
-      AND UQ.qeffdt=A.effdt
-      AND UQ.anbr=A.anbr
-      AND A.EFFDT= (SELECT MAX(ANS.EFFDT) FROM ag_entans ANS WHERE ANS.QNBR=A.QNBR AND ANS.EFFDT=A.EFFDT AND ANS.ANBR=A.ANBR AND ANS.STATUS='A' AND ANS.EFFDT <= SYSDATE())
-      AND UQ.qnbr=4
-      AND UQ2.qnbr=144
+      and U.email=UQ.email
+      and U.qversion=UQ.qversion
+      and UQ.qnbr=A.qnbr
+      and UQ.qeffdt=A.effdt
+      and UQ.anbr=A.anbr
+      and A.EFFDT= (SELECT MAX(ANS.EFFDT) FROM ag_entans ANS WHERE ANS.QNBR=A.QNBR AND ANS.EFFDT=A.EFFDT AND ANS.ANBR=A.ANBR AND ANS.STATUS='A' AND ANS.EFFDT <= SYSDATE())
+      and UQ.qnbr=4
+      and U.email=UQ2.email
+      and U.qversion=UQ2.qversion
+      and UQ2.qnbr=A2.qnbr
+      and UQ2.qeffdt=A2.effdt
+      and UQ2.anbr=A2.anbr
+      and A2.EFFDT= (SELECT MAX(ANS2.EFFDT) FROM ag_entans ANS2 WHERE ANS2.QNBR=A2.QNBR AND ANS2.EFFDT=A2.EFFDT AND ANS2.ANBR=A2.ANBR AND ANS2.STATUS='A' AND ANS2.EFFDT <= SYSDATE())
+      and UQ2.qnbr=6
+      and U.email=UQ3.email
+      and U.qversion=UQ3.qversion
+      and UQ3.qnbr=144
+      and U.email=UQ4.email
+      and U.qversion=UQ4.qversion
+      and UQ4.qnbr=A4.qnbr
+      and UQ4.qeffdt=A4.effdt
+      and UQ4.anbr=A4.anbr
+      and A4.EFFDT= (SELECT MAX(ANS4.EFFDT) FROM ag_entans ANS4 WHERE ANS4.QNBR=A4.QNBR AND ANS4.EFFDT=A4.EFFDT AND ANS4.ANBR=A4.ANBR AND ANS4.STATUS='A' AND ANS4.EFFDT <= SYSDATE())
+      and UQ4.qnbr=145
+      and U.email=UQ5.email
+      and U.qversion=UQ5.qversion
+      and UQ5.qnbr=A5.qnbr
+      and UQ5.qeffdt=A5.effdt
+      and UQ5.anbr=A5.anbr
+      and A5.EFFDT= (SELECT MAX(ANS5.EFFDT) FROM ag_entans ANS5 WHERE ANS5.QNBR=A5.QNBR AND ANS5.EFFDT=A5.EFFDT AND ANS5.ANBR=A5.ANBR AND ANS5.STATUS='A' AND ANS5.EFFDT <= SYSDATE())
+      and UQ5.qnbr=142
     `;
 
     if (searchDto.term && searchDto.term !== '') {
