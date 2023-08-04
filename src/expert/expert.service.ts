@@ -247,13 +247,16 @@ export class ExpertService {
       and A4.EFFDT= (SELECT MAX(ANS4.EFFDT) FROM ag_expans ANS4 WHERE ANS4.QNBR=A4.QNBR AND ANS4.EFFDT=A4.EFFDT AND ANS4.ANBR=A4.ANBR AND ANS4.STATUS='A' AND ANS4.EFFDT <= SYSDATE())
       and UQ4.qnbr in (17, 24, 30, 37)
     `;
+    let parameters = [];
 
     if (searchDto.term && searchDto.term !== '') {
-      query += ` and E.name like '%${ searchDto.term }%'`;
+      query += ` and E.name like ?`;
+      parameters.push(`%${ searchDto.term }%`);
     }
 
     if (searchDto.country && searchDto.country !== '') {
-      query += ` and E.country = '${ searchDto.country }'`;
+      query += ` and E.country = ?`;
+      parameters.push(searchDto.country);
     }
 
     query += `
@@ -262,7 +265,7 @@ export class ExpertService {
       ) expert ) expert2 WHERE front2 IS NOT NULL
     `;
 
-    const types = await this.pool.query(query);
+    const types = await this.pool.query(query, parameters);
 
     return types[0];
   }

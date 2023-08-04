@@ -245,13 +245,16 @@ export class InvestorService {
       and A5.EFFDT= (SELECT MAX(ANS5.EFFDT) FROM ag_invans ANS5 WHERE ANS5.QNBR=A5.QNBR AND ANS5.EFFDT=A5.EFFDT AND ANS5.ANBR=A5.ANBR AND ANS5.STATUS='A' AND ANS5.EFFDT <= SYSDATE())
       and UQ5.qnbr=15
     `;
+    let parameters = [];
 
     if (searchDto.term && searchDto.term !== '') {
-      query += ` and I.name like '%${ searchDto.term }%'`;
+      query += ` and I.name like ?`;
+      parameters.push(`%${ searchDto.term }%`);
     }
 
     if (searchDto.country && searchDto.country !== '') {
-      query += ` and I.country = '${ searchDto.country }'`;
+      query += ` and I.country = ?`;
+      parameters.push(searchDto.country);
     }
 
     query += `
@@ -261,7 +264,7 @@ export class InvestorService {
       ) INV2 WHERE front1 IS NOT NULL
     `;
 
-    const types = await this.pool.query(query);
+    const types = await this.pool.query(query, parameters);
 
     return types[0];
   }

@@ -247,21 +247,27 @@ export class EntrepreneurService {
       and A5.EFFDT= (SELECT MAX(ANS5.EFFDT) FROM ag_entans ANS5 WHERE ANS5.QNBR=A5.QNBR AND ANS5.EFFDT=A5.EFFDT AND ANS5.ANBR=A5.ANBR AND ANS5.STATUS='A' AND ANS5.EFFDT <= SYSDATE())
       and UQ5.qnbr=142
     `;
+    let parameters = [];
 
     if (searchDto.term && searchDto.term !== '') {
-      query += ` AND E.name LIKE '%${ searchDto.term }%'`;
+      query += ` AND E.name LIKE ?`;
+      parameters.push(`%${ searchDto.term }%`);
     }
 
     if (searchDto.country && searchDto.country !== '') {
-      query += ` AND E.country = '${ searchDto.country }'`;
+      query += ` AND E.country = ?`;
+      parameters.push(searchDto.country);
     }
 
     if (searchDto.from && searchDto.to && searchDto.from !== '' && searchDto.to !== '') {
-      query += ` AND UQ2.extravalue BETWEEN ${ searchDto.from } AND ${ searchDto.to }`;
+      query += ` AND CAST(REPLACE(UQ3.extravalue,',','') AS DECIMAL) BETWEEN ? AND ?`;
+      parameters.push(Number(searchDto.from));
+      parameters.push(Number(searchDto.to));
     }
 
     if (searchDto.anbr && searchDto.anbr !== '') {
-      query += ` AND A.anbr = ${ searchDto.anbr }`;
+      query += ` AND A.anbr = ?`;
+      parameters.push(searchDto.anbr);
     }
 
     if (searchDto.alphabetical && searchDto.alphabetical !== '' && searchDto.funding && searchDto.funding !== '') {
@@ -272,7 +278,7 @@ export class EntrepreneurService {
       query += ` ORDER BY 3`;
     }
 
-    const types = await this.pool.query(query);
+    const types = await this.pool.query(query, parameters);
 
     return types[0];
   }

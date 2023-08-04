@@ -17,6 +17,7 @@ import { FilesModule } from './files/files.module';
 import { EntrepreneurModule } from './entrepreneur/entrepreneur.module';
 import { InvestorModule } from './investor/investor.module';
 import { ExpertModule } from './expert/expert.module';
+import { ContactModule } from './contact/contact.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { ExpertModule } from './expert/expert.module';
     EntrepreneurModule,
     InvestorModule,
     ExpertModule,
+    ContactModule,
   ],
 })
 export class AppModule {}
