@@ -3,6 +3,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Pool } from 'mysql2/promise';
 
 import { GetContactsByEmailDto } from './dto/get-contacts.dto';
+import { DeleteContactDto } from './dto/delete-contact.dto';
 
 @Injectable()
 export class ContactService {
@@ -69,10 +70,10 @@ export class ContactService {
     return contacts[0];
   }
 
-  async deleteContact(id: string) {
+  async deleteContact(deleteContactDto: DeleteContactDto) {
     const deleteContact = await this.pool.query(`
-      DELETE FROM ag_contact WHERE emailcontact=(SELECT email FROM ag_user WHERE id=?)
-    `, [id]);
+      DELETE FROM ag_contact WHERE emailcontact=(SELECT email FROM ag_user WHERE id=?) AND email=?
+    `, [deleteContactDto.id, deleteContactDto.email]);
 
     return { message: 'Contact deleted' };
   }
