@@ -68,4 +68,12 @@ export class ContactService {
 
     return contacts[0];
   }
+
+  async deleteContact(id: string) {
+    const deleteContact = await this.pool.query(`
+      DELETE FROM ag_contact WHERE emailcontact=(SELECT email FROM ag_user WHERE id=?)
+    `, [id]);
+
+    return { message: 'Contact deleted' };
+  }
 }
