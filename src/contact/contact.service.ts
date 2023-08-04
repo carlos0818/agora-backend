@@ -70,9 +70,50 @@ export class ContactService {
     return contacts[0];
   }
 
+  async getContactRequestsByEmail(getContactsByEmailDto: GetContactsByEmailDto) {
+    let query = `
+      select companyName, id, type, fullname, dateRequest, profilepic from 
+      (
+      select U.id, X.name as companyName, 'Investor' as type, U.fullname, C.dateRequest, X.profilepic from ag_contact C, ag_investor X, ag_user U
+      where 
+      C.email=?
+      and X.email=C.emailcontact
+      and U.email=C.emailcontact
+      and C.status='P'
+      UNION
+      select U.id, X.name as companyName, 'Entrepreneur' as type, U.fullname, C.dateRequest, X.profilepic from ag_contact C, ag_entrepreneur X, ag_user U
+      where 
+      C.email=?
+      and X.email=C.emailcontact
+      and U.email=C.emailcontact
+      and C.status='P'
+      UNION
+      select U.id, X.name as companyName, 'Expert' as type, U.fullname, C.dateRequest, X.profilepic from ag_contact C, ag_expert X, ag_user U
+      where 
+      C.email=?
+      and X.email=C.emailcontact
+      and U.email=C.emailcontact
+      and C.status='P'
+      ) ContactTBL
+      order by 1
+    `;
+
+    const contacts = await this.pool.query(query, [getContactsByEmailDto.email, getContactsByEmailDto.email, getContactsByEmailDto.email]);
+
+    return contacts[0];
+  }
+
   async deleteContact(deleteContactDto: DeleteContactDto) {
-    const deleteContact = await this.pool.query(`
+    await this.pool.query(`
       DELETE FROM ag_contact WHERE emailcontact=(SELECT email FROM ag_user WHERE id=?) AND email=?
+    `, [deleteContactDto.id, deleteContactDto.email]);
+
+    return { message: 'Contact deleted' };
+  }
+
+  async acceptContact(deleteContactDto: DeleteContactDto) {
+    await this.pool.query(`
+      UPDATE ag_contact SET status='A' WHERE emailcontact=(SELECT email FROM ag_user WHERE id=?) AND email=?
     `, [deleteContactDto.id, deleteContactDto.email]);
 
     return { message: 'Contact deleted' };

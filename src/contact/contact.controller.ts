@@ -14,8 +14,18 @@ export class ContactController {
     return this.contactService.getContactsByEmail(getContactsByEmailDto);
   }
 
+  @Get('get-contact-requests-by-email')
+  getContactRequestsByEmail(@Query() getContactsByEmailDto: GetContactsByEmailDto) {
+    return this.contactService.getContactRequestsByEmail(getContactsByEmailDto);
+  }
+
   @Post('delete-contact')
   deleteContact(@Body() deleteContactDto: DeleteContactDto) {
     return this.contactService.deleteContact(deleteContactDto);
+  }
+
+  @Post('accept-contact')
+  acceptContact(@Body() deleteContactDto: DeleteContactDto) {
+    return this.contactService.acceptContact(deleteContactDto);
   }
 }
