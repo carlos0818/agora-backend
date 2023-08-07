@@ -28,4 +28,9 @@ export class ContactController {
   acceptContact(@Body() deleteContactDto: DeleteContactDto) {
     return this.contactService.acceptContact(deleteContactDto);
   }
+
+  @Post('send-request')
+  sendRequest(@Body() deleteContactDto: DeleteContactDto) {
+    return this.contactService.sendRequest(deleteContactDto);
+  }
 }

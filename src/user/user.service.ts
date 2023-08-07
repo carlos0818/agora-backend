@@ -258,17 +258,20 @@ export class UserService {
     }
   }
 
-  async isMyAccount(findByIdDto: FindByIdDto) {
-    const respVerify = await this.pool.query<RowDataPacket[]>(`
-      SELECT email, fullname, type FROM ag_user WHERE id=?
-    `, [findByIdDto.id]);
+  // async isMyAccount(findByIdDto: FindByIdDto, token: string) {
+  //   const decoded = this.jwtService.decode(token) as JwtPayload;
+  //   console.log('decoded', decoded);
 
-    if (respVerify[0].length === 0) {
-      return { response: '0', data: {} };
-    }
+  //   const respVerify = await this.pool.query<RowDataPacket[]>(`
+  //     SELECT email, fullname, type FROM ag_user WHERE id=?
+  //   `, [findByIdDto.id]);
 
-    return { response: '1', data: respVerify[0][0] };
-  }
+  //   if (respVerify[0][0].email === decoded.email) {
+  //     return { response: '0', data: {} };
+  //   }
+
+  //   return { response: '1', data: respVerify[0][0] };
+  // }
 
   async updateUserInfo(updateUserInfoDto: UpdateUserInfoDto) {
     await this.pool.query(`

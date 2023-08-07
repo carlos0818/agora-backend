@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Query } from '@nestjs/common';
+import { Controller, Post, Body, Get, Query, Req } from '@nestjs/common';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { UserService } from './user.service';
@@ -11,6 +11,7 @@ import { Login } from './entities/login.entity';
 import { VerifyUserDto } from './dto/verifyUser.dto';
 import { UpdateUserInfoDto } from './dto/update-user-info.dto';
 import { FindByIdDto } from './dto/findById.dto';
+import { Request } from 'express';
 
 @ApiTags('Users')
 @Controller('user')
@@ -59,10 +60,11 @@ export class UserController {
     return this.userService.activateAccount(activateAccountDto);
   }
 
-  @Get('is-my-account')
-  isMyAccount(@Query() findByIdDto: FindByIdDto) {
-    return this.userService.isMyAccount(findByIdDto);
-  }
+  // @Get('is-my-account')
+  // isMyAccount(@Query() findByIdDto: FindByIdDto, @Req() req: Request) {
+  //   const token = req.headers.authorization ? req.headers?.authorization.split(' ')[1] : '';
+  //   return this.userService.isMyAccount(findByIdDto, token);
+  // }
 
   @Post('update-user-info')
   updateUserInfo(@Body() updateUserInfoDto: UpdateUserInfoDto) {

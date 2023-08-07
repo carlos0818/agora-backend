@@ -112,10 +112,30 @@ export class ContactService {
   }
 
   async acceptContact(deleteContactDto: DeleteContactDto) {
-    await this.pool.query(`
-      UPDATE ag_contact SET status='A' WHERE emailcontact=(SELECT email FROM ag_user WHERE id=?) AND email=?
-    `, [deleteContactDto.id, deleteContactDto.email]);
+    const emailContactResp = await this.pool.query(`
+      SELECT email FROM ag_user WHERE id=?
+    `, [deleteContactDto.id]);
+    const emailContact = emailContactResp[0][0].email;
 
-    return { message: 'Contact deleted' };
+    await this.pool.query(`
+      UPDATE ag_contact SET status='A' WHERE emailcontact=? AND email=?
+    `, [emailContact, deleteContactDto.email]);
+
+    await this.pool.query(`
+      INSERT INTO ag_contact VALUES (?, 'P', ?, NOW(), NULL)
+    `, [emailContact, deleteContactDto.email]);
+
+    return { message: 'Contact accepted' };
+  }
+
+  async sendRequest(deleteContactDto: DeleteContactDto) {
+    const emailContactResp = await this.pool.query(`
+      SELECT email FROM ag_user WHERE id=?
+    `, [deleteContactDto.id]);
+    const emailContact = emailContactResp[0][0].email;
+    
+    await this.pool.query(`
+      INSERT INTO ag_contact VALUES (?, 'P', ?, NOW(), NULL)
+    `, [emailContact, deleteContactDto.email]);
   }
 }

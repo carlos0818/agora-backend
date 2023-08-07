@@ -24,13 +24,52 @@ export class WallService {
   }
 
   async listUserPosts() {
-    const posts = await this.pool.query(`
-      SELECT p.index, u.fullname, DATE_FORMAT(p.dateposted, '%Y-%m-%d %H:%i:%s') dateposted, p.body FROM ag_home_user p, ag_user u 
-      WHERE u.email=p.email
-      ORDER BY p.dateposted DESC
+    const posts = await this.pool.query<RowDataPacket[]>(`
+      select HU.\`index\`, Ntipo.type, Ntipo.companyName, U.fullname, Ntipo.profilepic, HU.body, DATE_FORMAT(HU.dateposted, '%Y-%m-%d %H:%i:%s') dateposted, case when Likes.likesC is not null then Likes.likesC else 0 end as likes, HU.indexparent
+      from ag_home_user HU left outer join (select \`index\`, count(*) as likesC from ag_like group by \`index\`) as Likes on HU.\`index\`=Likes.\`index\`
+      , ag_user U,
+      (
+      select email, 'Entrepreneur' as \`type\`, name as companyName, profilepic from ag_entrepreneur
+      union
+      select email, 'Investor' as \`type\`, name as companyName, profilepic from ag_investor
+      union
+      select email, 'Expert' as \`type\`, name as companyName, profilepic from ag_expert
+      ) Ntipo
+      where
+      U.email=HU.email
+      and U.qversion <> 0
+      and (HU.email in (select emailcontact from ag_contact where status = 'A' and email = 'cbenavides0887@gmail.com') or HU.email = 'cbenavides0887@gmail.com')
+      and Ntipo.email=HU.email
+      order by HU.dateposted desc
     `);
 
-    return posts[0];
+    const postsOriginal = posts[0];
+    let onlyPosts = [];
+    const commentsArr = [];
+
+    for (let i=0; i<postsOriginal.length; i++) {
+      if (postsOriginal[i].indexparent) {
+        commentsArr.push(postsOriginal[i]);
+      } else {
+        onlyPosts = [
+          ...onlyPosts,
+          {
+            post: postsOriginal[i],
+            comments: []
+          }
+        ]
+      }
+    }
+   
+    for (let i=0; i<commentsArr.length; i++) {
+      for (let j=0; j<onlyPosts.length; j++) {
+        if (onlyPosts[j].post.index === commentsArr[i].indexparent) {
+          onlyPosts[j].comments.push(commentsArr[i]);
+        }
+      }
+    }
+
+    return onlyPosts;
   }
 
   async closeAgoraMessage(closeAgoraMessage: CloseAgoraMessage) {

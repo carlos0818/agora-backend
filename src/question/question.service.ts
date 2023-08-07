@@ -556,25 +556,25 @@ export class QuestionService {
   }
 
   async validateCompleteQuestionnaireById(validateQuestionnaireByIdDto: ValidateQuestionnaireByIdDto) {
-    const respEmail = await this.pool.query<RowDataPacket[]>(`
-      SELECT email FROM ag_user WHERE id=?
+    const respUser = await this.pool.query<RowDataPacket[]>(`
+      SELECT id, email, fullname, type FROM ag_user WHERE id=?
     `, [validateQuestionnaireByIdDto.id]);
 
-    if (respEmail[0].length === 0) {
+    if (respUser[0].length === 0) {
       return { response: 0, message: 'The user does not exist' };
     }
 
-    const email = respEmail[0][0].email;
+    // const email = respEmail[0][0].email;
 
     const respValidate = await this.pool.query(`
       SELECT 'RESPONSE' FROM ag_user WHERE id=? AND qversion=(SELECT MAX(qversion) FROM ag_user_quest WHERE id=?)
-    `, [email, email]);
+    `, [validateQuestionnaireByIdDto.id, validateQuestionnaireByIdDto.id]);
     const validate = Object.assign([], respValidate[0]);
 
     if (validate.length > 0) {
-      return { response: 0, message: 'The questionnaire has already been completed' };
+      return { response: '1', data: respUser[0][0], message: 'The questionnaire has already been completed' };
     }
 
-    return { response: 1, message: 'Ok' };
+    return { response: '0', data: respUser[0][0], message: 'Error' };
   }
 }
