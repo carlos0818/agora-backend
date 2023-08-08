@@ -18,8 +18,9 @@ export class InvestorService {
 
   async getDataByEmail(updateInvestorInfoDto: UpdateInvestorInfoDto) {
     const data = await this.pool.query(`
-      SELECT name, email_contact, phone, country, city, address, profilepic, backpic, videourl, web, facebook, linkedin, twitter
-      FROM ag_investor WHERE email=?
+      SELECT
+      name, email_contact, phone, country, city, address, profilepic, backpic, videourl, web, facebook, linkedin, twitter, DATE_FORMAT(creationdate, '%b %Y') since
+      FROM ag_investor i, ag_user u WHERE u.email=i.email AND i.email=?
     `, [updateInvestorInfoDto.email]);
 
     return data[0][0];
@@ -31,8 +32,9 @@ export class InvestorService {
     `, [getDataByIdDto.id]);
 
     const data = await this.pool.query(`
-      SELECT name, email_contact, phone, country, city, address, profilepic, backpic, videourl, web, facebook, linkedin, twitter, aboutus, videodesc
-      FROM ag_investor WHERE email=?
+      SELECT
+      name, email_contact, phone, country, city, address, profilepic, backpic, videourl, web, facebook, linkedin, twitter, DATE_FORMAT(creationdate, '%b %Y') since
+      FROM ag_investor i, ag_user u WHERE u.email=i.email AND i.email=?
     `, [respEmail[0][0].email]);
 
     return data[0][0];

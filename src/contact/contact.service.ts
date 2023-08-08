@@ -13,9 +13,9 @@ export class ContactService {
 
   async getContactsByEmail(getContactsByEmailDto: GetContactsByEmailDto) {
     let query = `
-      select companyName, id, type, fullname, profilepic, email, phone, city, country, address from 
+      select companyName, id, type, fullname, profilepic, email, phone, city, country, address, DATE_FORMAT(creationdate, '%b %Y') since from 
       (
-      select U.id, X.name as companyName, 'Investor' as type, U.fullname, X.profilepic, X.email, X.phone, X.city, X.country, X.address from ag_contact C, ag_investor X, ag_user U
+      select U.id, X.name as companyName, 'Investor' as type, U.fullname, X.profilepic, X.email, X.phone, X.city, X.country, X.address, U.creationdate from ag_contact C, ag_investor X, ag_user U
       where 
       C.email=?
       and X.email=C.emailcontact
@@ -23,7 +23,7 @@ export class ContactService {
       and C.status='A'
       and X.name like ?
       UNION
-      select U.id, X.name as companyName, 'Entrepreneur' as type, U.fullname, X.profilepic, X.email, X.phone, X.city, X.country, X.address from ag_contact C, ag_entrepreneur X, ag_user U
+      select U.id, X.name as companyName, 'Entrepreneur' as type, U.fullname, X.profilepic, X.email, X.phone, X.city, X.country, X.address, U.creationdate from ag_contact C, ag_entrepreneur X, ag_user U
       where 
       C.email=?
       and X.email=C.emailcontact
@@ -31,7 +31,7 @@ export class ContactService {
       and C.status='A'
       and X.name like ?
       UNION
-      select U.id, X.name as companyName, 'Expert' as type, U.fullname, X.profilepic, X.email, X.phone, X.city, X.country, X.address from ag_contact C, ag_expert X, ag_user U
+      select U.id, X.name as companyName, 'Expert' as type, U.fullname, X.profilepic, X.email, X.phone, X.city, X.country, X.address, U.creationdate from ag_contact C, ag_expert X, ag_user U
       where 
       C.email=?
       and X.email=C.emailcontact
@@ -72,23 +72,23 @@ export class ContactService {
 
   async getContactRequestsByEmail(getContactsByEmailDto: GetContactsByEmailDto) {
     let query = `
-      select companyName, id, type, fullname, dateRequest, profilepic, email, phone, city, country, address from 
+      select companyName, id, type, fullname, dateRequest, profilepic, email, phone, city, country, address, DATE_FORMAT(creationdate, '%b %Y') since from 
       (
-      select U.id, X.name as companyName, 'Investor' as type, U.fullname, C.dateRequest, X.profilepic, X.email, X.phone, X.city, X.country, X.address from ag_contact C, ag_investor X, ag_user U
+      select U.id, X.name as companyName, 'Investor' as type, U.fullname, C.dateRequest, X.profilepic, X.email, X.phone, X.city, X.country, X.address, U.creationdate from ag_contact C, ag_investor X, ag_user U
       where 
       C.email=?
       and X.email=C.emailcontact
       and U.email=C.emailcontact
       and C.status='P'
       UNION
-      select U.id, X.name as companyName, 'Entrepreneur' as type, U.fullname, C.dateRequest, X.profilepic, X.email, X.phone, X.city, X.country, X.address from ag_contact C, ag_entrepreneur X, ag_user U
+      select U.id, X.name as companyName, 'Entrepreneur' as type, U.fullname, C.dateRequest, X.profilepic, X.email, X.phone, X.city, X.country, X.address, U.creationdate from ag_contact C, ag_entrepreneur X, ag_user U
       where 
       C.email=?
       and X.email=C.emailcontact
       and U.email=C.emailcontact
       and C.status='P'
       UNION
-      select U.id, X.name as companyName, 'Expert' as type, U.fullname, C.dateRequest, X.profilepic, X.email, X.phone, X.city, X.country, X.address from ag_contact C, ag_expert X, ag_user U
+      select U.id, X.name as companyName, 'Expert' as type, U.fullname, C.dateRequest, X.profilepic, X.email, X.phone, X.city, X.country, X.address, U.creationdate from ag_contact C, ag_expert X, ag_user U
       where 
       C.email=?
       and X.email=C.emailcontact
