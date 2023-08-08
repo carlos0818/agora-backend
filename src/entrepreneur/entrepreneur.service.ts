@@ -302,28 +302,12 @@ export class EntrepreneurService {
     }
 
     for (let i=0; i<emailsSearch.length; i++) {
-      // const find = emailContactsArr.find(email => emailsSearch.indexOf(emailsSearch[i]) !== -1);
-
-      console.log('indexOf', emailsSearch.indexOf(contacts[i]));
-
-      if (emailsSearch.indexOf(emailContactsArr[i]) !== -1) {
+      if (emailContactsArr.indexOf(emailsSearch[i]) !== -1) {
         searchResult[0][i].contact = true;
       } else {
         searchResult[0][i].contact = false;
       }
-
-      // console.log('FIND', find)
-      // if (find) {
-      //   searchResult[0][i].contact = true;
-      // } else {
-      //   searchResult[0][i].contact = false;
-      // }
     }
-
-    // ['cbenavides0887@gmail.com','ricardoleuridan@gmail.com']           -> emailsSearch
-    // ['cbenavides@controlmixexpress.com']   -> emailContactsArr
-
-    console.log(searchResult[0]);
 
     return searchResult[0];
   }

@@ -268,24 +268,28 @@ export class ExpertService {
     const searchResult = await this.pool.query<RowDataPacket[]>(query, parameters);
 
     const contactsResp = await this.pool.query<RowDataPacket[]>(`
-      select distinct email from ag_contact where email=? or emailcontact=?;
+      select distinct * from 
+      (
+      select distinct email from ag_contact where emailcontact=?
+      union
+      select distinct emailcontact from ag_contact where email=?
+      ) contact
     `, [searchDto.email, searchDto.email]);
     const contacts = contactsResp[0];
 
     const emailContactsArr = [];
-    const emailsSearch = []
+    const emailsSearch = [];
 
     for (let i=0; i<searchResult[0].length; i++) {
-      emailContactsArr.push(searchResult[0][i].email);
+      emailsSearch.push(searchResult[0][i].email);
     }
 
     for (let i=0; i<contacts.length; i++) {
-      emailsSearch.push(contacts[i].email);
+      emailContactsArr.push(contacts[i].email);
     }
 
-    for (let i=0; i<searchResult[0].length; i++) {
-      const find = emailsSearch.find(email => emailContactsArr.indexOf(email) !== -1);
-      if (find) {
+    for (let i=0; i<emailsSearch.length; i++) {
+      if (emailContactsArr.indexOf(emailsSearch[i]) !== -1) {
         searchResult[0][i].contact = true;
       } else {
         searchResult[0][i].contact = false;

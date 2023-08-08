@@ -104,9 +104,14 @@ export class ContactService {
   }
 
   async deleteContact(deleteContactDto: DeleteContactDto) {
+    const emailResp = await this.pool.query(`
+      SELECT email FROM ag_user WHERE id=?
+    `, [deleteContactDto.id]);
+    const email = emailResp[0][0].email;
+
     await this.pool.query(`
-      DELETE FROM ag_contact WHERE emailcontact=(SELECT email FROM ag_user WHERE id=?) AND email=?
-    `, [deleteContactDto.id, deleteContactDto.email]);
+      delete from ag_contact where (email = ? and emailcontact=?) or (email = ? and emailcontact=?)
+    `, [deleteContactDto.email, email, email, deleteContactDto.email]);
 
     return { message: 'Contact deleted' };
   }
@@ -146,8 +151,8 @@ export class ContactService {
     const emailContact = emailContactResp[0][0].email;
     
     const verifyResp = await this.pool.query(`
-      SELECT COUNT(*) as count FROM ag_contact WHERE email=? AND emailcontact=?;
-    `, [emailContact, deleteContactDto.email]);
+      SELECT COUNT(*) as count FROM ag_contact WHERE (email=? AND emailcontact=?) OR (email=? AND emailcontact=?)
+    `, [emailContact, deleteContactDto.email, deleteContactDto.email, emailContact]);
     const verify = verifyResp[0][0].count;
 
     return { verify };
