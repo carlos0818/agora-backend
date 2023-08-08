@@ -295,6 +295,10 @@ export class QuestionService {
       UPDATE ag_user SET qversion=qversion+1 WHERE email=?
     `, [submitQuestionnaire.email]);
 
+    await this.pool.query(`
+      INSERT INTO ag_user_form_version VALUES(?,?,NOW())
+    `, [submitQuestionnaire.email, qversion]);
+
     return { message: 'Questionnaire saved' };
   }
 
@@ -417,6 +421,10 @@ export class QuestionService {
       UPDATE ag_user SET qversion=qversion+1 WHERE email=?
     `, [submitQuestionnaire.email]);
 
+    await this.pool.query(`
+      INSERT INTO ag_user_form_version VALUES(?,?,NOW())
+    `, [submitQuestionnaire.email, qversion]);
+
     return { message: 'Questionnaire saved' };
   }
 
@@ -538,6 +546,10 @@ export class QuestionService {
     await this.pool.query(`
       UPDATE ag_user SET qversion=qversion+1 WHERE email=?
     `, [submitQuestionnaire.email]);
+
+    await this.pool.query(`
+      INSERT INTO ag_user_form_version VALUES(?,?,NOW())
+    `, [submitQuestionnaire.email, qversion]);
 
     return { message: 'Questionnaire saved' };
   }
