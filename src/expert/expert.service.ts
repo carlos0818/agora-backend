@@ -203,10 +203,10 @@ export class ExpertService {
   async search(searchDto: SearchDto) {
     let query = `
       SELECT * FROM (
-      SELECT id, profilepic, name, country, typeexpert front1, concat(group_concat(tipo SEPARATOR ' ,'),', etc.') as front2, yearsexp back1, prjlen back2
+      SELECT id, email, profilepic, name, country, typeexpert front1, concat(group_concat(tipo SEPARATOR ' ,'),', etc.') as front2, yearsexp back1, prjlen back2
       from
       (
-      select distinct U.id, E.profilepic, E.name, E.country, A.descr as typeexpert, case 
+      select distinct U.id, U.email, E.profilepic, E.name, E.country, A.descr as typeexpert, case 
       when substr(A2.orderby,1,length(A2.orderby) -2) = 5 then 'Financing'
       when substr(A2.orderby,1,length(A2.orderby) -2) = 6 then 'Financial management'
       when substr(A2.orderby,1,length(A2.orderby) -2) = 7 then 'Legal'
@@ -265,8 +265,33 @@ export class ExpertService {
       ) expert ) expert2 WHERE front2 IS NOT NULL
     `;
 
-    const types = await this.pool.query(query, parameters);
+    const searchResult = await this.pool.query<RowDataPacket[]>(query, parameters);
 
-    return types[0];
+    const contactsResp = await this.pool.query<RowDataPacket[]>(`
+      select distinct email from ag_contact where email=? or emailcontact=?;
+    `, [searchDto.email, searchDto.email]);
+    const contacts = contactsResp[0];
+
+    const emailContactsArr = [];
+    const emailsSearch = []
+
+    for (let i=0; i<searchResult[0].length; i++) {
+      emailContactsArr.push(searchResult[0][i].email);
+    }
+
+    for (let i=0; i<contacts.length; i++) {
+      emailsSearch.push(contacts[i].email);
+    }
+
+    for (let i=0; i<searchResult[0].length; i++) {
+      const find = emailsSearch.find(email => emailContactsArr.indexOf(email) !== -1);
+      if (find) {
+        searchResult[0][i].contact = true;
+      } else {
+        searchResult[0][i].contact = false;
+      }
+    }
+
+    return searchResult[0];
   }
 }

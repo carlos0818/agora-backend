@@ -33,4 +33,9 @@ export class ContactController {
   sendRequest(@Body() deleteContactDto: DeleteContactDto) {
     return this.contactService.sendRequest(deleteContactDto);
   }
+
+  @Get('check-send-request')
+  checkSendRequest(@Query() deleteContactDto: DeleteContactDto) {
+    return this.contactService.checkSendRequest(deleteContactDto);
+  }
 }

@@ -1,4 +1,4 @@
-import { IsOptional, IsString } from "class-validator";
+import { IsEmail, IsOptional, IsString } from "class-validator";
 
 export class SearchDto {
     @IsString()
@@ -28,4 +28,9 @@ export class SearchDto {
     @IsString()
     @IsOptional()
     funding: string;
+
+    @IsString()
+    @IsOptional()
+    @IsEmail()
+    email: string;
 }

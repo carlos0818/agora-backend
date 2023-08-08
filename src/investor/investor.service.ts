@@ -203,10 +203,10 @@ export class InvestorService {
   async search(searchDto: SearchDto) {
     let query = `
       SELECT * FROM (
-      SELECT id, profilepic, name, country, concat(group_concat(actareas SEPARATOR ', '),', etc.') as front1, opinv as front2, RiskPref as back1, invOffered as back2, MinInvest as back3
+      SELECT id, email, profilepic, name, country, concat(group_concat(actareas SEPARATOR ', '),', etc.') as front1, opinv as front2, RiskPref as back1, invOffered as back2, MinInvest as back3
       from
       (
-      select U.id, I.profilepic, I.name, I.country, A.descr as actareas, A2.descr as opinv, A3.descr as RiskPref, A4.descr as invOffered, A5.descr as MinInvest from ag_user U, ag_user_quest UQ, ag_invans A, ag_user_quest UQ2, ag_invans A2, ag_user_quest UQ3, ag_invans A3, ag_user_quest UQ4, ag_invans A4, ag_user_quest UQ5, ag_invans A5, ag_investor I
+      select U.id, U.email, I.profilepic, I.name, I.country, A.descr as actareas, A2.descr as opinv, A3.descr as RiskPref, A4.descr as invOffered, A5.descr as MinInvest from ag_user U, ag_user_quest UQ, ag_invans A, ag_user_quest UQ2, ag_invans A2, ag_user_quest UQ3, ag_invans A3, ag_user_quest UQ4, ag_invans A4, ag_user_quest UQ5, ag_invans A5, ag_investor I
       WHERE
       I.email=UQ.email
       and U.email=UQ.email
@@ -264,8 +264,35 @@ export class InvestorService {
       ) INV2 WHERE front1 IS NOT NULL
     `;
 
-    const types = await this.pool.query(query, parameters);
+    const searchResult = await this.pool.query<RowDataPacket[]>(query, parameters);
 
-    return types[0];
+    const contactsResp = await this.pool.query<RowDataPacket[]>(`
+      select distinct email from ag_contact where email=? or emailcontact=?;
+    `, [searchDto.email, searchDto.email]);
+    const contacts = contactsResp[0];
+
+    const emailContactsArr = [];
+    const emailsSearch = []
+
+    for (let i=0; i<searchResult[0].length; i++) {
+      emailContactsArr.push(searchResult[0][i].email);
+    }
+
+    for (let i=0; i<contacts.length; i++) {
+      emailsSearch.push(contacts[i].email);
+    }
+
+    for (let i=0; i<searchResult[0].length; i++) {
+      const find = emailsSearch.find(email => emailContactsArr.indexOf(email) !== -1);
+      if (find) {
+        searchResult[0][i].contact = true;
+      } else {
+        searchResult[0][i].contact = false;
+      }
+    }
+
+    console.log(searchResult[0]);
+
+    return searchResult[0];
   }
 }

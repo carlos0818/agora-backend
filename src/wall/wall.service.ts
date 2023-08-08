@@ -23,7 +23,7 @@ export class WallService {
     return messages[0];
   }
 
-  async listUserPosts() {
+  async listUserPosts(agoraMessage: AgoraMessage) {
     const posts = await this.pool.query<RowDataPacket[]>(`
       select HU.\`index\`, Ntipo.type, Ntipo.companyName, U.fullname, Ntipo.profilepic, HU.body, DATE_FORMAT(HU.dateposted, '%Y-%m-%d %H:%i:%s') dateposted, case when Likes.likesC is not null then Likes.likesC else 0 end as likes, HU.indexparent
       from ag_home_user HU left outer join (select \`index\`, count(*) as likesC from ag_like group by \`index\`) as Likes on HU.\`index\`=Likes.\`index\`
@@ -38,10 +38,10 @@ export class WallService {
       where
       U.email=HU.email
       and U.qversion <> 0
-      and (HU.email in (select emailcontact from ag_contact where status = 'A' and email = 'cbenavides0887@gmail.com') or HU.email = 'cbenavides0887@gmail.com')
+      and (HU.email in (select emailcontact from ag_contact where status = 'A' and email = ?) or HU.email = ?)
       and Ntipo.email=HU.email
       order by HU.dateposted desc
-    `);
+    `, [agoraMessage.email, agoraMessage.email]);
 
     const postsOriginal = posts[0];
     let onlyPosts = [];

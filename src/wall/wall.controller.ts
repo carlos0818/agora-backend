@@ -17,8 +17,8 @@ export class WallController {
   }
 
   @Get('user-posts')
-  listUserPosts() {
-    return this.wallService.listUserPosts();
+  listUserPosts(@Query() agoraMessage: AgoraMessage) {
+    return this.wallService.listUserPosts(agoraMessage);
   }
 
   @Post('close-agora-message')

@@ -122,7 +122,7 @@ export class ContactService {
     `, [emailContact, deleteContactDto.email]);
 
     await this.pool.query(`
-      INSERT INTO ag_contact VALUES (?, 'P', ?, NOW(), NULL)
+      INSERT INTO ag_contact VALUES (?, 'A', ?, NOW(), NULL)
     `, [emailContact, deleteContactDto.email]);
 
     return { message: 'Contact accepted' };
@@ -133,9 +133,23 @@ export class ContactService {
       SELECT email FROM ag_user WHERE id=?
     `, [deleteContactDto.id]);
     const emailContact = emailContactResp[0][0].email;
-    
+
     await this.pool.query(`
       INSERT INTO ag_contact VALUES (?, 'P', ?, NOW(), NULL)
     `, [emailContact, deleteContactDto.email]);
+  }
+
+  async checkSendRequest(deleteContactDto: DeleteContactDto) {
+    const emailContactResp = await this.pool.query(`
+      SELECT email FROM ag_user WHERE id=?
+    `, [deleteContactDto.id]);
+    const emailContact = emailContactResp[0][0].email;
+    
+    const verifyResp = await this.pool.query(`
+      SELECT COUNT(*) as count FROM ag_contact WHERE email=? AND emailcontact=?;
+    `, [emailContact, deleteContactDto.email]);
+    const verify = verifyResp[0][0].count;
+
+    return { verify };
   }
 }

@@ -212,7 +212,7 @@ export class EntrepreneurService {
 
   async search(searchDto: SearchDto) {
     let query = `
-      select U.id, E.profilepic, E.name, E.country, A2.descr as front1, A.descr as front2, UQ3.extravalue as back1, A4.descr as back2, A5.descr as back3 from ag_user U, ag_user_quest UQ, ag_entans A, ag_user_quest UQ2, ag_entans A2, ag_user_quest UQ3, ag_user_quest UQ4, ag_entans A4, ag_user_quest UQ5, ag_entans A5, ag_entrepreneur E
+      select U.id, E.profilepic, E.name, U.email, E.country, A2.descr as front1, A.descr as front2, UQ3.extravalue as back1, A4.descr as back2, A5.descr as back3 from ag_user U, ag_user_quest UQ, ag_entans A, ag_user_quest UQ2, ag_entans A2, ag_user_quest UQ3, ag_user_quest UQ4, ag_entans A4, ag_user_quest UQ5, ag_entans A5, ag_entrepreneur E
       WHERE
       E.email=UQ.email
       and U.email=UQ.email
@@ -278,8 +278,53 @@ export class EntrepreneurService {
       query += ` ORDER BY 3`;
     }
 
-    const types = await this.pool.query(query, parameters);
+    const searchResult = await this.pool.query<RowDataPacket[]>(query, parameters);
 
-    return types[0];
+    const contactsResp = await this.pool.query<RowDataPacket[]>(`
+      select distinct * from 
+      (
+      select distinct email from ag_contact where emailcontact=?
+      union
+      select distinct emailcontact from ag_contact where email=?
+      ) contact
+    `, [searchDto.email, searchDto.email]);
+    const contacts = contactsResp[0];
+
+    const emailContactsArr = [];
+    const emailsSearch = [];
+
+    for (let i=0; i<searchResult[0].length; i++) {
+      emailsSearch.push(searchResult[0][i].email);
+    }
+
+    for (let i=0; i<contacts.length; i++) {
+      emailContactsArr.push(contacts[i].email);
+    }
+
+    for (let i=0; i<emailsSearch.length; i++) {
+      // const find = emailContactsArr.find(email => emailsSearch.indexOf(emailsSearch[i]) !== -1);
+
+      console.log('indexOf', emailsSearch.indexOf(contacts[i]));
+
+      if (emailsSearch.indexOf(emailContactsArr[i]) !== -1) {
+        searchResult[0][i].contact = true;
+      } else {
+        searchResult[0][i].contact = false;
+      }
+
+      // console.log('FIND', find)
+      // if (find) {
+      //   searchResult[0][i].contact = true;
+      // } else {
+      //   searchResult[0][i].contact = false;
+      // }
+    }
+
+    // ['cbenavides0887@gmail.com','ricardoleuridan@gmail.com']           -> emailsSearch
+    // ['cbenavides@controlmixexpress.com']   -> emailContactsArr
+
+    console.log(searchResult[0]);
+
+    return searchResult[0];
   }
 }
