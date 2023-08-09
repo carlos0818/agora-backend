@@ -3,6 +3,7 @@ import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { ContactService } from './contact.service';
 import { GetContactsByEmailDto } from './dto/get-contacts.dto';
 import { DeleteContactDto } from './dto/delete-contact.dto';
+import { ContactRequestsNotificationDto } from './dto/contact-requests-notification.dto';
 
 
 @Controller('contact')
@@ -37,5 +38,10 @@ export class ContactController {
   @Get('check-send-request')
   checkSendRequest(@Query() deleteContactDto: DeleteContactDto) {
     return this.contactService.checkSendRequest(deleteContactDto);
+  }
+
+  @Get('get-contact-requests-notification')
+  getContactRequestsNotification(@Query() contactRequestsNotificationDto: ContactRequestsNotificationDto) {
+    return this.contactService.getContactRequestsNotification(contactRequestsNotificationDto);
   }
 }

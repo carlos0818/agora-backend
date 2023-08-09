@@ -5,6 +5,7 @@ import { RowDataPacket, Pool } from 'mysql2/promise';
 import { AgoraMessage } from './dto/agoraMessage.dto';
 import { CloseAgoraMessage } from './dto/closeAgoraMessage.dto';
 import { SaveUserPost } from './dto/saveUserPost';
+import { CommentPost } from './dto/comment-post.dto';
 
 @Injectable()
 export class WallService {
@@ -69,6 +70,10 @@ export class WallService {
       }
     }
 
+    for (let i=0; i<onlyPosts.length; i++) {
+      onlyPosts[i].comments.sort((a, b) => a.index - b.index);
+    }
+
     return onlyPosts;
   }
 
@@ -86,5 +91,13 @@ export class WallService {
     `, [saveUserPost.email, saveUserPost.body]);
 
     return 'Post saved'
+  }
+
+  async saveCommentPost(commentPost: CommentPost) {
+    await this.pool.query(`
+      INSERT INTO ag_home_user VALUES(NULL, ?, ?, NOW(), ?)
+    `, [commentPost.email, commentPost.body, commentPost.index]);
+
+    return { message: 'Comment saved' };
   }
 }

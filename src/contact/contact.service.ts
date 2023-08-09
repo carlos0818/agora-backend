@@ -4,6 +4,7 @@ import { Pool } from 'mysql2/promise';
 
 import { GetContactsByEmailDto } from './dto/get-contacts.dto';
 import { DeleteContactDto } from './dto/delete-contact.dto';
+import { ContactRequestsNotificationDto } from './dto/contact-requests-notification.dto';
 
 @Injectable()
 export class ContactService {
@@ -156,5 +157,14 @@ export class ContactService {
     const verify = verifyResp[0][0].count;
 
     return { verify };
+  }
+
+  async getContactRequestsNotification(contactRequestsNotificationDto: ContactRequestsNotificationDto) {
+    const emailContactResp = await this.pool.query(`
+      select count(*) contactRequests from ag_contact where email=? and status='P'
+    `, [contactRequestsNotificationDto.email]);
+    const notification = emailContactResp[0][0];
+
+    return notification;
   }
 }

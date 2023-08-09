@@ -5,6 +5,7 @@ import { WallService } from './wall.service';
 import { AgoraMessage } from './dto/agoraMessage.dto';
 import { CloseAgoraMessage } from './dto/closeAgoraMessage.dto';
 import { SaveUserPost } from './dto/saveUserPost';
+import { CommentPost } from './dto/comment-post.dto';
 
 @Controller('wall')
 export class WallController {
@@ -29,5 +30,10 @@ export class WallController {
   @Post('save-user-post')
   savePost(@Body() saveUserPost: SaveUserPost) {
     return this.wallService.savePost(saveUserPost);
+  }
+
+  @Post('save-comment-post')
+  saveCommentPost(@Body() commentPost: CommentPost) {
+    return this.wallService.saveCommentPost(commentPost);
   }
 }

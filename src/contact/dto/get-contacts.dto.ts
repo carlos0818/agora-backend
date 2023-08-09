@@ -7,5 +7,5 @@ export class GetContactsByEmailDto {
 
     @IsString()
     @IsOptional()
-    term: string
+    term: string;
 }
