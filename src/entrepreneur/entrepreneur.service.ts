@@ -19,7 +19,7 @@ export class EntrepreneurService {
   async getDataByEmail(updateEntrepreneurInfoDto: UpdateEntrepreneurInfoDto) {
     const data = await this.pool.query(`
       SELECT
-      name, email_contact, phone, country, city, address, profilepic, backpic, videourl, web, facebook, linkedin, twitter, DATE_FORMAT(creationdate, '%b %Y') since
+      name, email_contact, phone, country, city, address, profilepic, backpic, videourl, videodesc, aboutus, web, facebook, linkedin, twitter, DATE_FORMAT(creationdate, '%b %Y') since
       FROM ag_entrepreneur e, ag_user u WHERE u.email=e.email AND e.email=?
     `, [updateEntrepreneurInfoDto.email]);
 
@@ -33,7 +33,7 @@ export class EntrepreneurService {
 
     const data = await this.pool.query(`
       SELECT
-      name, email_contact, phone, country, city, address, profilepic, backpic, videourl, web, facebook, linkedin, twitter, DATE_FORMAT(creationdate, '%b %Y') since
+      name, email_contact, phone, country, city, address, profilepic, backpic, videourl, videodesc, aboutus, web, facebook, linkedin, twitter, DATE_FORMAT(creationdate, '%b %Y') since
       FROM ag_entrepreneur e, ag_user u WHERE u.email=e.email AND e.email=?
     `, [respEmail[0][0].email]);
 
