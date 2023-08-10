@@ -155,6 +155,7 @@ export class UserService {
       email: registerSocialUserDto.email,
       type: validateEmailAndSource.user.type,
       id: validateEmailAndSource.user.id,
+      profilepic: validateEmailAndSource.user.profilepic,
       token: this.getJwt({
         email: registerSocialUserDto.email,
       })
@@ -177,6 +178,7 @@ export class UserService {
           email: registerSocialUserDto.email,
           type: validateEmailAndSource.user.type,
           id: validateEmailAndSource.user.id,
+          profilepic: validateEmailAndSource.user.profilepic,
           token: this.getJwt({
             email: registerSocialUserDto.email,
           })
@@ -190,7 +192,7 @@ export class UserService {
             registerSocialUserDto.type,
             registerSocialUserDto.fullname,
             registerSocialUserDto.source,
-            id
+            id,
           ]
         );
 
@@ -202,6 +204,7 @@ export class UserService {
           email: registerSocialUserDto.email,
           type: registerSocialUserDto.type,
           id,
+          profilepic: null,
           token: this.getJwt({
             email: registerSocialUserDto.email,
           })
@@ -260,6 +263,7 @@ export class UserService {
       email: activateAccountDto.email,
       type: user[0][0].type,
       id: user[0][0].id,
+      profilepic: null,
       token: this.getJwt({
         email: activateAccountDto.email,
       })
@@ -328,13 +332,29 @@ export class UserService {
   // Validate if email and source is already exists
   private async validateEmailAndSource(email: string, source: string) {
     const user = await this.pool.query<RowDataPacket[]>(`
-      SELECT fullname, email, type, id FROM ag_user WHERE email=?
-    `, [email]);
+      SELECT U.fullname, U.email, U.type, U.id, foto.profilepic FROM ag_user U left outer join
+      (
+      select email, profilepic from ag_entrepreneur where email=?
+      union
+      select email, profilepic from ag_investor where email=?
+      union
+      select email, profilepic from ag_expert where email=?
+      ) foto on foto.email=U.email
+      Where U.email=?
+    `, [email, email, email, email]);
 
     if (user[0].length > 0) {
       const response = await this.pool.query<RowDataPacket[]>(`
-        SELECT email FROM ag_user WHERE email=? AND source=?
-        `, [email, source]);
+        SELECT U.email, foto.profilepic FROM ag_user U left outer join
+        (
+        select email, profilepic from ag_entrepreneur where email=?
+        union
+        select email, profilepic from ag_investor where email=?
+        union
+        select email, profilepic from ag_expert where email=?
+        ) foto on foto.email=U.email
+        WHERE U.email=? AND U.source=?
+      `, [email, email, email, email, source]);
       
       if (response[0].length === 0) {
         return {
