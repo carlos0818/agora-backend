@@ -4,8 +4,9 @@ import { AuthGuard } from '@nestjs/passport';
 import { WallService } from './wall.service';
 import { AgoraMessage } from './dto/agoraMessage.dto';
 import { CloseAgoraMessage } from './dto/closeAgoraMessage.dto';
-import { SaveUserPost } from './dto/saveUserPost';
+import { SaveUserPostDto } from './dto/saveUserPost';
 import { CommentPost } from './dto/comment-post.dto';
+import { SaveLikeDto } from './dto/save-like.dto';
 
 @Controller('wall')
 export class WallController {
@@ -28,12 +29,17 @@ export class WallController {
   }
 
   @Post('save-user-post')
-  savePost(@Body() saveUserPost: SaveUserPost) {
+  savePost(@Body() saveUserPost: SaveUserPostDto) {
     return this.wallService.savePost(saveUserPost);
   }
 
   @Post('save-comment-post')
   saveCommentPost(@Body() commentPost: CommentPost) {
     return this.wallService.saveCommentPost(commentPost);
+  }
+
+  @Post('save-like-post')
+  saveLikePost(@Body() saveLikeDto: SaveLikeDto) {
+    return this.wallService.saveLikePost(saveLikeDto);
   }
 }

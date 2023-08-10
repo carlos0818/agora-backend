@@ -13,13 +13,11 @@ import { ActivateAccountDto } from './dto/activate-account.dto';
 import { LoginTokenDto } from './dto/login-token.dto';
 import { VerifyUserDto } from './dto/verifyUser.dto';
 import { UpdateUserInfoDto } from './dto/update-user-info.dto';
-import { FindByIdDto } from './dto/findById.dto';
 
 import { MailService } from 'src/mail/mail.service';
 import { QuestionService } from 'src/question/question.service';
 
 import { JwtPayload } from './interfaces/jwt-payload.interface';
-import { SaveQuestionDto } from 'src/question/dto/saveQuestion.dto';
 
 @Injectable()
 export class UserService {
@@ -42,8 +40,16 @@ export class UserService {
     }
 
     const user = await this.pool.query<RowDataPacket[]>(`
-      SELECT fullname, password, email, type, id FROM ag_user WHERE email=? AND status='1' AND verified='1'
-    `, [loginUserDto.email]);
+      SELECT U.fullname, U.password, U.email, U.type, U.id, foto.profilepic FROM ag_user U left outer join
+      (
+      select email, profilepic from ag_entrepreneur where email='?
+      union
+      select email, profilepic from ag_investor where email='?
+      union
+      select email, profilepic from ag_expert where email='?
+      ) foto on foto.email=U.email
+      WHERE U.email='? AND U.status='1' AND U.verified=1
+    `, [loginUserDto.email, loginUserDto.email, loginUserDto.email, loginUserDto.email]);
 
     if (user[0].length === 0) {
       throw new BadRequestException(`Incorrect credentials`);
@@ -61,6 +67,7 @@ export class UserService {
       email: user[0][0].email,
       type: user[0][0].type,
       id: user[0][0].id,
+      profilepic: user[0][0].profilepic,
       token: this.getJwt({
         email: user[0][0].email,
       })
@@ -85,6 +92,7 @@ export class UserService {
       email: user[0][0].email,
       type: user[0][0].type,
       id: user[0][0].id,
+      profilepic: null,
       token: this.getJwt({
         email: user[0][0].email,
       })

@@ -1,10 +1,10 @@
 import { IsEmail, IsString } from "class-validator";
 
-export class SaveUserPostDto {
+export class SaveLikeDto {
     @IsString()
     @IsEmail()
     email: string;
 
     @IsString()
-    body: string;
+    index: string;
 }

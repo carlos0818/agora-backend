@@ -4,8 +4,9 @@ import { RowDataPacket, Pool } from 'mysql2/promise';
 
 import { AgoraMessage } from './dto/agoraMessage.dto';
 import { CloseAgoraMessage } from './dto/closeAgoraMessage.dto';
-import { SaveUserPost } from './dto/saveUserPost';
+import { SaveUserPostDto } from './dto/saveUserPost';
 import { CommentPost } from './dto/comment-post.dto';
+import { SaveLikeDto } from './dto/save-like.dto';
 
 @Injectable()
 export class WallService {
@@ -25,8 +26,13 @@ export class WallService {
   }
 
   async listUserPosts(agoraMessage: AgoraMessage) {
+    const indexesResp = await this.pool.query<RowDataPacket[]>(`
+      select \`index\` from ag_like where email=?
+    `, [agoraMessage.email]);
+    const indexes = indexesResp[0];
+
     const posts = await this.pool.query<RowDataPacket[]>(`
-      select HU.\`index\`, Ntipo.type, Ntipo.companyName, U.fullname, Ntipo.profilepic, HU.body, DATE_FORMAT(HU.dateposted, '%Y-%m-%d %H:%i:%s') dateposted, case when Likes.likesC is not null then Likes.likesC else 0 end as likes, HU.indexparent
+      select HU.\`index\`, Ntipo.type, Ntipo.companyName, U.fullname, U.id userId, Ntipo.profilepic, HU.body, DATE_FORMAT(HU.dateposted, '%Y-%m-%d %H:%i:%s') dateposted, case when Likes.likesC is not null then Likes.likesC else 0 end as likes, HU.indexparent
       from ag_home_user HU left outer join (select \`index\`, count(*) as likesC from ag_like group by \`index\`) as Likes on HU.\`index\`=Likes.\`index\`
       , ag_user U,
       (
@@ -39,14 +45,15 @@ export class WallService {
       where
       U.email=HU.email
       and U.qversion <> 0
-      and (HU.email in (select emailcontact from ag_contact where status = 'A' and email = ?) or HU.email = ?)
+      and (HU.email in (select emailcontact from ag_contact where status = 'A' and email=?) or (HU.email=? or HU.indexparent in (select distinct indexparent from ag_home_user where email=? and indexparent is not null)))
       and Ntipo.email=HU.email
       order by HU.dateposted desc
-    `, [agoraMessage.email, agoraMessage.email]);
+    `, [agoraMessage.email, agoraMessage.email, agoraMessage.email]);
 
     const postsOriginal = posts[0];
     let onlyPosts = [];
     const commentsArr = [];
+    const indexesArr = [];
 
     for (let i=0; i<postsOriginal.length; i++) {
       if (postsOriginal[i].indexparent) {
@@ -74,6 +81,37 @@ export class WallService {
       onlyPosts[i].comments.sort((a, b) => a.index - b.index);
     }
 
+    for (let i=0; i<indexes.length; i++) {
+      indexesArr.push(indexes[i].index);
+    }
+
+    for (let i=0; i<onlyPosts.length; i++) {
+      onlyPosts[i].like = false;
+      for (let j=0; j<onlyPosts[i].comments.length; j++) {
+        onlyPosts[i].comments[j].like = false;
+      }
+    }
+
+    for (let i=0; i<indexesArr.length; i++) {
+      for (let j=0; j<onlyPosts.length; j++) {
+        if (indexesArr[i] === onlyPosts[j].post.index) {
+          onlyPosts[j].like = true;
+        }
+
+        if (onlyPosts[j].comments.length > 0) {
+          let count1 = -1;
+          for (let k=0; k<onlyPosts[j].comments.length; k++) {
+            if (indexesArr[i] === onlyPosts[j].comments[k].index) {
+              count1 = k;
+            }
+          }
+          if (count1 > -1) {
+            onlyPosts[j].comments[count1].like = true;
+          }
+        }
+      }
+    }
+
     return onlyPosts;
   }
 
@@ -85,9 +123,9 @@ export class WallService {
     return 'Message closed';
   }
 
-  async savePost(saveUserPost: SaveUserPost) {
+  async savePost(saveUserPost: SaveUserPostDto) {
     await this.pool.query(`
-      INSERT INTO ag_home_user VALUES(NULL,?,?,NOW())
+      INSERT INTO ag_home_user VALUES(NULL,?,?,NOW(),NULL)
     `, [saveUserPost.email, saveUserPost.body]);
 
     return 'Post saved'
@@ -95,9 +133,26 @@ export class WallService {
 
   async saveCommentPost(commentPost: CommentPost) {
     await this.pool.query(`
-      INSERT INTO ag_home_user VALUES(NULL, ?, ?, NOW(), ?)
+      INSERT INTO ag_home_user VALUES(NULL,?,?,NOW(),?)
     `, [commentPost.email, commentPost.body, commentPost.index]);
 
     return { message: 'Comment saved' };
+  }
+
+  async saveLikePost(saveLikeDto: SaveLikeDto) {
+    const verifyResp = await this.pool.query(`
+      SELECT COUNT(*) verify FROM ag_like WHERE \`index\`=? AND email=?
+    `, [saveLikeDto.index, saveLikeDto.email]);
+    const verify = verifyResp[0][0].verify;
+
+    if (verify === 0) {
+      await this.pool.query(`
+        INSERT INTO ag_like VALUES(?,?)
+      `, [saveLikeDto.index, saveLikeDto.email]);
+    } else {
+      await this.pool.query(`
+        DELETE FROM ag_like WHERE \`index\`=? AND email=?
+      `, [saveLikeDto.index, saveLikeDto.email]);
+    }
   }
 }
