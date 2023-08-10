@@ -42,13 +42,13 @@ export class UserService {
     const user = await this.pool.query<RowDataPacket[]>(`
       SELECT U.fullname, U.password, U.email, U.type, U.id, foto.profilepic FROM ag_user U left outer join
       (
-      select email, profilepic from ag_entrepreneur where email='?
+      select email, profilepic from ag_entrepreneur where email=?
       union
-      select email, profilepic from ag_investor where email='?
+      select email, profilepic from ag_investor where email=?
       union
-      select email, profilepic from ag_expert where email='?
+      select email, profilepic from ag_expert where email=?
       ) foto on foto.email=U.email
-      WHERE U.email='? AND U.status='1' AND U.verified=1
+      WHERE U.email=? AND U.status='1' AND U.verified=1
     `, [loginUserDto.email, loginUserDto.email, loginUserDto.email, loginUserDto.email]);
 
     if (user[0].length === 0) {
