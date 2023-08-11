@@ -6,18 +6,18 @@ import { lastValueFrom } from 'rxjs';
 import { Pool, RowDataPacket } from 'mysql2/promise';
 import * as bcrypt from 'bcrypt';
 
-import { LoginUserDto } from './dto/login-user.dto';
-import { RegisterUserDto } from './dto/register-user.dto';
-import { RegisterSocialUserDto } from './dto/register-social-user.dto';
-import { ActivateAccountDto } from './dto/activate-account.dto';
-import { LoginTokenDto } from './dto/login-token.dto';
-import { VerifyUserDto } from './dto/verifyUser.dto';
-import { UpdateUserInfoDto } from './dto/update-user-info.dto';
+import { LoginUserDto } from '../dto/login-user.dto';
+import { RegisterUserDto } from '../dto/register-user.dto';
+import { RegisterSocialUserDto } from '../dto/register-social-user.dto';
+import { ActivateAccountDto } from '../dto/activate-account.dto';
+import { LoginTokenDto } from '../dto/login-token.dto';
+import { VerifyUserDto } from '../dto/verifyUser.dto';
+import { UpdateUserInfoDto } from '../dto/update-user-info.dto';
 
 import { MailService } from 'src/mail/mail.service';
 import { QuestionService } from 'src/question/question.service';
 
-import { JwtPayload } from './interfaces/jwt-payload.interface';
+import { JwtPayload } from '../interfaces/jwt-payload.interface';
 
 @Injectable()
 export class UserService {

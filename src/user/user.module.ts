@@ -3,17 +3,19 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './strategies/jwt.strategy';
 
-import { UserService } from './user.service';
-import { UserController } from './user.controller';
+import { QuestionModule } from 'src/question/question.module';
+import { UserService } from './services/user.service';
+import { UserController } from './controllers/user.controller';
+import { VoteController } from './controllers/vote.controller';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { HttpModule } from '@nestjs/axios';
 import { MailService } from 'src/mail/mail.service';
 import { DatabaseService } from 'src/database/database.service';
-import { QuestionModule } from 'src/question/question.module';
+import { VoteService } from './services/vote.service';
 
 @Module({
-  controllers: [UserController],
-  providers: [UserService, JwtStrategy, MailService, DatabaseService],
+  controllers: [UserController, VoteController],
+  providers: [UserService, VoteService, JwtStrategy, MailService, DatabaseService],
   imports: [
     HttpModule,
     ConfigModule,

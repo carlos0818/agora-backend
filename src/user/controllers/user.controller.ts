@@ -1,17 +1,15 @@
-import { Controller, Post, Body, Get, Query, Req } from '@nestjs/common';
+import { Controller, Post, Body, Get, Query } from '@nestjs/common';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 
-import { UserService } from './user.service';
-import { LoginUserDto } from './dto/login-user.dto';
-import { RegisterUserDto } from './dto/register-user.dto';
-import { RegisterSocialUserDto } from './dto/register-social-user.dto';
-import { ActivateAccountDto } from './dto/activate-account.dto';
-import { LoginTokenDto } from './dto/login-token.dto';
-import { Login } from './entities/login.entity';
-import { VerifyUserDto } from './dto/verifyUser.dto';
-import { UpdateUserInfoDto } from './dto/update-user-info.dto';
-import { FindByIdDto } from './dto/findById.dto';
-import { Request } from 'express';
+import { UserService } from '../services/user.service';
+import { LoginUserDto } from '../dto/login-user.dto';
+import { RegisterUserDto } from '../dto/register-user.dto';
+import { RegisterSocialUserDto } from '../dto/register-social-user.dto';
+import { ActivateAccountDto } from '../dto/activate-account.dto';
+import { LoginTokenDto } from '../dto/login-token.dto';
+import { Login } from '../entities/login.entity';
+import { VerifyUserDto } from '../dto/verifyUser.dto';
+import { UpdateUserInfoDto } from '../dto/update-user-info.dto';
 
 @ApiTags('Users')
 @Controller('user')

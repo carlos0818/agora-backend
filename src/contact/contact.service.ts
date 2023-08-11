@@ -6,7 +6,6 @@ import { GetContactsByEmailDto } from './dto/get-contacts.dto';
 import { DeleteContactDto } from './dto/delete-contact.dto';
 import { ContactRequestsNotificationDto } from './dto/contact-requests-notification.dto';
 import { ValidateFriendDto } from './dto/validate-friend.dto';
-import { ContactVoteDto } from './dto/contact-vote.dto';
 
 @Injectable()
 export class ContactService {
@@ -177,18 +176,5 @@ export class ContactService {
     `, [validateFriendDto.email, validateFriendDto.id]);
 
     return emailContactResp[0][0];
-  }
-
-  async contactVote(contactVoteDto: ContactVoteDto) {
-    const emailResp = await this.pool.query(`
-      SELECT email FROM ag_user WHERE id=?
-    `, [contactVoteDto.id]);
-    const email = emailResp[0][0].email;
-
-    await this.pool.query(`
-      INSERT INTO ag_vote VALUES(?,?,?)
-    `, [email, contactVoteDto.email, contactVoteDto.vote]);
-
-    return { message: 'Vote saved' };
   }
 }

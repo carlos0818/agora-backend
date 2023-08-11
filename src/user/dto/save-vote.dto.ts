@@ -1,6 +1,6 @@
 import { IsString, IsEmail } from "class-validator";
 
-export class ContactVoteDto {
+export class SaveVoteDto {
     @IsString()
     @IsEmail()
     email: string;
