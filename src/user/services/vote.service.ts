@@ -12,7 +12,8 @@ export class VoteService {
 
     async getAverageVotes(getAverageVotesDto: GetAverageVotesDto) {
         const average = await this.pool.query(`
-            select round(AVG(V.vote),0) average from ag_vote V, ag_user U where V.email=U.email and U.id=?
+            select (case when round(AVG(V.vote),0) is null then 0 else round(AVG(V.vote),0) end) average
+            from ag_vote V, ag_user U where V.email=U.email and U.id=?
         `, [getAverageVotesDto.id]);
 
         return average[0][0];
