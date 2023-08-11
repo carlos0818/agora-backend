@@ -4,6 +4,8 @@ import { ContactService } from './contact.service';
 import { GetContactsByEmailDto } from './dto/get-contacts.dto';
 import { DeleteContactDto } from './dto/delete-contact.dto';
 import { ContactRequestsNotificationDto } from './dto/contact-requests-notification.dto';
+import { ValidateFriendDto } from './dto/validate-friend.dto';
+import { ContactVoteDto } from './dto/contact-vote.dto';
 
 
 @Controller('contact')
@@ -43,5 +45,15 @@ export class ContactController {
   @Get('get-contact-requests-notification')
   getContactRequestsNotification(@Query() contactRequestsNotificationDto: ContactRequestsNotificationDto) {
     return this.contactService.getContactRequestsNotification(contactRequestsNotificationDto);
+  }
+
+  @Get('validate-friend')
+  validateFriend(@Query() validateFriendDto: ValidateFriendDto) {
+    return this.contactService.validateFriend(validateFriendDto);
+  }
+
+  @Post('contact-vote')
+  contactVote(@Body() contactVoteDto: ContactVoteDto) {
+    return this.contactService.contactVote(contactVoteDto);
   }
 }
