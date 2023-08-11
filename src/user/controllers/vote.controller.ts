@@ -14,11 +14,6 @@ export class VoteController {
         return this.voteService.getAverageVotes(getAverageVotesDto);
     }
 
-    @Get('verify-vote')
-    verifyVote(@Query() verifyVoteDto: VerifyVoteDto) {
-        return this.voteService.verifyVote(verifyVoteDto);
-    }
-
     @Post('user-vote')
     contactVote(@Body() saveVoteDto: SaveVoteDto) {
         return this.voteService.userVote(saveVoteDto);

@@ -19,20 +19,15 @@ export class VoteService {
         return average[0][0];
     }
 
-    async verifyVote(verifyVoteDto: VerifyVoteDto) {
-        const verify = await this.pool.query(`
-        select COUNT(*) resp from ag_vote V, ag_user U where V.email=U.email
-        and V.emailvote=? and U.id=?;
-        `, [verifyVoteDto.email, verifyVoteDto.id]);
-
-        return verify[0][0];
-    }
-
     async userVote(saveVoteDto: SaveVoteDto) {
         const emailResp = await this.pool.query(`
           SELECT email FROM ag_user WHERE id=?
         `, [saveVoteDto.id]);
         const email = emailResp[0][0].email;
+
+        await this.pool.query(`
+          DELETE FROM ag_vote WHERE email=? AND emailvote=?
+        `, [email, saveVoteDto.email]);
     
         await this.pool.query(`
           INSERT INTO ag_vote VALUES(?,?,?)
