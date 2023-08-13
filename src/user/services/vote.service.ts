@@ -11,28 +11,28 @@ export class VoteService {
     ){}
 
     async getAverageVotes(getAverageVotesDto: GetAverageVotesDto) {
-        const average = await this.pool.query(`
-            select (case when round(AVG(V.vote),0) is null then 0 else round(AVG(V.vote),0) end) average
-            from ag_vote V, ag_user U where V.email=U.email and U.id=?
-        `, [getAverageVotesDto.id]);
+      const average = await this.pool.query(`
+        select (case when round(AVG(V.vote),0) is null then 0 else round(AVG(V.vote),0) end) average
+        from ag_vote V, ag_user U where V.email=U.email and U.id=?
+      `, [getAverageVotesDto.id]);
 
-        return average[0][0];
+      return average[0][0];
     }
 
     async userVote(saveVoteDto: SaveVoteDto) {
-        const emailResp = await this.pool.query(`
-          SELECT email FROM ag_user WHERE id=?
-        `, [saveVoteDto.id]);
-        const email = emailResp[0][0].email;
+      const emailResp = await this.pool.query(`
+        SELECT email FROM ag_user WHERE id=?
+      `, [saveVoteDto.id]);
+      const email = emailResp[0][0].email;
 
-        await this.pool.query(`
-          DELETE FROM ag_vote WHERE email=? AND emailvote=?
-        `, [email, saveVoteDto.email]);
-    
-        await this.pool.query(`
-          INSERT INTO ag_vote VALUES(?,?,?)
-        `, [email, saveVoteDto.email, saveVoteDto.vote]);
-    
-        return { message: 'Vote saved' };
+      await this.pool.query(`
+        DELETE FROM ag_vote WHERE email=? AND emailvote=?
+      `, [email, saveVoteDto.email]);
+  
+      await this.pool.query(`
+        INSERT INTO ag_vote VALUES(?,?,?)
+      `, [email, saveVoteDto.email, saveVoteDto.vote]);
+  
+      return { message: 'Vote saved' };
     }
 }
