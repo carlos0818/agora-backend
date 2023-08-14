@@ -6,6 +6,7 @@ import { GetContactsByEmailDto } from './dto/get-contacts.dto';
 import { DeleteContactDto } from './dto/delete-contact.dto';
 import { ContactRequestsNotificationDto } from './dto/contact-requests-notification.dto';
 import { ValidateFriendDto } from './dto/validate-friend.dto';
+import { SearchContactsDto } from './dto/search-contacts.dto';
 
 @Injectable()
 export class ContactService {
@@ -176,5 +177,26 @@ export class ContactService {
     `, [validateFriendDto.email, validateFriendDto.id]);
 
     return emailContactResp[0][0];
+  }
+
+  async searchContact(searchContactsDto: SearchContactsDto) {
+    const like = `%${ searchContactsDto.search }%`;
+
+    const contactsResp = await this.pool.query(`
+      select Ntipo.name as companyName, Ntipo.email, Ntipo.profilepic, U.fullname from 
+      (
+      select email, 'Entrepreneur' as tipo, name, profilepic from ag_entrepreneur
+      union
+      select email, 'Investor' as tipo, name, profilepic from ag_investor
+      union
+      select email, 'Expert' as tipo, name, profilepic from ag_expert
+      ) Ntipo, ag_user U
+      where 
+      U.email = Ntipo.email
+      and Ntipo.name like ?
+      and Ntipo.email in (select emailcontact from ag_contact where email=? and status='A')
+    `, [like, searchContactsDto.email]);
+
+    return contactsResp[0];
   }
 }

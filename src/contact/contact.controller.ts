@@ -5,6 +5,7 @@ import { GetContactsByEmailDto } from './dto/get-contacts.dto';
 import { DeleteContactDto } from './dto/delete-contact.dto';
 import { ContactRequestsNotificationDto } from './dto/contact-requests-notification.dto';
 import { ValidateFriendDto } from './dto/validate-friend.dto';
+import { SearchContactsDto } from './dto/search-contacts.dto';
 
 
 @Controller('contact')
@@ -49,5 +50,10 @@ export class ContactController {
   @Get('validate-friend')
   validateFriend(@Query() validateFriendDto: ValidateFriendDto) {
     return this.contactService.validateFriend(validateFriendDto);
+  }
+
+  @Get('search-contacts')
+  searchContact(@Query() searchContactsDto: SearchContactsDto) {
+    return this.contactService.searchContact(searchContactsDto);
   }
 }
