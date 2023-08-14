@@ -20,7 +20,7 @@ export class MessageService {
 
     const messages = await this.pool.query(`
       select CONVERT(I.index, CHAR(40)) \`index\`, I.emailcontact, Ntipo.profilepic, I.status, I.subject, I.body, DATE_FORMAT(dateAdded, '%Y-%m-%d %H%:%i') dateAdded,
-      I.important, I.pitch, Ntipo.name companyName from ag_user_inbox I,
+      I.important, I.pitch, Ntipo.name companyName, U.fullname from ag_user_inbox I, ag_user U,
       (
       select email, name, profilepic from ag_entrepreneur
       union
@@ -30,8 +30,9 @@ export class MessageService {
       ) Ntipo
       where 
       Ntipo.email=I.emailcontact
+      and U.email=I.emailcontact
       and I.email=?
-      and status in ('S','R')
+      and I.status in ('S','R')
       order by dateAdded desc
     `, [email]);
 
