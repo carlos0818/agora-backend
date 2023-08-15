@@ -20,6 +20,7 @@ import { QuestionService } from 'src/question/question.service';
 import { JwtPayload } from '../interfaces/jwt-payload.interface';
 import { SendLinkForgotPasswordDto } from '../dto/send-link-forgot-password.dto';
 import { ChangePasswordDto } from '../dto/change-password.dto';
+import { EditPasswordDto } from '../dto/edit-password.dto';
 
 @Injectable()
 export class UserService {
@@ -50,7 +51,7 @@ export class UserService {
     }
 
     const user = await this.pool.query<RowDataPacket[]>(`
-      SELECT U.fullname, U.password, U.email, U.type, U.id, foto.profilepic FROM ag_user U left outer join
+      SELECT U.fullname, U.password, U.email, U.type, U.id, U.source, foto.profilepic FROM ag_user U left outer join
       (
       select email, profilepic from ag_entrepreneur where email=?
       union
@@ -78,6 +79,7 @@ export class UserService {
       type: user[0][0].type,
       id: user[0][0].id,
       profilepic: user[0][0].profilepic,
+      source: user[0][0].source,
       token: this.getJwt({
         email: user[0][0].email,
       })
@@ -86,7 +88,7 @@ export class UserService {
 
   async loginToken(loginTokenDto: LoginTokenDto) {
     const user = await this.pool.query<RowDataPacket[]>(`
-      SELECT email, fullname, type, id, (CASE WHEN TIMESTAMPDIFF(MINUTE, creationdate, NOW()) <= 15 THEN 'valid' ELSE 'not-valid' END) AS valid
+      SELECT email, fullname, type, id, source, (CASE WHEN TIMESTAMPDIFF(MINUTE, creationdate, NOW()) <= 15 THEN 'valid' ELSE 'not-valid' END) AS valid
       FROM ag_user WHERE email=? AND token=?
     `, [loginTokenDto.email, loginTokenDto.token]);
 
@@ -103,6 +105,7 @@ export class UserService {
       type: user[0][0].type,
       id: user[0][0].id,
       profilepic: null,
+      source: user[0][0].source,
       token: this.getJwt({
         email: user[0][0].email,
       })
@@ -166,6 +169,7 @@ export class UserService {
       type: validateEmailAndSource.user.type,
       id: validateEmailAndSource.user.id,
       profilepic: validateEmailAndSource.user.profilepic,
+      source: validateEmailAndSource.user.source,
       token: this.getJwt({
         email: registerSocialUserDto.email,
       })
@@ -215,6 +219,7 @@ export class UserService {
           type: registerSocialUserDto.type,
           id,
           profilepic: null,
+          source: registerSocialUserDto.source,
           token: this.getJwt({
             email: registerSocialUserDto.email,
           })
@@ -226,7 +231,7 @@ export class UserService {
 
   async activateAccount(activateAccountDto: ActivateAccountDto) {
     const user = await this.pool.query<RowDataPacket[]>(`
-      SELECT password, fullname, type, id FROM ag_user WHERE email=? AND token=?
+      SELECT password, fullname, type, id, source FROM ag_user WHERE email=? AND token=?
     `, [activateAccountDto.email, activateAccountDto.token]);
 
     if (user[0].length === 0) {
@@ -274,6 +279,7 @@ export class UserService {
       type: user[0][0].type,
       id: user[0][0].id,
       profilepic: null,
+      source: user[0][0].source,
       token: this.getJwt({
         email: activateAccountDto.email,
       })
@@ -345,7 +351,7 @@ export class UserService {
     `, [changePasswordDto.email, changePasswordDto.token]);
 
     if (validate[0].length === 0) {
-      throw new BadRequestException(`The email does not exist`);
+      throw new BadRequestException(`This email is not valid`);
     }
 
     const password = bcrypt.hashSync(changePasswordDto.password, 10);
@@ -353,6 +359,26 @@ export class UserService {
     await this.pool.query(`
       UPDATE ag_user SET \`password\`=?, verified='1', token=NULL WHERE email=?
     `, [password, changePasswordDto.email]);
+  }
+
+  async editPassword(editPasswordDto: EditPasswordDto) {
+    const validate = await this.pool.query<RowDataPacket[]>(`
+      SELECT password FROM ag_user WHERE email=?
+    `, [editPasswordDto.email]);
+
+    if (validate[0].length === 0) {
+      throw new BadRequestException(`Incorrect password`);
+    }
+
+    if (!bcrypt.compareSync(editPasswordDto.currentPassword, validate[0][0].password)) {
+      throw new BadRequestException(`Incorrect password`);
+    }
+
+    const password = bcrypt.hashSync(editPasswordDto.newPassword, 10);
+
+    await this.pool.query(`
+      UPDATE ag_user SET \`password\`=? WHERE email=?
+    `, [password, editPasswordDto.email]);
   }
 
   // Generate JWT
@@ -376,7 +402,7 @@ export class UserService {
   // Validate if email and source is already exists
   private async validateEmailAndSource(email: string, source: string) {
     const user = await this.pool.query<RowDataPacket[]>(`
-      SELECT U.fullname, U.email, U.type, U.id, foto.profilepic FROM ag_user U left outer join
+      SELECT U.fullname, U.email, U.type, U.id, U.source, foto.profilepic FROM ag_user U left outer join
       (
       select email, profilepic from ag_entrepreneur where email=?
       union

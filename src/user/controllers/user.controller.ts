@@ -12,6 +12,7 @@ import { VerifyUserDto } from '../dto/verifyUser.dto';
 import { UpdateUserInfoDto } from '../dto/update-user-info.dto';
 import { SendLinkForgotPasswordDto } from '../dto/send-link-forgot-password.dto';
 import { ChangePasswordDto } from '../dto/change-password.dto';
+import { EditPasswordDto } from '../dto/edit-password.dto';
 
 @ApiTags('Users')
 @Controller('user')
@@ -83,5 +84,10 @@ export class UserController {
   @Post('change-password')
   changePassword(@Body() changePasswordDto: ChangePasswordDto) {
     return this.userService.changePassword(changePasswordDto);
+  }
+
+  @Post('edit-password')
+  editPassword(@Body() editPasswordDto: EditPasswordDto) {
+    return this.userService.editPassword(editPasswordDto);
   }
 }

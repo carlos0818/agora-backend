@@ -12,6 +12,6 @@
     </style>
 </head>
 <body>
-    Confirm your email: {{ url }}?email={{ email }}&token={{ token }}
+    Confirm your email: <a href="{{ url }}?email={{ email }}&token={{ token }}">{{ url }}?email={{ user.email }}&token={{ token }}</a>
 </body>
 </html>
