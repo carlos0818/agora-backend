@@ -10,6 +10,8 @@ import { LoginTokenDto } from '../dto/login-token.dto';
 import { Login } from '../entities/login.entity';
 import { VerifyUserDto } from '../dto/verifyUser.dto';
 import { UpdateUserInfoDto } from '../dto/update-user-info.dto';
+import { SendLinkForgotPasswordDto } from '../dto/send-link-forgot-password.dto';
+import { ChangePasswordDto } from '../dto/change-password.dto';
 
 @ApiTags('Users')
 @Controller('user')
@@ -58,12 +60,6 @@ export class UserController {
     return this.userService.activateAccount(activateAccountDto);
   }
 
-  // @Get('is-my-account')
-  // isMyAccount(@Query() findByIdDto: FindByIdDto, @Req() req: Request) {
-  //   const token = req.headers.authorization ? req.headers?.authorization.split(' ')[1] : '';
-  //   return this.userService.isMyAccount(findByIdDto, token);
-  // }
-
   @Post('update-user-info')
   updateUserInfo(@Body() updateUserInfoDto: UpdateUserInfoDto) {
     return this.userService.updateUserInfo(updateUserInfoDto);
@@ -74,8 +70,18 @@ export class UserController {
     return this.userService.loadUserData(verifyUserDto);
   }
 
-  // @Get('id-exists')
-  // idExists(@Query() findByIdDto: FindByIdDto) {
-  //   return this.userService.idExists(findByIdDto);
-  // }
+  @Post('send-link-forgot-password')
+  sendLinkForgotPassword(@Body() sendLinkDto: SendLinkForgotPasswordDto) {
+    return this.userService.sendLinkForgotPassword(sendLinkDto);
+  }
+
+  @Post('update-verified')
+  updateVerified(@Body() activateAccountDto: ActivateAccountDto) {
+    return this.userService.updateVerified(activateAccountDto);
+  }
+
+  @Post('change-password')
+  changePassword(@Body() changePasswordDto: ChangePasswordDto) {
+    return this.userService.changePassword(changePasswordDto);
+  }
 }

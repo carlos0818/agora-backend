@@ -17,4 +17,17 @@ export class MailService {
             },
         });
     }
+
+    async sendLinkForgotPassword(user: any, url: string, token: string) {
+        await this.mailerService.sendMail({
+            to: user.email,
+            subject: 'Agora Password Reset',
+            template: 'forgotPassword',
+            context: {
+                user,
+                url,
+                token
+            },
+        });
+    }
 }

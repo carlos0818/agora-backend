@@ -18,6 +18,8 @@ import { MailService } from 'src/mail/mail.service';
 import { QuestionService } from 'src/question/question.service';
 
 import { JwtPayload } from '../interfaces/jwt-payload.interface';
+import { SendLinkForgotPasswordDto } from '../dto/send-link-forgot-password.dto';
+import { ChangePasswordDto } from '../dto/change-password.dto';
 
 @Injectable()
 export class UserService {
@@ -37,6 +39,14 @@ export class UserService {
       if (!data.success) {
         throw new BadRequestException(`Incorrect captcha`);
       }
+    }
+
+    const verified = await this.pool.query<RowDataPacket[]>(`
+      SELECT email FROM ag_user WHERE email=? AND verified='2'
+    `, [loginUserDto.email]);
+
+    if (verified[0].length > 0) {
+      throw new BadRequestException(`Your account has been locked. Please go to "forgot password?"`);
     }
 
     const user = await this.pool.query<RowDataPacket[]>(`
@@ -114,7 +124,7 @@ export class UserService {
     }
 
     try {
-      const token = this.generateConfirmationToken();
+      const token = this.generateUserToken();
       const id = await this.generateUserId();
       const password = bcrypt.hashSync(registerUserDto.password, 10);
       await this.pool.query(`
@@ -240,7 +250,7 @@ export class UserService {
         DELETE FROM ag_user WHERE email=?
       `, [activateAccountDto.email]);
 
-      const token = this.generateConfirmationToken()
+      const token = this.generateUserToken()
       await this.pool.query(`
         INSERT INTO ag_user(email, password, status, type, fullname, lang, creationdate, lastdate, lastlogindate, creationadmin, source, token)
         VALUES(?, ?, '1', ?, ?, 'en', NOW(), NOW(), NOW(), 'web', 'PR', ?)
@@ -270,21 +280,6 @@ export class UserService {
     }
   }
 
-  // async isMyAccount(findByIdDto: FindByIdDto, token: string) {
-  //   const decoded = this.jwtService.decode(token) as JwtPayload;
-  //   console.log('decoded', decoded);
-
-  //   const respVerify = await this.pool.query<RowDataPacket[]>(`
-  //     SELECT email, fullname, type FROM ag_user WHERE id=?
-  //   `, [findByIdDto.id]);
-
-  //   if (respVerify[0][0].email === decoded.email) {
-  //     return { response: '0', data: {} };
-  //   }
-
-  //   return { response: '1', data: respVerify[0][0] };
-  // }
-
   async updateUserInfo(updateUserInfoDto: UpdateUserInfoDto) {
     await this.pool.query(`
       UPDATE ag_user SET fullname=? WHERE email=?
@@ -299,17 +294,66 @@ export class UserService {
     return user[0][0];
   }
 
-  // async idExists(findByIdDto: FindByIdDto) {
-  //   const user = await this.pool.query<RowDataPacket[]>(`
-  //     SELECT fullname, email FROM ag_user WHERE id=?
-  //   `, [findByIdDto.id]);
+  async sendLinkForgotPassword(sendLinkDto: SendLinkForgotPasswordDto) {
+    const { data } = await this.validateCaptcha(sendLinkDto.captcha);
+  
+    if (!data.success) {
+      throw new BadRequestException(`Incorrect captcha`);
+    }
 
-  //   if (user[0].length === 0) {
-  //     throw new BadRequestException('The user does not exist');
-  //   }
+    const userResp = await this.pool.query<RowDataPacket[]>(`
+      SELECT email, fullname FROM ag_user WHERE email=? AND source='PR'
+    `, [sendLinkDto.email]);
+    const user = userResp[0][0];
 
-  //   return user[0][0];
-  // }
+    if (userResp[0].length === 0) {
+      throw new BadRequestException('The email does not exist');
+    }
+    
+    const token = this.generateUserToken();
+    await this.pool.query(`
+      UPDATE ag_user SET token=? WHERE email=?
+    `, [token, sendLinkDto.email]);
+    await this.mailService.sendLinkForgotPassword(user, process.env.FORGOT_PASSWORD_URL, token);
+
+    return { message: 'Email sent' };
+  }
+
+  async updateVerified(activateAccountDto: ActivateAccountDto) {
+    const validate = await this.pool.query<RowDataPacket[]>(`
+      SELECT email FROM ag_user WHERE email=? AND token=?
+    `, [activateAccountDto.email, activateAccountDto.token]);
+
+    if (validate[0].length === 0) {
+      throw new BadRequestException(`The email does not exist`);
+    }
+
+    await this.pool.query(`
+      UPDATE ag_user SET verified='2' WHERE email=?
+    `, [activateAccountDto.email]);
+  }
+
+  async changePassword(changePasswordDto: ChangePasswordDto) {
+    const { data } = await this.validateCaptcha(changePasswordDto.captcha);
+  
+    if (!data.success) {
+      throw new BadRequestException(`Incorrect captcha`);
+    }
+
+    const validate = await this.pool.query<RowDataPacket[]>(`
+      SELECT email FROM ag_user WHERE email=? AND token=?
+    `, [changePasswordDto.email, changePasswordDto.token]);
+
+    if (validate[0].length === 0) {
+      throw new BadRequestException(`The email does not exist`);
+    }
+
+    const password = bcrypt.hashSync(changePasswordDto.password, 10);
+
+    await this.pool.query(`
+      UPDATE ag_user SET \`password\`=?, verified='1', token=NULL WHERE email=?
+    `, [password, changePasswordDto.email]);
+  }
 
   // Generate JWT
   private getJwt(payload: JwtPayload) {
@@ -380,7 +424,7 @@ export class UserService {
     return await lastValueFrom(this.httpService.post(`https://www.google.com/recaptcha/api/siteverify?secret=${ process.env.CAPTCHA_SECRET }&response=${ captcha }`));
   }
 
-  private generateConfirmationToken() {
+  private generateUserToken() {
     const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
     const tokenLength = 12;
     let token = '';
@@ -446,3 +490,5 @@ export class UserService {
     })
   }
 }
+
+
