@@ -6,6 +6,7 @@ import { DeleteContactDto } from './dto/delete-contact.dto';
 import { ContactRequestsNotificationDto } from './dto/contact-requests-notification.dto';
 import { ValidateFriendDto } from './dto/validate-friend.dto';
 import { SearchContactsDto } from './dto/search-contacts.dto';
+import { GetContactByIdDto } from './dto/get-contact-by-id.dto';
 
 
 @Controller('contact')

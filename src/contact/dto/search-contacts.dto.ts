@@ -4,7 +4,4 @@ export class SearchContactsDto {
     @IsString()
     @IsEmail()
     email: string;
-
-    @IsString()
-    search: string;
 }
