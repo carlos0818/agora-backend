@@ -19,6 +19,7 @@ import { InvestorModule } from './investor/investor.module';
 import { ExpertModule } from './expert/expert.module';
 import { ContactModule } from './contact/contact.module';
 import { UserCommentModule } from './user-comment/user-comment.module';
+import { CommentInfoModule } from './comment-info/comment-info.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { UserCommentModule } from './user-comment/user-comment.module';
     ExpertModule,
     ContactModule,
     UserCommentModule,
+    CommentInfoModule,
   ],
 })
 export class AppModule {}

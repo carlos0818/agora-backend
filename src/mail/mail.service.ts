@@ -30,4 +30,17 @@ export class MailService {
             },
         });
     }
+
+    async sendCommentInfo(comment: any) {
+        await this.mailerService.sendMail({
+            // to: 'agora@fenu.org',
+            to: 'praimus666@gmail.com',
+            cc: 'ricardoleuridan@hotmail.com',
+            subject: `${ comment.fullname } - ${ comment.subject }`,
+            template: 'commentInfo',
+            context: {
+                comment,
+            },
+        });
+    }
 }
