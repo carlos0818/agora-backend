@@ -6,6 +6,7 @@ import { UpdateInvestorDto } from './dto/update-investor.dto';
 import { UpdateInvestorInfoDto } from './dto/update-investor-info';
 import { GetDataByIdDto } from './dto/get-data-by-id.dto';
 import { SearchDto } from './dto/search.dto';
+import { ShowNotificationDto } from './dto/show-notification.dto';
 
 @Controller('investor')
 export class InvestorController {
@@ -40,5 +41,10 @@ export class InvestorController {
   @Get('search')
   search(@Query() searchDto: SearchDto) {
     return this.investorService.search(searchDto);
+  }
+
+  @Get('show-notifications')
+  showNotifications(@Query() showNotificationDto: ShowNotificationDto) {
+    return this.investorService.showNotifications(showNotificationDto);
   }
 }

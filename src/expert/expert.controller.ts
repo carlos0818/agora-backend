@@ -6,6 +6,7 @@ import { UpdateExpertInfoDto } from './dto/update-expert-info';
 import { GetDataByIdDto } from './dto/get-data-by-id.dto';
 import { UpdateExpertDto } from './dto/update-expert.dto';
 import { SearchDto } from './dto/search.dto';
+import { ShowNotificationDto } from './dto/show-notification.dto';
 
 @Controller('expert')
 export class ExpertController {
@@ -40,5 +41,10 @@ export class ExpertController {
   @Get('search')
   search(@Query() searchDto: SearchDto) {
     return this.expertService.search(searchDto);
+  }
+
+  @Get('show-notifications')
+  showNotifications(@Query() showNotificationDto: ShowNotificationDto) {
+    return this.expertService.showNotifications(showNotificationDto);
   }
 }

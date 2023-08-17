@@ -6,6 +6,7 @@ import { UpdateEntrepreneurInfoDto } from './dto/update-entrepreneur-info';
 import { UpdateEntrepreneurDto } from './dto/update-entrepreneur.dto';
 import { GetDataByIdDto } from './dto/get-data-by-id.dto';
 import { SearchDto } from './dto/search.dto';
+import { ShowNotificationDto } from './dto/show-notification.dto';
 
 @Controller('entrepreneur')
 export class EntrepreneurController {
@@ -45,5 +46,10 @@ export class EntrepreneurController {
   @Get('search')
   search(@Query() searchDto: SearchDto) {
     return this.entrepreneurService.search(searchDto);
+  }
+
+  @Get('show-notifications')
+  showNotifications(@Query() showNotificationDto: ShowNotificationDto) {
+    return this.entrepreneurService.showNotifications(showNotificationDto);
   }
 }

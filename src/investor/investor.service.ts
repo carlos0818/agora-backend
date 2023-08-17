@@ -8,6 +8,7 @@ import { UpdateInvestorInfoDto } from './dto/update-investor-info';
 import { GetDataByIdDto } from './dto/get-data-by-id.dto';
 import { UpdateInvestorDto } from './dto/update-investor.dto';
 import { SearchDto } from './dto/search.dto';
+import { ShowNotificationDto } from './dto/show-notification.dto';
 
 @Injectable()
 export class InvestorService {
@@ -260,7 +261,7 @@ export class InvestorService {
     }
 
     query += `
-      ORDER BY 1
+      ORDER BY name
       LIMIT 3
       ) INV
       ) INV2 WHERE front1 IS NOT NULL
@@ -276,6 +277,92 @@ export class InvestorService {
       select distinct emailcontact from ag_contact where email=?
       ) contact
     `, [searchDto.email, searchDto.email]);
+    const contacts = contactsResp[0];
+
+    const emailContactsArr = [];
+    const emailsSearch = [];
+
+    for (let i=0; i<searchResult[0].length; i++) {
+      emailsSearch.push(searchResult[0][i].email);
+    }
+
+    for (let i=0; i<contacts.length; i++) {
+      emailContactsArr.push(contacts[i].email);
+    }
+
+    for (let i=0; i<emailsSearch.length; i++) {
+      if (emailContactsArr.indexOf(emailsSearch[i]) !== -1) {
+        searchResult[0][i].contact = true;
+      } else {
+        searchResult[0][i].contact = false;
+      }
+    }
+
+    return searchResult[0];
+  }
+
+  async showNotifications(showNotificationDto: ShowNotificationDto) {
+    let query = `
+      SELECT * FROM (
+      SELECT id, email, profilepic, name, country, concat(group_concat(actareas SEPARATOR ', '),', etc.') as front1, opinv as front2, RiskPref as back1, invOffered as back2, MinInvest as back3
+      from
+      (
+      select U.id, U.email, I.profilepic, I.name, I.country, A.descr as actareas, A2.descr as opinv, A3.descr as RiskPref, A4.descr as invOffered, A5.descr as MinInvest from ag_user U, ag_user_quest UQ, ag_invans A, ag_user_quest UQ2, ag_invans A2, ag_user_quest UQ3, ag_invans A3, ag_user_quest UQ4, ag_invans A4, ag_user_quest UQ5, ag_invans A5, ag_investor I, ag_profileview P
+      WHERE
+      P.email=?
+      and P.emailview=I.email
+      and I.email=UQ.email
+      and U.email=UQ.email
+      and U.qversion=UQ.qversion
+      and UQ.qnbr=A.qnbr
+      and UQ.qeffdt=A.effdt
+      and UQ.anbr=A.anbr
+      and A.EFFDT= (SELECT MAX(ANS.EFFDT) FROM ag_invans ANS WHERE ANS.QNBR=A.QNBR AND ANS.EFFDT=A.EFFDT AND ANS.ANBR=A.ANBR AND ANS.STATUS='A' AND ANS.EFFDT <= SYSDATE())
+      and UQ.qnbr=3
+      and U.email=UQ2.email
+      and U.qversion=UQ2.qversion
+      and UQ2.qnbr=A2.qnbr
+      and UQ2.qeffdt=A2.effdt
+      and UQ2.anbr=A2.anbr
+      and A2.EFFDT= (SELECT MAX(ANS2.EFFDT) FROM ag_invans ANS2 WHERE ANS2.QNBR=A2.QNBR AND ANS2.EFFDT=A2.EFFDT AND ANS2.ANBR=A2.ANBR AND ANS2.STATUS='A' AND ANS2.EFFDT <= SYSDATE())
+      and UQ2.qnbr=6
+      and U.email=UQ3.email
+      and U.qversion=UQ3.qversion
+      and UQ3.qnbr=A3.qnbr
+      and UQ3.qeffdt=A3.effdt
+      and UQ3.anbr=A3.anbr
+      and A3.EFFDT= (SELECT MAX(ANS3.EFFDT) FROM ag_invans ANS3 WHERE ANS3.QNBR=A3.QNBR AND ANS3.EFFDT=A3.EFFDT AND ANS3.ANBR=A3.ANBR AND ANS3.STATUS='A' AND ANS3.EFFDT <= SYSDATE())
+      and UQ3.qnbr=7
+      and U.email=UQ4.email
+      and U.qversion=UQ4.qversion
+      and UQ4.qnbr=A4.qnbr
+      and UQ4.qeffdt=A4.effdt
+      and UQ4.anbr=A4.anbr
+      and A4.EFFDT= (SELECT MAX(ANS4.EFFDT) FROM ag_invans ANS4 WHERE ANS4.QNBR=A4.QNBR AND ANS4.EFFDT=A4.EFFDT AND ANS4.ANBR=A4.ANBR AND ANS4.STATUS='A' AND ANS4.EFFDT <= SYSDATE())
+      and UQ4.qnbr=8
+      and U.email=UQ5.email
+      and U.qversion=UQ5.qversion
+      and UQ5.qnbr=A5.qnbr
+      and UQ5.qeffdt=A5.effdt
+      and UQ5.anbr=A5.anbr
+      and A5.EFFDT= (SELECT MAX(ANS5.EFFDT) FROM ag_invans ANS5 WHERE ANS5.QNBR=A5.QNBR AND ANS5.EFFDT=A5.EFFDT AND ANS5.ANBR=A5.ANBR AND ANS5.STATUS='A' AND ANS5.EFFDT <= SYSDATE())
+      and UQ5.qnbr=15
+      ORDER BY name
+      LIMIT 3
+      ) INV
+      ) INV2 WHERE front1 IS NOT NULL
+    `;
+
+    const searchResult = await this.pool.query<RowDataPacket[]>(query, [showNotificationDto.email]);
+
+    const contactsResp = await this.pool.query<RowDataPacket[]>(`
+      select distinct * from 
+      (
+      select distinct email from ag_contact where emailcontact=?
+      union
+      select distinct emailcontact from ag_contact where email=?
+      ) contact
+    `, [showNotificationDto.email, showNotificationDto.email]);
     const contacts = contactsResp[0];
 
     const emailContactsArr = [];
