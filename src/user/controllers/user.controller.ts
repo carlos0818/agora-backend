@@ -13,6 +13,7 @@ import { UpdateUserInfoDto } from '../dto/update-user-info.dto';
 import { SendLinkForgotPasswordDto } from '../dto/send-link-forgot-password.dto';
 import { ChangePasswordDto } from '../dto/change-password.dto';
 import { EditPasswordDto } from '../dto/edit-password.dto';
+import { VerifyVoteDto } from '../dto/verify-vote.dto';
 
 @ApiTags('Users')
 @Controller('user')
@@ -89,5 +90,15 @@ export class UserController {
   @Post('edit-password')
   editPassword(@Body() editPasswordDto: EditPasswordDto) {
     return this.userService.editPassword(editPasswordDto);
+  }
+
+  @Get('get-view-profile-notification')
+  viewProfileNotification(@Query() verifyUserDto: VerifyUserDto) {
+    return this.userService.viewProfileNotification(verifyUserDto);
+  }
+
+  @Post('view-profile')
+  viewProfile(@Body() verifyVoteDto: VerifyVoteDto) {
+    return this.userService.viewProfile(verifyVoteDto);
   }
 }

@@ -21,6 +21,7 @@ import { JwtPayload } from '../interfaces/jwt-payload.interface';
 import { SendLinkForgotPasswordDto } from '../dto/send-link-forgot-password.dto';
 import { ChangePasswordDto } from '../dto/change-password.dto';
 import { EditPasswordDto } from '../dto/edit-password.dto';
+import { VerifyVoteDto } from '../dto/verify-vote.dto';
 
 @Injectable()
 export class UserService {
@@ -379,6 +380,33 @@ export class UserService {
     await this.pool.query(`
       UPDATE ag_user SET \`password\`=? WHERE email=?
     `, [password, editPasswordDto.email]);
+  }
+
+  async viewProfileNotification(verifyUserDto: VerifyUserDto) {
+    const viewProfile = await this.pool.query(`
+      select count(*) views from ag_profileview where email=? and status='P'
+    `, [verifyUserDto.email]);
+
+    return viewProfile[0][0];
+  }
+
+  async viewProfile(verifyVoteDto: VerifyVoteDto) {
+    const emailResp = await this.pool.query(`
+      select email from ag_user where id=?
+    `, [verifyVoteDto.id]);
+    const email = emailResp[0][0].email;
+
+    const validate = await this.pool.query<RowDataPacket[]>(`
+      select email from ag_profileview where email=? and emailview=?
+    `, [email, verifyVoteDto.email]);
+
+    if (validate[0].length === 0) {
+      await this.pool.query(`
+        INSERT INTO ag_profileview VALUES(?,?,NOW(),'P')
+      `, [email, verifyVoteDto.email]);
+    }
+
+    return { message: 'profile view inserted' };
   }
 
   // Generate JWT
