@@ -48,8 +48,18 @@ export class EntrepreneurController {
     return this.entrepreneurService.search(searchDto);
   }
 
+  @Get('show-notifications-15-ago')
+  showNotifications15Ago(@Query() showNotificationDto: ShowNotificationDto) {
+    return this.entrepreneurService.showNotifications15Ago(showNotificationDto);
+  }
+
   @Get('show-notifications')
   showNotifications(@Query() showNotificationDto: ShowNotificationDto) {
     return this.entrepreneurService.showNotifications(showNotificationDto);
+  }
+
+  @Post('update-show-notifications')
+  updateShowNotifications(@Body() showNotificationDto: ShowNotificationDto) {
+    return this.entrepreneurService.updateShowNotifications(showNotificationDto);
   }
 }

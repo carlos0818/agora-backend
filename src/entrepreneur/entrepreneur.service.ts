@@ -315,10 +315,11 @@ export class EntrepreneurService {
     return searchResult[0];
   }
 
-  async showNotifications(showNotificationDto: ShowNotificationDto) {
+  async showNotifications15Ago(showNotificationDto: ShowNotificationDto) {
     let query = `
       select U.id, E.profilepic, E.name, U.email, E.country, A2.descr as front1, A.descr as front2, UQ3.extravalue as back1, A4.descr as back2, A5.descr as back3 from ag_user U, ag_user_quest UQ, ag_entans A, ag_user_quest UQ2, ag_entans A2, ag_user_quest UQ3, ag_user_quest UQ4, ag_entans A4, ag_user_quest UQ5, ag_entans A5, ag_entrepreneur E, ag_profileview P
       WHERE P.email=?
+      and P.dateAdded >= date_add(curdate(), INTERVAL -15 DAY)
       and P.emailview=E.email
       and E.email=UQ.email
       and U.email=UQ.email
@@ -387,5 +388,20 @@ export class EntrepreneurService {
     }
 
     return searchResult[0];
+  }
+
+  async showNotifications(showNotificationDto: ShowNotificationDto) {
+    const notifications = await this.pool.query(`
+      select count(*) notifications from ag_profileview P, ag_entrepreneur E where 
+      P.email=? and P.status='P' and P.emailview=E.email
+    `, [showNotificationDto.email]);
+
+    return notifications[0][0];
+  }
+
+  async updateShowNotifications(showNotificationDto: ShowNotificationDto) {
+    await this.pool.query(`
+      update ag_profileview set status='V' where email=? and emailview in (select email from ag_entrepreneur);
+    `, [showNotificationDto.email]);
   }
 }

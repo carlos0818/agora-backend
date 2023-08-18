@@ -302,7 +302,7 @@ export class ExpertService {
     return searchResult[0];
   }
 
-  async showNotifications(showNotificationDto: ShowNotificationDto) {
+  async showNotifications15Ago(showNotificationDto: ShowNotificationDto) {
     let query = `
       SELECT * FROM (
       SELECT id, email, profilepic, name, country, typeexpert front1, concat(group_concat(tipo SEPARATOR ' ,'),', etc.') as front2, yearsexp back1, prjlen back2
@@ -324,6 +324,7 @@ export class ExpertService {
       from ag_user U, ag_expans A, ag_user_quest UQ, ag_expans A2, ag_user_quest UQ2, ag_user_quest UQ3,  ag_expans A4, ag_user_quest UQ4, ag_expert E, ag_profileview P
       WHERE
       P.email=?
+      and P.dateAdded >= date_add(curdate(), INTERVAL -15 DAY)
       and P.emailview=E.email
       and E.email=UQ.email
       and U.email=UQ.email
@@ -387,5 +388,20 @@ export class ExpertService {
     }
 
     return searchResult[0];
+  }
+
+  async showNotifications(showNotificationDto: ShowNotificationDto) {
+    const notifications = await this.pool.query(`
+      select count(*) notifications from ag_profileview P, ag_expert E where 
+      P.email=? and P.status='P' and P.emailview=E.email
+    `, [showNotificationDto.email]);
+
+    return notifications[0][0];
+  }
+
+  async updateShowNotifications(showNotificationDto: ShowNotificationDto) {
+    await this.pool.query(`
+      update ag_profileview set status='V' where email=? and emailview in (select email from ag_expert)
+    `, [showNotificationDto.email]);
   }
 }

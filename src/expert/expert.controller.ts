@@ -43,8 +43,18 @@ export class ExpertController {
     return this.expertService.search(searchDto);
   }
 
+  @Get('show-notifications-15-ago')
+  showNotifications15Ago(@Query() showNotificationDto: ShowNotificationDto) {
+    return this.expertService.showNotifications15Ago(showNotificationDto);
+  }
+
   @Get('show-notifications')
   showNotifications(@Query() showNotificationDto: ShowNotificationDto) {
     return this.expertService.showNotifications(showNotificationDto);
+  }
+
+  @Post('update-show-notifications')
+  updateShowNotifications(@Body() showNotificationDto: ShowNotificationDto) {
+    return this.expertService.updateShowNotifications(showNotificationDto);
   }
 }

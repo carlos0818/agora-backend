@@ -301,7 +301,7 @@ export class InvestorService {
     return searchResult[0];
   }
 
-  async showNotifications(showNotificationDto: ShowNotificationDto) {
+  async showNotifications15Ago(showNotificationDto: ShowNotificationDto) {
     let query = `
       SELECT * FROM (
       SELECT id, email, profilepic, name, country, concat(group_concat(actareas SEPARATOR ', '),', etc.') as front1, opinv as front2, RiskPref as back1, invOffered as back2, MinInvest as back3
@@ -310,6 +310,7 @@ export class InvestorService {
       select U.id, U.email, I.profilepic, I.name, I.country, A.descr as actareas, A2.descr as opinv, A3.descr as RiskPref, A4.descr as invOffered, A5.descr as MinInvest from ag_user U, ag_user_quest UQ, ag_invans A, ag_user_quest UQ2, ag_invans A2, ag_user_quest UQ3, ag_invans A3, ag_user_quest UQ4, ag_invans A4, ag_user_quest UQ5, ag_invans A5, ag_investor I, ag_profileview P
       WHERE
       P.email=?
+      and P.dateAdded >= date_add(curdate(), INTERVAL -15 DAY)
       and P.emailview=I.email
       and I.email=UQ.email
       and U.email=UQ.email
@@ -385,5 +386,20 @@ export class InvestorService {
     }
 
     return searchResult[0];
+  }
+
+  async showNotifications(showNotificationDto: ShowNotificationDto) {
+    const notifications = await this.pool.query(`
+      select count(*) notifications from ag_profileview P, ag_investor I where 
+      P.email=? and P.status='P' and P.emailview=I.email
+    `, [showNotificationDto.email]);
+
+    return notifications[0][0];
+  }
+
+  async updateShowNotifications(showNotificationDto: ShowNotificationDto) {
+    await this.pool.query(`
+      update ag_profileview set status='V' where email=? and emailview in (select email from ag_investor)
+    `, [showNotificationDto.email]);
   }
 }

@@ -43,8 +43,18 @@ export class InvestorController {
     return this.investorService.search(searchDto);
   }
 
+  @Get('show-notifications-15-ago')
+  showNotifications15Ago(@Query() showNotificationDto: ShowNotificationDto) {
+    return this.investorService.showNotifications15Ago(showNotificationDto);
+  }
+
   @Get('show-notifications')
   showNotifications(@Query() showNotificationDto: ShowNotificationDto) {
     return this.investorService.showNotifications(showNotificationDto);
+  }
+
+  @Post('update-show-notifications')
+  updateShowNotifications(@Body() showNotificationDto: ShowNotificationDto) {
+    return this.investorService.updateShowNotifications(showNotificationDto);
   }
 }
