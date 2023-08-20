@@ -35,7 +35,7 @@ export class EntrepreneurService {
     const data = await this.pool.query(`
       SELECT
       name, email_contact, phone, country, city, address, profilepic, backpic, videourl, videodesc, aboutus, web, facebook, linkedin, twitter, DATE_FORMAT(creationdate, '%b %Y') since
-      FROM ag_entrepreneur e, ag_user u WHERE u.email=e.email AND e.email=?
+      FROM ag_user u LEFT OUTER JOIN ag_entrepreneur e ON(u.email=e.email) WHERE u.email=?
     `, [respEmail[0][0].email]);
 
     return data[0][0];

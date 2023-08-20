@@ -39,7 +39,6 @@ export class FilesController {
     fileFilter: videoFilter
   }))
   async uploadVideo(@UploadedFile() video: Express.Multer.File) {
-    console.log(video)
     if (!video) {
       throw new BadRequestException('Make sure that the file is a video');
     }
