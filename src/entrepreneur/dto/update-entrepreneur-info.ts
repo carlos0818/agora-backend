@@ -7,76 +7,76 @@ export class UpdateEntrepreneurInfoDto {
 
     @IsString()
     @IsOptional()
-    @IsNotEmpty()
+    // @IsNotEmpty()
     name: string;
 
     @IsString()
     @IsOptional()
-    @IsNotEmpty()
+    // @IsNotEmpty()
     email_contact: string;
 
     @IsString()
     @IsOptional()
-    @IsNotEmpty()
+    // @IsNotEmpty()
     phone: string;
 
     @IsString()
     @IsOptional()
-    @IsNotEmpty()
+    // @IsNotEmpty()
     country: string;
 
     @IsString()
     @IsOptional()
-    @IsNotEmpty()
+    // @IsNotEmpty()
     city: string;
 
     @IsString()
     @IsOptional()
-    @IsNotEmpty()
+    // @IsNotEmpty()
     address: string;
 
     @IsString()
     @IsOptional()
-    @IsNotEmpty()
+    // @IsNotEmpty()
     profilepic: string;
 
     @IsString()
     @IsOptional()
-    @IsNotEmpty()
+    // @IsNotEmpty()
     backpic: string;
 
     @IsString()
     @IsOptional()
-    @IsNotEmpty()
+    // @IsNotEmpty()
     videourl: string;
 
     @IsString()
     @IsOptional()
-    @IsNotEmpty()
+    // @IsNotEmpty()
     web: string;
 
     @IsString()
     @IsOptional()
-    @IsNotEmpty()
+    // @IsNotEmpty()
     facebook: string;
 
     @IsString()
     @IsOptional()
-    @IsNotEmpty()
+    // @IsNotEmpty()
     linkedin: string;
 
     @IsString()
     @IsOptional()
-    @IsNotEmpty()
+    // @IsNotEmpty()
     twitter: string;
 
     @IsString()
     @IsOptional()
-    @IsNotEmpty()
+    // @IsNotEmpty()
     aboutus: string;
 
     @IsString()
     @IsOptional()
-    @IsNotEmpty()
+    // @IsNotEmpty()
     videodesc: string;
 }

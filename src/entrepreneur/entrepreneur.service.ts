@@ -124,11 +124,13 @@ export class EntrepreneurService {
 
     query += ' WHERE email=?';
 
-    if (verify.length === 0) {
+    if (verify.length === 0 && data.length > 0) {
       query = `INSERT INTO ag_entrepreneur(${ field }, email) VALUES(?,?)`;
     }
 
-    await this.pool.query<RowDataPacket[]>(query, [data, updateEntrepreneurInfoDto.email]);
+    if (data.length > 0) {
+      await this.pool.query<RowDataPacket[]>(query, [data, updateEntrepreneurInfoDto.email]);
+    }
 
     return {
       message: 'Entrepreneur saved'

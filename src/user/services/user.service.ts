@@ -52,15 +52,15 @@ export class UserService {
     }
 
     const user = await this.pool.query<RowDataPacket[]>(`
-      SELECT U.fullname, U.password, U.email, U.type, U.id, U.source, foto.profilepic FROM ag_user U left outer join
-      (
-      select email, profilepic from ag_entrepreneur where email=?
+      SELECT U.fullname, U.password, U.email, U.type, U.id, U.source, foto.profilepic, if (U.qversion > 0,1,0) as qversion, foto.valreq
+      FROM ag_user U left outer join(
+      select email, profilepic, if(name is null, 0, if (email_contact is null, 0,if (phone is null, 0, if (country is null, 0, if (city is null ,0, if(address is null, 0, 1)))))) as valreq from ag_entrepreneur where email=?
       union
-      select email, profilepic from ag_investor where email=?
+      select email, profilepic, if(name is null, 0, if (email_contact is null, 0,if (phone is null, 0, if (country is null, 0, if (city is null ,0, if(address is null, 0, 1)))))) as valreq from ag_investor where email=?
       union
-      select email, profilepic from ag_expert where email=?
+      select email, profilepic, if(name is null, 0, if (email_contact is null, 0,if (phone is null, 0, if (country is null, 0, if (city is null ,0, if(address is null, 0, 1)))))) as valreq from ag_expert where email=?
       ) foto on foto.email=U.email
-      WHERE U.email=? AND U.status='1' AND U.verified=1
+      WHERE U.email=? AND U.status='1' and U.verified=1
     `, [loginUserDto.email, loginUserDto.email, loginUserDto.email, loginUserDto.email]);
 
     if (user[0].length === 0) {
@@ -81,6 +81,8 @@ export class UserService {
       id: user[0][0].id,
       profilepic: user[0][0].profilepic,
       source: user[0][0].source,
+      qversion: user[0][0].qversion,
+      required: user[0][0].valreq,
       token: this.getJwt({
         email: user[0][0].email,
       })
@@ -107,6 +109,8 @@ export class UserService {
       id: user[0][0].id,
       profilepic: null,
       source: user[0][0].source,
+      qversion: 0,
+      required: 0,
       token: this.getJwt({
         email: user[0][0].email,
       })
@@ -171,6 +175,8 @@ export class UserService {
       id: validateEmailAndSource.user.id,
       profilepic: validateEmailAndSource.user.profilepic,
       source: validateEmailAndSource.user.source,
+      qversion: validateEmailAndSource.user.qversion,
+      required: validateEmailAndSource.user.valreq,
       token: this.getJwt({
         email: registerSocialUserDto.email,
       })
@@ -194,6 +200,9 @@ export class UserService {
           type: validateEmailAndSource.user.type,
           id: validateEmailAndSource.user.id,
           profilepic: validateEmailAndSource.user.profilepic,
+          source: validateEmailAndSource.user.source,
+          qversion: validateEmailAndSource.user.qversion,
+          required: validateEmailAndSource.user.valreq,
           token: this.getJwt({
             email: registerSocialUserDto.email,
           })
@@ -221,6 +230,8 @@ export class UserService {
           id,
           profilepic: null,
           source: registerSocialUserDto.source,
+          qversion: 0,
+          required: 0,
           token: this.getJwt({
             email: registerSocialUserDto.email,
           })
@@ -281,6 +292,8 @@ export class UserService {
       id: user[0][0].id,
       profilepic: null,
       source: user[0][0].source,
+      qversion: 0,
+      required: user[0][0].valreq,
       token: this.getJwt({
         email: activateAccountDto.email,
       })
@@ -430,28 +443,28 @@ export class UserService {
   // Validate if email and source is already exists
   private async validateEmailAndSource(email: string, source: string) {
     const user = await this.pool.query<RowDataPacket[]>(`
-      SELECT U.fullname, U.email, U.type, U.id, U.source, foto.profilepic FROM ag_user U left outer join
+      SELECT U.fullname, U.email, U.type, U.id, U.source, foto.profilepic, if (U.qversion > 0,1,0) as qversion, foto.valreq FROM ag_user U left outer join
       (
-      select email, profilepic from ag_entrepreneur where email=?
+      select email, profilepic, if(name is null, 0, if (email_contact is null, 0,if (phone is null, 0, if (country is null, 0, if (city is null ,0, if(address is null, 0, 1)))))) as valreq from ag_entrepreneur where email=?
       union
-      select email, profilepic from ag_investor where email=?
+      select email, profilepic, if(name is null, 0, if (email_contact is null, 0,if (phone is null, 0, if (country is null, 0, if (city is null ,0, if(address is null, 0, 1)))))) as valreq from ag_investor where email=?
       union
-      select email, profilepic from ag_expert where email=?
+      select email, profilepic, if(name is null, 0, if (email_contact is null, 0,if (phone is null, 0, if (country is null, 0, if (city is null ,0, if(address is null, 0, 1)))))) as valreq from ag_expert where email=?
       ) foto on foto.email=U.email
-      Where U.email=?
+      WHERE U.email=?
     `, [email, email, email, email]);
 
     if (user[0].length > 0) {
       const response = await this.pool.query<RowDataPacket[]>(`
-        SELECT U.email, foto.profilepic FROM ag_user U left outer join
+        SELECT U.email, foto.profilepic, if (U.qversion > 0,1,0) as qversion, foto.valreq FROM ag_user U left outer join
         (
-        select email, profilepic from ag_entrepreneur where email=?
+        select email, profilepic, if(name is null, 0, if (email_contact is null, 0,if (phone is null, 0, if (country is null, 0, if (city is null ,0, if(address is null, 0, 1)))))) as valreq from ag_entrepreneur where email=?
         union
-        select email, profilepic from ag_investor where email=?
+        select email, profilepic, if(name is null, 0, if (email_contact is null, 0,if (phone is null, 0, if (country is null, 0, if (city is null ,0, if(address is null, 0, 1)))))) as valreq from ag_investor where email=?
         union
-        select email, profilepic from ag_expert where email=?
+        select email, profilepic, if(name is null, 0, if (email_contact is null, 0,if (phone is null, 0, if (country is null, 0, if (city is null ,0, if(address is null, 0, 1)))))) as valreq from ag_expert where email=?
         ) foto on foto.email=U.email
-        WHERE U.email=? AND U.source=?
+        WHERE U.email=? and U.source=?
       `, [email, email, email, email, source]);
       
       if (response[0].length === 0) {
