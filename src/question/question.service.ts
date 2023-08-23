@@ -9,6 +9,7 @@ import { SaveQuestionWithNoValidation } from './dto/saveQuestionWithoutValidatio
 import { SubmitQuestionnaire } from './dto/submitQuestionnaire.dto';
 import { ValidateQuestionnaireByEmailDto } from './dto/validateQuestionnaireByEmail.dto';
 import { ValidateQuestionnaireByIdDto } from './dto/validateQuestionnaireById.dto';
+import { GetQuestionsDto } from './dto/get-questions.dto';
 
 @Injectable()
 export class QuestionService {
@@ -16,35 +17,35 @@ export class QuestionService {
     @Inject('DATABASE_CONNECTION') private readonly pool: Pool,
   ){}
 
-  async listQuestionsEntrepreneur() {
+  async listQuestionsEntrepreneur(getQuestionsDto: GetQuestionsDto) {
     const questions = await this.pool.query<RowDataPacket[]>(`
       SELECT q.qnbr, DATE_FORMAT(q.effdt, '%Y-%m-%d %H:%i:%s') effdt, q.descr, v.video, q.type, q.object, q.bobject, q.page
-      FROM ag_entquest q left outer join ag_entquest_video v on q.qnbr=v.qnbr and q.effdt=v.effdt and v.lang='EN'
+      FROM ag_entquest q left outer join ag_entquest_video v on q.qnbr=v.qnbr and q.effdt=v.effdt and v.lang=?
       WHERE q.status='A' AND q.effdt=(SELECT MAX(q_ed.effdt) FROM ag_entquest q_ed WHERE q.qnbr=q_ed.qnbr AND q_ed.effdt<=sysdate())
       ORDER BY q.page, q.orderby
-    `);
+    `, [getQuestionsDto.lang]);
 
     return questions[0];
   }
 
-  async listQuestionsInvestor() {
+  async listQuestionsInvestor(getQuestionsDto: GetQuestionsDto) {
     const questions = await this.pool.query<RowDataPacket[]>(`
       SELECT q.qnbr, DATE_FORMAT(q.effdt, '%Y-%m-%d %H:%i:%s') effdt, q.descr, v.video, q.type, q.object, q.bobject, q.page
-      FROM ag_invquest q left outer join ag_invquest_video v on q.qnbr=v.qnbr and q.effdt=v.effdt and v.lang='EN'
+      FROM ag_invquest q left outer join ag_invquest_video v on q.qnbr=v.qnbr and q.effdt=v.effdt and v.lang=?
       WHERE q.status='A' AND q.effdt=(SELECT MAX(q_ed.effdt) FROM ag_invquest q_ed WHERE q.qnbr=q_ed.qnbr AND q_ed.effdt<=sysdate())
       ORDER BY q.page, q.orderby
-    `);
+    `, [getQuestionsDto.lang]);
 
     return questions[0];
   }
 
-  async listQuestionsExpert() {
+  async listQuestionsExpert(getQuestionsDto: GetQuestionsDto) {
     const questions = await this.pool.query<RowDataPacket[]>(`
       SELECT q.qnbr, DATE_FORMAT(q.effdt, '%Y-%m-%d %H:%i:%s') effdt, q.descr, v.video, q.type, q.object, q.bobject, q.page
-      FROM ag_expquest q left outer join ag_expquest_video v on q.qnbr=v.qnbr and q.effdt=v.effdt and v.lang='EN'
+      FROM ag_expquest q left outer join ag_expquest_video v on q.qnbr=v.qnbr and q.effdt=v.effdt and v.lang=?
       WHERE q.status='A' AND q.effdt=(SELECT MAX(q_ed.effdt) FROM ag_expquest q_ed WHERE q.qnbr=q_ed.qnbr AND q_ed.effdt<=sysdate())
       ORDER BY q.page, q.orderby
-    `);
+    `, [getQuestionsDto.lang]);
 
     return questions[0];
   }

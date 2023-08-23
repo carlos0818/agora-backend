@@ -11,6 +11,7 @@ import { SaveQuestionWithNoValidation } from './dto/saveQuestionWithoutValidatio
 import { SubmitQuestionnaire } from './dto/submitQuestionnaire.dto';
 import { ValidateQuestionnaireByEmailDto } from './dto/validateQuestionnaireByEmail.dto';
 import { ValidateQuestionnaireByIdDto } from './dto/validateQuestionnaireById.dto';
+import { GetQuestionsDto } from './dto/get-questions.dto';
 
 @ApiTags('Questions')
 @Controller('question')
@@ -19,20 +20,20 @@ export class QuestionController {
 
   @Get('entrepreneur')
   @ApiResponse({ status: 200, description: 'List of questions', type: [Question] })
-  listQuestionsEntrepreneur() {
-    return this.questionService.listQuestionsEntrepreneur();
+  listQuestionsEntrepreneur(@Query() getQuestionsDto: GetQuestionsDto) {
+    return this.questionService.listQuestionsEntrepreneur(getQuestionsDto);
   }
 
   @Get('investor')
   @ApiResponse({ status: 200, description: 'List of questions', type: [Question] })
-  listQuestionsInvestor() {
-    return this.questionService.listQuestionsInvestor();
+  listQuestionsInvestor(@Query() getQuestionsDto: GetQuestionsDto) {
+    return this.questionService.listQuestionsInvestor(getQuestionsDto);
   }
 
   @Get('expert')
   @ApiResponse({ status: 200, description: 'List of questions', type: [Question] })
-  listQuestionsExpert() {
-    return this.questionService.listQuestionsExpert();
+  listQuestionsExpert(@Query() getQuestionsDto: GetQuestionsDto) {
+    return this.questionService.listQuestionsExpert(getQuestionsDto);
   }
 
   @Get('answer-entrepreneur')
