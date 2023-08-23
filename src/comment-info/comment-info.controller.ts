@@ -16,4 +16,9 @@ export class CommentInfoController {
   sendCoCreation(@Body() cocreationDto: CocreationDto) {
     return this.commentInfoService.sendCocreation(cocreationDto);
   }
+
+  @Get('get-hub')
+  getHub() {
+    return this.commentInfoService.getHub();
+  }
 }
