@@ -7,7 +7,6 @@ import { SaveQuestionDto } from './dto/saveQuestion.dto';
 import { DeleteUserQuestionDto } from './dto/deleteUserQuestion.dto';
 import { SaveQuestionWithNoValidation } from './dto/saveQuestionWithoutValidation.dto';
 import { SubmitQuestionnaire } from './dto/submitQuestionnaire.dto';
-import { UserQuestion } from './entities/user-question.entity';
 import { ValidateQuestionnaireByEmailDto } from './dto/validateQuestionnaireByEmail.dto';
 import { ValidateQuestionnaireByIdDto } from './dto/validateQuestionnaireById.dto';
 

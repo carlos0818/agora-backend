@@ -406,4 +406,68 @@ export class EntrepreneurService {
       update ag_profileview set status='V' where email=? and emailview in (select email from ag_entrepreneur);
     `, [showNotificationDto.email]);
   }
+
+  async getScore(showNotificationDto: ShowNotificationDto) {
+    const scoreResp = await this.pool.query<RowDataPacket[]>(`
+      select maintitle, title, sum(EntrepreneurScore) as EntrepreneurScore, sum(MaxScore) as MaxScore, round((sum(EntrepreneurScore) * 100) / sum(MaxScore), 2) as score from
+      (
+      select UV.id, S.title, S.qnbr, S.maintitle, A.score as EntrepreneurScore, 1 as MaxScore from ag_scoretitle S,  ag_user_quest U, ag_entans A, ag_user UV
+      where UV.email=?
+      and UV.email=U.email
+      and UV.qversion=U.qversion
+      and A.qnbr=U.qnbr and A.anbr=U.anbr
+      and U.qnbr=S.qnbr
+      and A.score <> 0
+      order by S.qnbr
+      ) Q1
+      group by maintitle, title
+      order by maintitle
+    `, [showNotificationDto.email]);
+
+    let mainArray = [];
+
+    for (let i=0; i<scoreResp[0].length; i++) {
+      mainArray.push({
+        maintitle: scoreResp[0][i].maintitle,
+        countTitles: 0,
+        titles: [],
+      });
+    }
+
+    const counter = {};
+    scoreResp[0].forEach(obj => {
+      const valor = obj.maintitle;
+      counter[valor] = (counter[valor] || 0) + 1;
+    });
+
+    const uniqueTitles = [];
+    const unique = mainArray.filter(element => {
+      const isDuplicate = uniqueTitles.includes(element.maintitle);
+    
+      if (!isDuplicate) {
+        uniqueTitles.push(element.maintitle);
+    
+        return true;
+      }
+
+      return false;
+    });
+
+    for (let i=0; i<unique.length; i++) {
+      unique[i].countTitles = counter[unique[i].maintitle];
+    }
+
+    for (let i=0; i<unique.length; i++) {
+      for (let j=0; j<scoreResp[0].length; j++) {
+        if (unique[i].maintitle === scoreResp[0][j].maintitle) {
+          unique[i].titles.push({
+            title: scoreResp[0][j].title,
+            score: scoreResp[0][j].score
+          });
+        }
+      }
+    }
+
+    return unique;
+  }
 }

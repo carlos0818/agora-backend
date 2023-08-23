@@ -35,11 +35,22 @@ export class MailService {
         await this.mailerService.sendMail({
             // to: 'agora@fenu.org',
             to: 'praimus666@gmail.com',
-            cc: 'ricardoleuridan@hotmail.com',
             subject: `${ comment.fullname } - ${ comment.subject }`,
             template: 'commentInfo',
             context: {
                 comment,
+            },
+        });
+    }
+
+    async sendCocreation(form: any) {
+        await this.mailerService.sendMail({
+            // to: 'agora@fenu.org',
+            to: 'praimus666@gmail.com',
+            subject: `Co-create`,
+            template: 'cocreation',
+            context: {
+                form,
             },
         });
     }

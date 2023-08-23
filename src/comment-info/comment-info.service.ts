@@ -4,6 +4,7 @@ import { lastValueFrom } from 'rxjs';
 
 import { MailService } from 'src/mail/mail.service';
 import { CreateCommentInfoDto } from './dto/create-comment-info.dto';
+import { CocreationDto } from './dto/cocreation.dto';
 
 @Injectable()
 export class CommentInfoService {
@@ -22,6 +23,18 @@ export class CommentInfoService {
     await this.mailService.sendCommentInfo(createCommentInfoDto);
 
     return { message: 'Comment sent' };
+  }
+
+  async sendCocreation(cocreationDto: CocreationDto) {
+    const { data } = await this.validateCaptcha(cocreationDto.captcha);
+  
+    if (!data.success) {
+      throw new BadRequestException(`Incorrect captcha`);
+    }
+
+    await this.mailService.sendCocreation(cocreationDto);
+
+    return { message: 'Cocreation sent' };
   }
 
   private async validateCaptcha(captcha: string) {

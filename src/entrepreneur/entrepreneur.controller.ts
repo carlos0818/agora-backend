@@ -62,4 +62,9 @@ export class EntrepreneurController {
   updateShowNotifications(@Body() showNotificationDto: ShowNotificationDto) {
     return this.entrepreneurService.updateShowNotifications(showNotificationDto);
   }
+
+  @Get('get-score')
+  getScore(@Query() showNotificationDto: ShowNotificationDto) {
+    return this.entrepreneurService.getScore(showNotificationDto);
+  }
 }
