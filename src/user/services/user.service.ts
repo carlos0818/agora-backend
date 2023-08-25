@@ -150,7 +150,7 @@ export class UserService {
 
       await this.insertUserQuestion(registerUserDto.type, registerUserDto.email);
 
-      await this.mailService.sendUserRegister(registerUserDto.email, process.env.ACTIVATE_ACCOUNT_URL, token);
+      await this.mailService.sendUserRegister(registerUserDto.email, registerUserDto.fullname, process.env.ACTIVATE_ACCOUNT_URL, token);
 
       return { message: 'User was created' }
     } catch (error) {

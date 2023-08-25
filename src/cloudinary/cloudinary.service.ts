@@ -11,6 +11,7 @@ export class CloudinaryService {
       const upload = v2.uploader.upload_stream(
         {
           eager_async: true,
+          //folder:  , AQUÍ SE PONE EL FOLDER DONDE QUIERES GUARDAR EL ARCHIVO
           eager: [
             { width: 300, height: 300, crop: 'fill' }
           ]

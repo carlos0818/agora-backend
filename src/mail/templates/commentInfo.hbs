@@ -6,7 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
-    Email: {{ comment.email }}<br /><br />
-    {{ comment.comment }}
+    Hello,<br /><br />
+    This is to confirm that we have received your message sent to the Agora Team. We greatly appreciate your reaching out to us.<br /><br />
+    For your records, here is a copy of the message you sent:<br /><br />
+    Subject: {{ comment.subject }}<br />
+    Fullname: {{ comment.fullname }}<br />
+    Email: {{ comment.email }}<br />
+    Comment: {{ comment.comment }}<br /><br />
+    We will review your message and respond to your inquiries or concerns as soon as possible.<br /><br />
+    Thank you for your interest in Agora.<br /><br />
+    Regards,<br />
+    The Agora Team
 </body>
 </html>
