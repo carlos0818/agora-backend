@@ -11,7 +11,7 @@ export class CloudinaryService {
       const upload = v2.uploader.upload_stream(
         {
           eager_async: true,
-          //folder:  , AQUÍ SE PONE EL FOLDER DONDE QUIERES GUARDAR EL ARCHIVO
+          folder: 'USER_UPLOAD/IMAGES/',
           eager: [
             { width: 300, height: 300, crop: 'fill' }
           ]
@@ -30,6 +30,7 @@ export class CloudinaryService {
       const upload = v2.uploader.upload_stream(
         {
           eager_async: true,
+          folder: 'USER_UPLOAD/IMAGES/',
           eager: [
             { width: 1280, height: 400, crop: 'fill' }
           ]
@@ -47,7 +48,8 @@ export class CloudinaryService {
     return new Promise((resolve, reject) => {
       const upload = v2.uploader.upload_stream(
         {
-          resource_type: 'video'
+          resource_type: 'video',
+          folder: 'USER_UPLOAD/VIDEOS/',
         }, (error, result) => {
         if (error) return reject(error);
         resolve(result);
