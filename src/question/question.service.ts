@@ -1,4 +1,6 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { HttpService } from '@nestjs/axios';
+import { lastValueFrom } from 'rxjs';
 
 import { Pool, RowDataPacket } from 'mysql2/promise';
 
@@ -15,6 +17,7 @@ import { GetQuestionsDto } from './dto/get-questions.dto';
 export class QuestionService {
   constructor(
     @Inject('DATABASE_CONNECTION') private readonly pool: Pool,
+    private readonly httpService: HttpService,
   ){}
 
   async listQuestionsEntrepreneur(getQuestionsDto: GetQuestionsDto) {
@@ -298,6 +301,8 @@ export class QuestionService {
     await this.pool.query(`
       INSERT INTO ag_user_form_version VALUES(?,?,NOW())
     `, [submitQuestionnaire.email, qversion]);
+
+    await this.generateAboutUsEntrepreneur(submitQuestionnaire.email);
 
     return { message: 'Questionnaire saved' };
   }
@@ -588,5 +593,54 @@ export class QuestionService {
     }
 
     return { response: '0', data: respUser[0][0], message: 'Error' };
+  }
+
+  private async generateAboutUsEntrepreneur(email: string) {
+    const dataResp = await this.pool.query<RowDataPacket[]>(`
+      select Q.qnbr, concat(group_concat(
+        case 
+        when Q.qnbr=2 then Q.extravalue 
+        when Q.qnbr=1 then Q.extravalue 
+          else A1.descr 
+      end 
+        SEPARATOR ', ')) 
+      as R3 from ag_user U, ag_user_quest Q, ag_entans A1
+        where U.email=?
+        and U.email=Q.email
+        and U.qversion=Q.qversion
+        and Q.qnbr in (3,6,2,1,5,37,38)
+        and A1.qnbr=Q.qnbr
+        and A1.anbr=Q.anbr
+        and A1.effdt=Q.qeffdt
+        group by Q.qnbr
+      UNION
+      select 'CO', name from ag_entrepreneur where email=?
+    `, [email, email]);
+
+    const resp1 = dataResp[0][0].R3;
+    const resp2 = dataResp[0][1].R3;
+    const resp3 = dataResp[0][2].R3;
+    const resp5 = dataResp[0][3].R3;
+    const resp6 = dataResp[0][4].R3;
+    const resp37 = dataResp[0][5].R3;
+    const resp38 = dataResp[0][6].R3;
+    const respCO = dataResp[0][7].R3;
+
+    const { data } = await lastValueFrom(this.httpService.post(`https://services.agora-sme.org/pitch-deck`, {
+      resp1,
+      resp2,
+      resp3,
+      resp5,
+      resp6,
+      resp37,
+      resp38,
+      respCO,
+    }));
+
+    const aboutUs = data.data.choices[0].message.content;
+
+    await this.pool.query(`
+      UPDATE ag_entrepreneur SET aboutus=? WHERE email=?
+    `, [aboutUs, email]);
   }
 }

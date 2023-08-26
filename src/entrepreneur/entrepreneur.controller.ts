@@ -67,9 +67,4 @@ export class EntrepreneurController {
   getScore(@Query() showNotificationDto: ShowNotificationDto) {
     return this.entrepreneurService.getScore(showNotificationDto);
   }
-
-  @Post('generate-about-us')
-  generateAboutUs(@Body() showNotificationDto: ShowNotificationDto) {
-    return this.entrepreneurService.generateAboutUs(showNotificationDto);
-  }
 }

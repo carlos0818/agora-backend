@@ -1,9 +1,7 @@
 import { BadRequestException, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { lastValueFrom } from 'rxjs';
 
 import { Pool, RowDataPacket } from 'mysql2/promise';
-import { HttpService } from '@nestjs/axios';
 
 import { JwtPayload } from 'src/user/interfaces/jwt-payload.interface';
 import { UpdateEntrepreneurInfoDto } from './dto/update-entrepreneur-info';
@@ -19,7 +17,6 @@ export class EntrepreneurService {
   constructor(
     @Inject('DATABASE_CONNECTION') private pool: Pool,
     private readonly jwtService: JwtService,
-    private readonly httpService: HttpService,
   ){}
 
   async getDataByEmail(updateEntrepreneurInfoDto: UpdateEntrepreneurInfoDto) {
@@ -474,61 +471,5 @@ export class EntrepreneurService {
     }
 
     return unique;
-  }
-
-  async generateAboutUs(showNotificationDto: ShowNotificationDto) {
-    const dataResp = await this.pool.query<RowDataPacket[]>(`
-      select Q.qnbr, concat(group_concat(
-        case 
-        when Q.qnbr=2 then Q.extravalue 
-        when Q.qnbr=1 then Q.extravalue 
-          else A1.descr 
-      end 
-        SEPARATOR ', ')) 
-      as R3 from ag_user U, ag_user_quest Q, ag_entans A1
-        where U.email=?
-        and U.email=Q.email
-        and U.qversion=Q.qversion
-        and Q.qnbr in (3,6,2,1,5,37,38)
-        and A1.qnbr=Q.qnbr
-        and A1.anbr=Q.anbr
-        and A1.effdt=Q.qeffdt
-        group by Q.qnbr
-      UNION
-      select 'CO', name from ag_entrepreneur where email=?
-    `, [showNotificationDto.email, showNotificationDto.email]);
-
-    console.log(dataResp[0]);
-
-    const resp1 = dataResp[0][0].R3;
-    const resp2 = dataResp[0][1].R3;
-    const resp3 = dataResp[0][2].R3;
-    const resp5 = dataResp[0][3].R3;
-    const resp6 = dataResp[0][4].R3;
-    const resp37 = dataResp[0][5].R3;
-    const resp38 = dataResp[0][6].R3;
-    const respCO = dataResp[0][7].R3;
-
-    console.log('resp1', resp1);
-    console.log('resp2', resp2);
-    console.log('resp3', resp3);
-    console.log('resp5', resp5);
-    console.log('resp6', resp6);
-    console.log('resp37', resp37);
-    console.log('resp38', resp38);
-    console.log('respCO', respCO);
-
-    const { data } = await lastValueFrom(this.httpService.post(`https://services.agora-sme.org/pitch-deck`, {
-      resp1,
-      resp2,
-      resp3,
-      resp5,
-      resp6,
-      resp37,
-      resp38,
-      respCO,
-    }));
-    console.log(data);
-    return data.data.choices[0].message.content;
   }
 }
