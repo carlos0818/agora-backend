@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { HttpModule } from '@nestjs/axios';
 import { EntrepreneurService } from './entrepreneur.service';
 import { EntrepreneurController } from './entrepreneur.controller';
 import { JwtModule } from '@nestjs/jwt';
@@ -6,6 +7,9 @@ import { JwtModule } from '@nestjs/jwt';
 @Module({
   controllers: [EntrepreneurController],
   providers: [EntrepreneurService],
-  imports: [JwtModule]
+  imports: [
+    HttpModule,
+    JwtModule,
+  ]
 })
 export class EntrepreneurModule {}

@@ -12,7 +12,6 @@ import { environments } from './environments';
 import { QuestionModule } from './question/question.module';
 import { WallModule } from './wall/wall.module';
 import config from './config';
-// import { DatabaseService } from './database/database.service';
 import { FilesModule } from './files/files.module';
 import { EntrepreneurModule } from './entrepreneur/entrepreneur.module';
 import { InvestorModule } from './investor/investor.module';
