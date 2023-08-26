@@ -103,4 +103,9 @@ export class QuestionController {
   validateCompleteQuestionnaireById(@Query() validateQuestionnaireByIdDto: ValidateQuestionnaireByIdDto) {
     return this.questionService.validateCompleteQuestionnaireById(validateQuestionnaireByIdDto);
   }
+
+  @Post('about-us-entrepreneur')
+  generateAboutUsEntrepreneur(@Body('email') email: string) {
+    return this.questionService.generateAboutUsEntrepreneur(email);
+  }
 }

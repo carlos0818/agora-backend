@@ -290,6 +290,7 @@ export class QuestionService {
 
     for (let i=0; i<missingAnswers.length; i++) {
       if (missingAnswers[i].EXISTS === 'NE') {
+        console.log('2');
         throw new BadRequestException('Please complete the questionnaire');
       }
     }
@@ -298,9 +299,11 @@ export class QuestionService {
       UPDATE ag_user SET qversion=qversion+1 WHERE email=?
     `, [submitQuestionnaire.email]);
 
-    await this.pool.query(`
-      INSERT INTO ag_user_form_version VALUES(?,?,NOW())
-    `, [submitQuestionnaire.email, qversion]);
+    // await this.pool.query(`
+    //   INSERT INTO ag_user_form_version VALUES(?,?,NOW())
+    // `, [submitQuestionnaire.email, qversion]);
+
+    // console.log(submitQuestionnaire.email);
 
     await this.generateAboutUsEntrepreneur(submitQuestionnaire.email);
 
@@ -581,8 +584,6 @@ export class QuestionService {
       return { response: 0, message: 'The user does not exist' };
     }
 
-    // const email = respEmail[0][0].email;
-
     const respValidate = await this.pool.query(`
       SELECT 'RESPONSE' FROM ag_user WHERE id=? AND qversion=(SELECT MAX(qversion) FROM ag_user_quest WHERE id=?)
     `, [validateQuestionnaireByIdDto.id, validateQuestionnaireByIdDto.id]);
@@ -595,7 +596,8 @@ export class QuestionService {
     return { response: '0', data: respUser[0][0], message: 'Error' };
   }
 
-  private async generateAboutUsEntrepreneur(email: string) {
+  async generateAboutUsEntrepreneur(email: string) {
+    console.log('a')
     const dataResp = await this.pool.query<RowDataPacket[]>(`
       select Q.qnbr, concat(group_concat(
         case 
@@ -615,7 +617,9 @@ export class QuestionService {
         group by Q.qnbr
       UNION
       select 'CO', name from ag_entrepreneur where email=?
-    `, [email, email]);
+    `, ['ricardoleuridan@gmail.com', 'ricardoleuridan@gmail.com']);
+
+    console.log(dataResp[0]);
 
     const resp1 = dataResp[0][0].R3;
     const resp2 = dataResp[0][1].R3;
@@ -626,7 +630,7 @@ export class QuestionService {
     const resp38 = dataResp[0][6].R3;
     const respCO = dataResp[0][7].R3;
 
-    const { data } = await lastValueFrom(this.httpService.post(`https://services.agora-sme.org/pitch-deck`, {
+    const { data } = await lastValueFrom(this.httpService.post(`https://servicesai.agora-sme.org/pitch-deck`, {
       resp1,
       resp2,
       resp3,
