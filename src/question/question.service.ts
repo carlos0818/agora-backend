@@ -299,11 +299,9 @@ export class QuestionService {
       UPDATE ag_user SET qversion=qversion+1 WHERE email=?
     `, [submitQuestionnaire.email]);
 
-    // await this.pool.query(`
-    //   INSERT INTO ag_user_form_version VALUES(?,?,NOW())
-    // `, [submitQuestionnaire.email, qversion]);
-
-    // console.log(submitQuestionnaire.email);
+    await this.pool.query(`
+      INSERT INTO ag_user_form_version VALUES(?,?,NOW())
+    `, [submitQuestionnaire.email, qversion]);
 
     await this.generateAboutUsEntrepreneur(submitQuestionnaire.email);
 
@@ -596,8 +594,7 @@ export class QuestionService {
     return { response: '0', data: respUser[0][0], message: 'Error' };
   }
 
-  async generateAboutUsEntrepreneur(email: string) {
-    console.log('a')
+  private async generateAboutUsEntrepreneur(email: string) {
     const dataResp = await this.pool.query<RowDataPacket[]>(`
       select Q.qnbr, concat(group_concat(
         case 
@@ -617,34 +614,61 @@ export class QuestionService {
         group by Q.qnbr
       UNION
       select 'CO', name from ag_entrepreneur where email=?
-    `, ['ricardoleuridan@gmail.com', 'ricardoleuridan@gmail.com']);
+    `, [email, email]);
 
-    console.log(dataResp[0]);
+    let content = '';
 
-    const resp1 = dataResp[0][0].R3;
-    const resp2 = dataResp[0][1].R3;
-    const resp3 = dataResp[0][2].R3;
-    const resp5 = dataResp[0][3].R3;
-    const resp6 = dataResp[0][4].R3;
-    const resp37 = dataResp[0][5].R3;
-    const resp38 = dataResp[0][6].R3;
-    const respCO = dataResp[0][7].R3;
+    const find1 = dataResp[0].find(data => data.qnbr === '1');
+    const find2 = dataResp[0].find(data => data.qnbr === '2');
+    const find3 = dataResp[0].find(data => data.qnbr === '3');
+    const find5 = dataResp[0].find(data => data.qnbr === '5');
+    const find6 = dataResp[0].find(data => data.qnbr === '6');
+    const find37 = dataResp[0].find(data => data.qnbr === '37');
+    const find38 = dataResp[0].find(data => data.qnbr === '38');
+    const findCO = dataResp[0].find(data => data.qnbr === 'CO');
+    if (find1) {
+      content += ``;
+    }
+    if (find2) {
+      content += ``;
+    }
+    if (find3) {
+      content += ``;
+    }
+    if (find5) {
+      content += ``;
+    }
+    if (find6) {
+      content += ``;
+    }
+    if (find37) {
+      content += ``;
+    }
+    if (find38) {
+      content += ``;
+    }
+    if (findCO) {
+      content += ``;
+    }
 
-    const { data } = await lastValueFrom(this.httpService.post(`https://servicesai.agora-sme.org/pitch-deck`, {
-      resp1,
-      resp2,
-      resp3,
-      resp5,
-      resp6,
-      resp37,
-      resp38,
-      respCO,
-    }));
+    // const resp1 = dataResp[0][0].R3;
+    // const resp2 = dataResp[0][1].R3;
+    // const resp3 = dataResp[0][2].R3;
+    // const resp5 = dataResp[0][3].R3;
+    // const resp6 = dataResp[0][4].R3;
+    // const resp37 = dataResp[0][5].R3;
+    // const resp38 = dataResp[0][6].R3;
+    // const respCO = dataResp[0][7].R3;
+    // // const content = `${ respCO } is an ${ resp3 } operating in the ${ resp6 } area which was incorporated in ${ resp2 } in ${ resp1 } as a ${ resp5 }. Compared to its competitors ${ respCO } distiguish itself for its ${ resp37 } uniquely position the company in the market, setting it apart from both existing and emerging competitors. Considering our competitive landscape, we observe, ${ resp38 } and this undoubtedly influences the direction of our business operations.`;
 
-    const aboutUs = data.data.choices[0].message.content;
+    // const { data } = await lastValueFrom(this.httpService.post(`https://servicesai.agora-sme.org/pitch-deck`, {
+    //   content
+    // }));
 
-    await this.pool.query(`
-      UPDATE ag_entrepreneur SET aboutus=? WHERE email=?
-    `, [aboutUs, email]);
+    // const aboutUs = data.data.choices[0].message.content;
+
+    // await this.pool.query(`
+    //   UPDATE ag_entrepreneur SET aboutus=? WHERE email=?
+    // `, [aboutUs, email]);
   }
 }
