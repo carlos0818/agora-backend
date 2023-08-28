@@ -626,49 +626,32 @@ export class QuestionService {
     const find37 = dataResp[0].find(data => data.qnbr === '37');
     const find38 = dataResp[0].find(data => data.qnbr === '38');
     const findCO = dataResp[0].find(data => data.qnbr === 'CO');
-    if (find1) {
-      content += ``;
+
+    if (findCO && find3 && find6 && find2 && find1 && find5) {
+      content += `${ findCO.R3 } is an ${ find3.R3 } operating in the ${ find6.R3 } area which was incorporated in ${ find2.R3 } in ${ find1.R3 } as a ${ find5.R3 }.`;
     }
-    if (find2) {
-      content += ``;
-    }
-    if (find3) {
-      content += ``;
-    }
-    if (find5) {
-      content += ``;
-    }
-    if (find6) {
-      content += ``;
-    }
-    if (find37) {
-      content += ``;
+    if (findCO && find37) {
+      content += `Compared to its competitors ${ findCO.R3 } distiguish itself for its ${ find37.R3 } uniquely position the company in the market, setting it apart from both existing and emerging competitors.`;
     }
     if (find38) {
-      content += ``;
-    }
-    if (findCO) {
-      content += ``;
+      content += `Considering our competitive landscape, we observe, ${ find38.R3 } and this undoubtedly influences the direction of our business operations.`;
     }
 
-    // const resp1 = dataResp[0][0].R3;
-    // const resp2 = dataResp[0][1].R3;
-    // const resp3 = dataResp[0][2].R3;
-    // const resp5 = dataResp[0][3].R3;
-    // const resp6 = dataResp[0][4].R3;
-    // const resp37 = dataResp[0][5].R3;
-    // const resp38 = dataResp[0][6].R3;
-    // const respCO = dataResp[0][7].R3;
-    // // const content = `${ respCO } is an ${ resp3 } operating in the ${ resp6 } area which was incorporated in ${ resp2 } in ${ resp1 } as a ${ resp5 }. Compared to its competitors ${ respCO } distiguish itself for its ${ resp37 } uniquely position the company in the market, setting it apart from both existing and emerging competitors. Considering our competitive landscape, we observe, ${ resp38 } and this undoubtedly influences the direction of our business operations.`;
+    const { data } = await lastValueFrom(this.httpService.post(`https://servicesai.agora-sme.org/pitch-deck`, {
+      content
+    }));
 
-    // const { data } = await lastValueFrom(this.httpService.post(`https://servicesai.agora-sme.org/pitch-deck`, {
-    //   content
-    // }));
+    const aboutUs = data.data.choices[0].message.content;
+    const prompt_tokens = data.data.usage.prompt_tokens;
+    const completion_tokens = data.data.usage.completion_tokens;
+    const total_tokens = data.data.usage.total_tokens;
 
-    // const aboutUs = data.data.choices[0].message.content;
+    await this.pool.query(`
+      INSERT INTO ag_gpttokens VALUES(NULL,?,?,?,?,NOW(),'about')
+    `, [email, prompt_tokens, completion_tokens, total_tokens]);
 
-    // await this.pool.query(`
-    //   UPDATE ag_entrepreneur SET aboutus=? WHERE email=?
-    // `, [aboutUs, email]);
+    await this.pool.query(`
+      UPDATE ag_entrepreneur SET aboutus=? WHERE email=?
+    `, [aboutUs, email]);
   }
 }
