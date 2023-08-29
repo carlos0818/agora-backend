@@ -599,7 +599,7 @@ export class QuestionService {
       select Q.qnbr, concat(group_concat(
         case 
         when Q.qnbr=2 then Q.extravalue 
-        when Q.qnbr=1 then Q.extravalue 
+        when Q.qnbr=1 then (select C.name from ag_country C where C.id=convert(Q.extravalue,unsigned))
           else A1.descr 
       end 
         SEPARATOR ', ')) 
