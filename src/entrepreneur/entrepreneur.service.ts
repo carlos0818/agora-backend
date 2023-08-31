@@ -472,4 +472,20 @@ export class EntrepreneurService {
 
     return unique;
   }
+
+  async verifyPitchDeck(getDataByIdDto: GetDataByIdDto) {
+    const verifyResp = await this.pool.query<RowDataPacket[]>(`
+      SELECT text FROM ag_pitchdeck WHERE id=?
+    `, [getDataByIdDto.id]);
+
+    if (verifyResp[0].length > 0) {
+      return {
+        response: 1
+      };
+    }
+
+    return {
+      response: 0
+    };
+  }
 }

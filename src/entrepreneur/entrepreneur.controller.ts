@@ -67,4 +67,9 @@ export class EntrepreneurController {
   getScore(@Query() showNotificationDto: ShowNotificationDto) {
     return this.entrepreneurService.getScore(showNotificationDto);
   }
+
+  @Get('verify-pitch-deck')
+  verifyPitchDeck(@Query() getDataByIdDto: GetDataByIdDto) {
+    return this.entrepreneurService.verifyPitchDeck(getDataByIdDto);
+  }
 }
