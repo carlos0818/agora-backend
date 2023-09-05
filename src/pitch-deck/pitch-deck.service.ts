@@ -730,7 +730,7 @@ export class PitchDeckService {
 
   async step6(showNotificationDto: GeneratePitchDeckDto) {
     const query = await this.pool.query<RowDataPacket[]>(`
-      select Q.qnbr, A1.anbr, A1.descr, concat(substring_index(Q.extravalue,'|',1)," (", year(V.submitdate) - 3 ,")") as prev3, concat(substring_index(substring_index(Q.extravalue,'|',2),'|',-1), " (",year(V.submitdate) - 2,")") as prev2, concat(substring_index(Q.extravalue,'|',-1), " (",year(V.submitdate) - 1,")") as prev1
+      select Q.qnbr, A1.anbr, A1.descr, concat(substring_index(Q.extravalue,'|',1)," USD (", year(V.submitdate) - 3 ,")") as prev3, concat(substring_index(substring_index(Q.extravalue,'|',2),'|',-1), " USD (",year(V.submitdate) - 2,")") as prev2, concat(substring_index(Q.extravalue,'|',-1), " USD (",year(V.submitdate) - 1,")") as prev1
       from 
       ag_user U, ag_user_quest Q, ag_entans A1, ag_user_form_version V
       where U.email=?
@@ -775,6 +775,7 @@ export class PitchDeckService {
 
     const find61 = query[0].find(data => data.qnbr === 61);
     const find62 = query[0].find(data => data.qnbr === 62);
+    const find117 = query[0].find(data => data.qnbr === 117);
     const find118 = query[0].find(data => data.qnbr === 118);
     const find120 = query[0].find(data => data.qnbr === 120);
     const find121 = query[0].find(data => data.qnbr === 121);
@@ -809,9 +810,9 @@ export class PitchDeckService {
       content += `The industry outlook is ${ find118.R3 }.`;
     }
 
-    if (find121) {
-      if (find121.R3.toLowerCase() === 'yes') {
-        content += `The business anticipate the projected sales and cost to "increase - 15.1" however, the company plans to continue with its growth strategy.`;
+    if (find121 && find117) {
+      if (find121.R3.toLowerCase() === 'yes' && find117.R3.toLowerCase() === 'yes') {
+        content += `The business anticipate the projected sales and cost to increase however, the company plans to continue with its growth strategy.`;
       }
     }
 
@@ -836,8 +837,8 @@ export class PitchDeckService {
 
   async step8(showNotificationDto: GeneratePitchDeckDto) {
     const query = await this.pool.query<RowDataPacket[]>(`
-      select Q.qnbr, A1.anbr, A1.descr, concat(substring_index(Q.extravalue,'|',1)," (", year(V.submitdate) + 1 ,")"), concat(substring_index(substring_index(Q.extravalue,'|',2),'|',-1), " (",year(V.submitdate) + 2,")"), concat(substring_index(Q.extravalue,'|',-1), " (",year(V.submitdate) + 3,")")
-      as R3 from 
+      select Q.qnbr, A1.anbr, A1.descr, concat(substring_index(Q.extravalue,'|',1)," USD (", year(V.submitdate) + 1 ,")") prev1, concat(substring_index(substring_index(Q.extravalue,'|',2),'|',-1), " USD (",year(V.submitdate) + 2,")") prev2, concat(substring_index(Q.extravalue,'|',-1), " USD (",year(V.submitdate) + 3,")")
+      as prev3 from 
       ag_user U, ag_user_quest Q, ag_entans A1, ag_user_form_version V
       where U.email=?
       and U.email=Q.email
