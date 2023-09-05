@@ -290,7 +290,6 @@ export class QuestionService {
 
     for (let i=0; i<missingAnswers.length; i++) {
       if (missingAnswers[i].EXISTS === 'NE') {
-        console.log('2');
         throw new BadRequestException('Please complete the questionnaire');
       }
     }
@@ -299,9 +298,9 @@ export class QuestionService {
       UPDATE ag_user SET qversion=qversion+1 WHERE email=?
     `, [submitQuestionnaire.email]);
 
-    await this.pool.query(`
-      INSERT INTO ag_user_form_version VALUES(?,?,NOW())
-    `, [submitQuestionnaire.email, qversion]);
+    // await this.pool.query(`
+    //   INSERT INTO ag_user_form_version VALUES(?,?,NOW())
+    // `, [submitQuestionnaire.email, qversion]);
 
     await this.generateAboutUsEntrepreneur(submitQuestionnaire.email);
 
@@ -638,7 +637,8 @@ export class QuestionService {
     }
 
     const { data } = await lastValueFrom(this.httpService.post(`https://servicesai.agora-sme.org/pitch-deck`, {
-      content
+      contentSystem: 'You are an expert in marketing techniques. Utilize advanced data analysis tools to showcase business ventures to potential investors. Craft compelling narratives that demonstrate the immense potential of these ventures. Assist companies in standing out in a competitive landscape. Focus investor appeal by highlighting the scalability, market demand, and revenue projections of each endeavor. Extract valuable market trends, customer behaviors, and competitive benchmarks. Tell a compelling story backed by insights, while ensuring your offerings and scope remain realistic and optimistic. Your language should be professional, yet also fresh and friendly. Always respond in English and stay within 2000 characters.',
+      contentUser: content
     }));
 
     const aboutUs = data.data.choices[0].message.content;
@@ -650,8 +650,11 @@ export class QuestionService {
       INSERT INTO ag_gpttokens VALUES(NULL,?,?,?,?,NOW(),'about')
     `, [email, prompt_tokens, completion_tokens, total_tokens]);
 
+    const maxIndexResp = await this.pool.query('SELECT MAX(`index`) maxIndex FROM ag_gpttokens');
+    const maxIndex = maxIndexResp[0][0].maxIndex;
+
     await this.pool.query(`
-      UPDATE ag_entrepreneur SET aboutus=? WHERE email=?
-    `, [aboutUs, email]);
+      UPDATE ag_entrepreneur SET aboutus=?, gptindex=? WHERE email=?
+    `, [aboutUs, maxIndex, email]);
   }
 }

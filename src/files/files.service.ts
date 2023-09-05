@@ -13,7 +13,7 @@ export class FilesService {
       const result = await this.cloudinaryService.uploadProfilePicture(file);
       return result.eager[0].secure_url;
     } catch (error) {
-      console.log(error);
+      // console.log(error);
     }
   }
 
@@ -22,7 +22,7 @@ export class FilesService {
       const result = await this.cloudinaryService.uploadBackgroundPicture(file);
       return result.eager[0].secure_url;
     } catch (error) {
-      console.log(error);
+      // console.log(error);
     }
   }
 
@@ -31,7 +31,7 @@ export class FilesService {
       const result = await this.cloudinaryService.uploadVideo(file);
       return result.secure_url;
     } catch (error) {
-      console.log(error);
+      // console.log(error);
     }
   }
 }

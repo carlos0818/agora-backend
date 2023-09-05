@@ -19,6 +19,7 @@ import { ExpertModule } from './expert/expert.module';
 import { ContactModule } from './contact/contact.module';
 import { UserCommentModule } from './user-comment/user-comment.module';
 import { CommentInfoModule } from './comment-info/comment-info.module';
+import { PitchDeckModule } from './pitch-deck/pitch-deck.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { CommentInfoModule } from './comment-info/comment-info.module';
     ContactModule,
     UserCommentModule,
     CommentInfoModule,
+    PitchDeckModule,
   ],
 })
 export class AppModule {}

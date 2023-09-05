@@ -11,13 +11,12 @@ import { VoteController } from './controllers/vote.controller';
 import { MessageController } from './controllers/message.controller';
 import { HttpModule } from '@nestjs/axios';
 import { MailService } from 'src/mail/mail.service';
-import { DatabaseService } from 'src/database/database.service';
 import { VoteService } from './services/vote.service';
 import { MessageService } from './services/message.service';
 
 @Module({
   controllers: [UserController, VoteController, MessageController],
-  providers: [UserService, VoteService, MessageService, JwtStrategy, MailService, DatabaseService],
+  providers: [UserService, VoteService, MessageService, JwtStrategy, MailService],
   imports: [
     HttpModule,
     ConfigModule,

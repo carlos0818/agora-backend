@@ -10,8 +10,6 @@ import { GetDataByIdDto } from './dto/get-data-by-id.dto';
 import { SearchDto } from './dto/search.dto';
 import { ShowNotificationDto } from './dto/show-notification.dto';
 
-console.log(process.env.OPENAI_API_KEY);
-
 @Injectable()
 export class EntrepreneurService {
   constructor(

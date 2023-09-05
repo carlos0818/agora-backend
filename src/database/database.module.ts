@@ -1,9 +1,7 @@
-import { Module, Global, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
-import { ConfigType } from '@nestjs/config';
-import { MysqlModule } from 'nest-mysql';
+import { Module, Global } from '@nestjs/common';
 import { createConnection } from 'mysql2/promise';
 
-import config from '../config';
+// import config from '../config';
 
 @Global()
 @Module({
@@ -35,6 +33,8 @@ import config from '../config';
                     password: process.env.DATABASE_PASSWORD,
                     database: process.env.DATABASE_NAME,
                     connectionLimit: 1,
+                    connectTimeout: 90000000,
+                    idleTimeout: 90000000,
                 });
             },
         },
