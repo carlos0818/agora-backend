@@ -94,7 +94,7 @@ export class PitchDeckService {
 
     if (find2) {
       if (Number(find2.name) >= 2)
-        content += `In ${ find0 }, the data reveals various economic and social factors without issuing judgments.`;
+        content += `The economic growth rate is at ${ find2.name }%, means a positive economic growth.`;
       else if (Number(find2.name) <= 0)
         content += `The economic growth rate is at ${ find2.name }%, means challenges in economic growth.`;
       else
