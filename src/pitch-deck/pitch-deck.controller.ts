@@ -1,6 +1,7 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query } from '@nestjs/common';
 import { PitchDeckService } from './pitch-deck.service';
 import { GeneratePitchDeckDto } from './dto/generate-pitch-deck.dto';
+import { GetSummaryDto } from './dto/get-summary.dto';
 
 @Controller('pitch-deck')
 export class PitchDeckController {
@@ -49,5 +50,20 @@ export class PitchDeckController {
   @Post('step-9')
   step9(@Body() showNotificationDto: GeneratePitchDeckDto) {
     return this.pitchDeckService.step9(showNotificationDto);
+  }
+
+  @Post('step-10')
+  step10(@Body() showNotificationDto: GeneratePitchDeckDto) {
+    return this.pitchDeckService.step10(showNotificationDto);
+  }
+
+  @Post('step-11')
+  step11(@Body() showNotificationDto: GeneratePitchDeckDto) {
+    return this.pitchDeckService.step11(showNotificationDto);
+  }
+
+  @Get('get-summary')
+  getSummary(@Query() getSummaryDto: GetSummaryDto) {
+    return this.pitchDeckService.getSummary(getSummaryDto);
   }
 }

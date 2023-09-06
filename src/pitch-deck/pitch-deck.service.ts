@@ -1,13 +1,17 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { HttpService } from '@nestjs/axios';
+import { lastValueFrom } from 'rxjs';
 
 import { Pool, RowDataPacket } from 'mysql2/promise';
 
 import { GeneratePitchDeckDto } from './dto/generate-pitch-deck.dto';
+import { GetSummaryDto } from './dto/get-summary.dto';
 
 @Injectable()
 export class PitchDeckService {
   constructor(
     @Inject('DATABASE_CONNECTION') private pool: Pool,
+    private readonly httpService: HttpService,
   ){}
 
   async step1(showNotificationDto: GeneratePitchDeckDto) {
@@ -268,6 +272,10 @@ export class PitchDeckService {
       content += `The cost of living has become ${ find967.name }%.`;
     }
 
+    const contentSystem = 'You are an expert in Engineering Economics. Utilize advanced data analysis tools to showcase business ventures to potential investors. Craft compelling narratives that demonstrate the immense potential of these ventures. Assist companies in standing out in a competitive landscape. Focus investor appeal by highlighting the scalability, market demand, and revenue projections of each endeavor. Extract valuable market trends, customer behaviors, and competitive benchmarks. Tell a compelling story backed by insights, while ensuring your offerings and scope remain realistic and optimistic. Your language should be professional, yet also fresh and friendly. Always respond in English and stay within 2000 characters.';
+
+    await this.gpt(showNotificationDto.email, showNotificationDto.id, contentSystem, content, 'A');
+
     return { content };
   }
 
@@ -306,6 +314,10 @@ export class PitchDeckService {
     if (find1 && find2 && find3 && find5 && find6 && findCO) {
       content = `${ findCO.R3 } is an ${ find3.R3 } operating in the ${ find6.R3 } area which was incorporated in ${ find2.R3 } in ${ find1.R3 } as a ${ find5.R3 }.`;
     }
+
+    const contentSystem = 'You are an expert in marketing techniques. Utilize advanced data analysis tools to showcase business ventures to potential investors. Craft compelling narratives that demonstrate the immense potential of these ventures. Assist companies in standing out in a competitive landscape. Focus investor appeal by highlighting the scalability, market demand, and revenue projections of each endeavor. Extract valuable market trends, customer behaviors, and competitive benchmarks. Tell a compelling story backed by insights, while ensuring your offerings and scope remain realistic and optimistic. Your language should be professional, yet also fresh and friendly. Always respond in English and stay within 2000 characters.';
+
+    await this.gpt(showNotificationDto.email, showNotificationDto.id, contentSystem, content, 'B');
 
     return { content };
   }
@@ -358,7 +370,7 @@ export class PitchDeckService {
     const find115 = query[0].find(data => data.qnbr === 115);
     const find116 = query[0].find(data => data.qnbr === 116);
 
-    let content = 'Business Activies: ';
+    let content = 'Business Activities: ';
 
     if (find21 && find22) {
       content = `The company is ${ find21.descr } with ${ find22.descr } as target customers.`;
@@ -491,6 +503,10 @@ export class PitchDeckService {
         content += `Indigenous peoples.`;
       }
     }
+
+    const contentSystem = 'You are an expert in Engineering Economics. Utilize advanced data analysis tools to showcase business ventures to potential investors. Craft compelling narratives that demonstrate the immense potential of these ventures. Assist companies in standing out in a competitive landscape. Focus investor appeal by highlighting the scalability, market demand, and revenue projections of each endeavor. Extract valuable market trends, customer behaviors, and competitive benchmarks. Tell a compelling story backed by insights, while ensuring your offerings and scope remain realistic and optimistic. Your language should be professional, yet also fresh and friendly. Always respond in English and stay within 2000 characters.';
+
+    await this.gpt(showNotificationDto.email, showNotificationDto.id, contentSystem, content, 'C');
 
     return { content };
   }
@@ -625,6 +641,10 @@ export class PitchDeckService {
       }
     }
 
+    const contentSystem = 'You are an expert in Engineering Economics. Utilize advanced data analysis tools to showcase business ventures to potential investors. Craft compelling narratives that demonstrate the immense potential of these ventures. Assist companies in standing out in a competitive landscape. Focus investor appeal by highlighting the scalability, market demand, and revenue projections of each endeavor. Extract valuable market trends, customer behaviors, and competitive benchmarks. Tell a compelling story backed by insights, while ensuring your offerings and scope remain realistic and optimistic. Your language should be professional, yet also fresh and friendly. Always respond in English and stay within 2000 characters.';
+
+    await this.gpt(showNotificationDto.email, showNotificationDto.id, contentSystem, content, 'D');
+
     return { content };
   }
 
@@ -725,6 +745,10 @@ export class PitchDeckService {
       }
     }
 
+    const contentSystem = 'You are an expert in Engineering Economics. Utilize advanced data analysis tools to showcase business ventures to potential investors. Craft compelling narratives that demonstrate the immense potential of these ventures. Assist companies in standing out in a competitive landscape. Focus investor appeal by highlighting the scalability, market demand, and revenue projections of each endeavor. Extract valuable market trends, customer behaviors, and competitive benchmarks. Tell a compelling story backed by insights, while ensuring your offerings and scope remain realistic and optimistic. Your language should be professional, yet also fresh and friendly. Always respond in English and stay within 2000 characters.';
+
+    await this.gpt(showNotificationDto.email, showNotificationDto.id, contentSystem, content, 'E');
+
     return { content };
   }
 
@@ -753,8 +777,13 @@ export class PitchDeckService {
         content += `If you were to ask me the following ${ query[0][i].descr }, my response would be: ${ query[0][i].prev1 }, ${ query[0][i].prev2 }, ${ query[0][i].prev3 }.`;
       }
 
+      const contentSystem = 'You are an expert in Engineering Economics. Utilize advanced data analysis tools to showcase business ventures to potential investors. Craft compelling narratives that demonstrate the immense potential of these ventures. Assist companies in standing out in a competitive landscape. Focus investor appeal by highlighting the scalability, market demand, and revenue projections of each endeavor. Extract valuable market trends, customer behaviors, and competitive benchmarks. Tell a compelling story backed by insights, while ensuring your offerings and scope remain realistic and optimistic. Your language should be professional, yet also fresh and friendly. Always respond in English and stay within 2000 characters.';
+  
+      await this.gpt(showNotificationDto.email, showNotificationDto.id, contentSystem, content, 'F');
+
       return { content };
     }
+
 
     return { content: '' };
   }
@@ -832,6 +861,10 @@ export class PitchDeckService {
       content += `The company intends to ${ find123.R3 } as part of its development stategy in terms of exports.`;
     }
 
+    const contentSystem = 'You are an expert in Engineering Economics. Utilize advanced data analysis tools to showcase business ventures to potential investors. Craft compelling narratives that demonstrate the immense potential of these ventures. Assist companies in standing out in a competitive landscape. Focus investor appeal by highlighting the scalability, market demand, and revenue projections of each endeavor. Extract valuable market trends, customer behaviors, and competitive benchmarks. Tell a compelling story backed by insights, while ensuring your offerings and scope remain realistic and optimistic. Your language should be professional, yet also fresh and friendly. Always respond in English and stay within 2000 characters.';
+
+    await this.gpt(showNotificationDto.email, showNotificationDto.id, contentSystem, content, 'G');
+
     return { content };
   }
 
@@ -858,6 +891,10 @@ export class PitchDeckService {
       for (let i=0; i<query[0].length; i++) {
         content += `If you were to ask me the following ${ query[0][i].descr }, my response would be: ${ query[0][i].prev1 }, ${ query[0][i].prev2 }, ${ query[0][i].prev3 }.`;
       }
+
+      const contentSystem = 'You are an expert in Engineering Economics. Utilize advanced data analysis tools to showcase business ventures to potential investors. Craft compelling narratives that demonstrate the immense potential of these ventures. Assist companies in standing out in a competitive landscape. Focus investor appeal by highlighting the scalability, market demand, and revenue projections of each endeavor. Extract valuable market trends, customer behaviors, and competitive benchmarks. Tell a compelling story backed by insights, while ensuring your offerings and scope remain realistic and optimistic. Your language should be professional, yet also fresh and friendly. Always respond in English and stay within 2000 characters.';
+
+      await this.gpt(showNotificationDto.email, showNotificationDto.id, contentSystem, content, 'H');
 
       return { content };
     }
@@ -900,6 +937,77 @@ export class PitchDeckService {
       content += `It is ${ find143.R3 } currently working with other investors on a round of funding.`;
     }
 
+    const contentSystem = 'You are an expert in Engineering Economics. Utilize advanced data analysis tools to showcase business ventures to potential investors. Craft compelling narratives that demonstrate the immense potential of these ventures. Assist companies in standing out in a competitive landscape. Focus investor appeal by highlighting the scalability, market demand, and revenue projections of each endeavor. Extract valuable market trends, customer behaviors, and competitive benchmarks. Tell a compelling story backed by insights, while ensuring your offerings and scope remain realistic and optimistic. Your language should be professional, yet also fresh and friendly. Always respond in English and stay within 2000 characters.';
+
+    await this.gpt(showNotificationDto.email, showNotificationDto.id, contentSystem, content, 'I');
+
     return { content };
+  }
+
+  async step10(showNotificationDto: GeneratePitchDeckDto) {
+    const query = await this.pool.query<RowDataPacket[]>(`
+      select text from ag_pitchdeck where email=?
+    `, [showNotificationDto.email]);
+
+    let content = '';
+
+    for (let i=0; i<query[0].length; i++) {
+      content += query[0][i].text;
+    }
+
+    const contentSystem = 'You are an expert in Economics. Perform a SWOT analysis (Strengths, Weaknesses, Opportunities, Threats) using the provided data. Use formal language and always respond in English. Explain in one to five maximum points for each category. Use between 10,000 and 14,000 characters.';
+
+    await this.gpt(showNotificationDto.email, showNotificationDto.id, contentSystem, content, 'FPD');
+
+    return { message: 'Full Pitch Deck completed' };
+  }
+
+  async step11(showNotificationDto: GeneratePitchDeckDto) {
+    const query = await this.pool.query<RowDataPacket[]>(`
+      select text from ag_pitchdeck where email=? and section='FPD'
+    `, [showNotificationDto.email]);
+
+    let content = query[0][0].text;
+
+    const contentSystem = 'Create a summary while respecting the most important points of the text. Always respond in English and stay within 2000 characters.';
+
+    await this.gpt(showNotificationDto.email, showNotificationDto.id, contentSystem, content, 'SPD');
+
+    return { message: 'Summary Pitch Deck completed' };
+  }
+
+  async getSummary(getSummaryDto: GetSummaryDto) {
+    const query = await this.pool.query<RowDataPacket[]>(`
+      select text from ag_pitchdeck where id=? and section='SPD'
+    `, [getSummaryDto.id]);
+
+    if (query[0].length > 0) {
+      return { response: 1, text: query[0][0].text };
+    }
+
+    return { response: 0, text: null };
+  }
+
+  private async gpt(email: string, id: string, contentSystem: string, contentUser: string, section: string) {
+    const { data } = await lastValueFrom(this.httpService.post(`https://servicesai.agora-sme.org/pitch-deck`, {
+      contentSystem,
+      contentUser
+    }));
+
+    const respGPT = data.data.choices[0].message.content;
+    const prompt_tokens = data.data.usage.prompt_tokens;
+    const completion_tokens = data.data.usage.completion_tokens;
+    const total_tokens = data.data.usage.total_tokens;
+
+    await this.pool.query(`
+      INSERT INTO ag_gpttokens VALUES(NULL,?,?,?,?,NOW(),'pitchdeck')
+    `, [email, prompt_tokens, completion_tokens, total_tokens]);
+
+    const maxIndexResp = await this.pool.query('SELECT MAX(`index`) maxIndex FROM ag_gpttokens');
+    const maxIndex = maxIndexResp[0][0].maxIndex;
+
+    await this.pool.query(`
+      INSERT INTO ag_pitchdeck VALUES(?,?,?,?,?)
+    `, [email, id, maxIndex, section, respGPT]);
   }
 }

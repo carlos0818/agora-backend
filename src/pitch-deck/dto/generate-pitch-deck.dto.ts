@@ -4,4 +4,7 @@ export class GeneratePitchDeckDto {
     @IsString()
     @IsEmail()
     email: string;
+
+    @IsString()
+    id: string;
 }
