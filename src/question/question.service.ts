@@ -430,6 +430,8 @@ export class QuestionService {
       INSERT INTO ag_user_form_version VALUES(?,?,NOW())
     `, [submitQuestionnaire.email, qversion]);
 
+    await this.generateAboutUsInvestor(submitQuestionnaire.email);
+
     return { message: 'Questionnaire saved' };
   }
 
@@ -556,6 +558,8 @@ export class QuestionService {
       INSERT INTO ag_user_form_version VALUES(?,?,NOW())
     `, [submitQuestionnaire.email, qversion]);
 
+    await this.generateAboutUsExpert(submitQuestionnaire.email);
+
     return { message: 'Questionnaire saved' };
   }
 
@@ -636,9 +640,202 @@ export class QuestionService {
       content += `Considering our competitive landscape, we observe, ${ find38.R3 } and this undoubtedly influences the direction of our business operations.`;
     }
 
+    const contentSystem = 'You are an expert in marketing techniques. Utilize advanced data analysis tools to showcase business ventures to potential investors. Craft compelling narratives that demonstrate the immense potential of these ventures. Assist companies in standing out in a competitive landscape. Focus investor appeal by highlighting the scalability, market demand, and revenue projections of each endeavor. Extract valuable market trends, customer behaviors, and competitive benchmarks. Tell a compelling story backed by insights, while ensuring your offerings and scope remain realistic and optimistic. Your language should be professional, yet also fresh and friendly. Always respond in English and stay within 2000 characters.';
+
+    const { maxIndex, aboutUs } = await this.gpt(email, contentSystem, content);
+
+    await this.pool.query(`
+      UPDATE ag_entrepreneur SET aboutus=?, gptindex=? WHERE email=?
+    `, [aboutUs, maxIndex, email]);
+  }
+
+  private async generateAboutUsExpert(email: string) {
+    const dataResp = await this.pool.query<RowDataPacket[]>(`
+      select 
+      case
+      when UQ.qnbr=5 then 'Relevant Areas of Expertise '
+      else Q.descr
+      end as descr,  
+      case 
+      when R.descr = '%NUMBER%' then UQ.extravalue
+      when UQ.qnbr=5 then concat(Q.descr, ': ', R.descr)
+      else R.descr
+      end as output
+      from ag_user U, ag_user_quest UQ, ag_expquest Q, ag_expans R
+      where 
+      U.email=?
+      and U.status=1
+      and UQ.email=U.email
+      and UQ.qversion=U.qversion
+      and Q.qnbr=UQ.qnbr
+      and Q.effdt=UQ.qeffdt
+      and UQ.qnbr <> 0
+      and R.qnbr=UQ.qnbr
+      and R.effdt=UQ.qeffdt
+      and R.anbr=UQ.anbr
+    `, [email]);
+
+    let content = 'Please analyze the data from the form containing questions and answers from expert consultants in entrepreneurship. These responses are crucial for making informed decisions. Provide a concise summary of the data in a maximum of 2000 characters. Make sure to include relevant information about experience, skills, recommendations, and any other details that are essential for evaluating the suitability of the consultants in the context of entrepreneurial projects: ';
+
+    for (let i=0; i<dataResp[0].length; i++) {
+      if (i<dataResp[0].length - 1)
+        content += `${ dataResp[0][i].descr }, ${ dataResp[0][i].output }; `;
+      else
+        content += `${ dataResp[0][i].descr }, ${ dataResp[0][i].output }.`;
+    }
+
+    const contentSystem = 'Imagine that you are a highly skilled marketing expert, deeply passionate about driving the success of businesses. Your task is to effectively promote the consultant or consulting firm that an intelligent and ambitious entrepreneur has chosen to boost their venture. Your language should be professional, yet also fresh and friendly. Always respond in English and stay within 2000 characters.';
+
+    const { maxIndex, aboutUs } = await this.gpt(email, contentSystem, content);
+
+    await this.pool.query(`
+      UPDATE ag_expert SET aboutus=?, gptindex=? WHERE email=?
+    `, [aboutUs, maxIndex, email]);
+  }
+
+  async generateAboutUsInvestor(email: string) {
+    const dataResp = await this.pool.query<RowDataPacket[]>(`
+      select UQ.qnbr, 
+      case 
+      when UQ.qnbr in (1,10) then UQ.extravalue 
+      else R.descr end as ans
+      from ag_user U, ag_user_quest UQ, ag_invans R
+      where U.email=?
+      and U.status=1
+      and UQ.email=U.email
+      and UQ.qversion=U.qversion
+      and UQ.qnbr <> 0
+      and R.status='A'
+      and R.qnbr=UQ.qnbr
+      and R.effdt=UQ.qeffdt
+      and UQ.anbr=R.anbr
+      union
+      select 0, name from ag_investor where email=?
+    `, [email, email]);
+
+    let content = '';
+
+    const find0 = dataResp[0].find(data => data.qnbr === 0);
+    const find1 = dataResp[0].find(data => data.qnbr === 1);
+    const find2 = dataResp[0].find(data => data.qnbr === 2);
+    const find3 = dataResp[0].filter(data => data.qnbr === 3);
+    const ans3 = find3.map(find => (find.ans));
+    const find4 = dataResp[0].find(data => data.qnbr === 4);
+    const find6 = dataResp[0].find(data => data.qnbr === 6);
+    const find7 = dataResp[0].find(data => data.qnbr === 7);
+    const find8 = dataResp[0].find(data => data.qnbr === 8);
+    const find9 = dataResp[0].find(data => data.qnbr === 9);
+    const find10 = dataResp[0].find(data => data.qnbr === 10);
+    const find11 = dataResp[0].filter(data => data.qnbr === 11);
+    const ans11 = find11.map(find => (find.ans));
+    const find12 = dataResp[0].find(data => data.qnbr === 12);
+    const find13 = dataResp[0].find(data => data.qnbr === 13);
+    const find16 = dataResp[0].find(data => data.qnbr === 16);
+    const find17 = dataResp[0].find(data => data.qnbr === 17);
+    const find18 = dataResp[0].find(data => data.qnbr === 18);
+    const find19 = dataResp[0].find(data => data.qnbr === 19);
+    const find21 = dataResp[0].find(data => data.qnbr === 21);
+    const find23 = dataResp[0].find(data => data.qnbr === 23);
+
+    if (find0 && find1) {
+      content += `My investment company is called ${ find0.ans } and was founded in the year ${ find1.ans }.`;
+    }
+
+    content += 'I lead a proactive group of workers focused on finding the best investment.';
+
+    if (find0 && find2) {
+      content += `The legal status of ${ find0.ans } is ${ find2.ans }.`;
+    }
+
+    if (find0 && find3) {
+      content += `${ find0.ans } is looking for activity areas like: ${ ans3.join(', ') }.`;
+    }
+
+    if (find0 && find4) {
+      if (find4.ans.toLowerCase() === 'yes') {
+        content += `${ find0.ans } is engadget with the SDGs.`;
+      }
+    }
+
+    if (find6) {
+      content += `The investment priorities for us are: ${ find6.ans }.`;
+    }
+
+    if (find7) {
+      content += `We have a ${ find7.ans } risk preference.`;
+    }
+
+    if (find8) {
+      content += `Our type of investment offered is ${ find8.ans }.`;
+    }
+
+    if (find9) {
+      content += `Our invesment maturity is ${ find9.ans }.`;
+    }
+
+    if (find10) {
+      content += `Our investment currency is ${ find10.ans }.`;
+    }
+
+    if (find11) {
+      content += `We are interested to invest in the following countries: ${ ans11.join(', ') }.`;
+    }
+
+    if (find12) {
+      content += `We are planning to invest in ${ find12.ans } enterprises.`;
+    }
+
+    if (find13) {
+      content += `Our investment portfolio size is ${ find13.ans } USD.`;
+    }
+
+    if (find16) {
+      if (find16.ans.toLowerCase() === 'yes') {
+        content += `We have the tools to analyse SMEs in emerging countries.`;
+      }
+    }
+
+    if (find17) {
+      if (find17.ans.toLowerCase() === 'yes') {
+        content += `We have already invested in emerging countries.`;
+      }
+    }
+
+    if (find18) {
+      if (find18.ans.toLowerCase() === 'yes') {
+        content += `We will use the UNCDF SMEs analysis to make our investment decisions.`;
+      }
+    }
+
+    if (find19) {
+      if (find19.ans.toLowerCase() !== 'n/a') {
+        content += `We are offering ${ find19.ans } lending for our entrepreneurs.`;
+      }
+    }
+
+    if (find21) {
+      if (find21.ans.toLowerCase() === 'yes') {
+        content += `We do have risk sharing facilities arrangement in place.`;
+      }
+    }
+
+    if (find23) {
+      content += `The maximum loss we can support in one year considering an investment in a SME is ${ find23.ans }.`;
+    }
+
+    const contentSystem = 'Imagine that you are playing the role of a marketing expert. Your mission is to promote the investment firm that is in search of a profitable entrepreneurial opportunity. Your language should be professional, yet also fresh and friendly. Always respond in English and stay within 2000 characters.';
+
+    const { maxIndex, aboutUs } = await this.gpt(email, contentSystem, content);
+
+    await this.pool.query(`
+      UPDATE ag_investor SET aboutus=?, gptindex=? WHERE email=?
+    `, [aboutUs, maxIndex, email]);
+  }
+
+  private async gpt(email: string, contentSystem: string, contentUser: string) {
     const { data } = await lastValueFrom(this.httpService.post(`https://servicesai.agora-sme.org/pitch-deck`, {
-      contentSystem: 'You are an expert in marketing techniques. Utilize advanced data analysis tools to showcase business ventures to potential investors. Craft compelling narratives that demonstrate the immense potential of these ventures. Assist companies in standing out in a competitive landscape. Focus investor appeal by highlighting the scalability, market demand, and revenue projections of each endeavor. Extract valuable market trends, customer behaviors, and competitive benchmarks. Tell a compelling story backed by insights, while ensuring your offerings and scope remain realistic and optimistic. Your language should be professional, yet also fresh and friendly. Always respond in English and stay within 2000 characters.',
-      contentUser: content
+      contentSystem,
+      contentUser
     }));
 
     const aboutUs = data.data.choices[0].message.content;
@@ -647,14 +844,12 @@ export class QuestionService {
     const total_tokens = data.data.usage.total_tokens;
 
     await this.pool.query(`
-      INSERT INTO ag_gpttokens VALUES(NULL,?,?,?,?,NOW(),'about')
+      INSERT INTO ag_gpttokens VALUES(NULL,?,?,?,?,NOW(),'pitchdeck')
     `, [email, prompt_tokens, completion_tokens, total_tokens]);
 
     const maxIndexResp = await this.pool.query('SELECT MAX(`index`) maxIndex FROM ag_gpttokens');
     const maxIndex = maxIndexResp[0][0].maxIndex;
 
-    await this.pool.query(`
-      UPDATE ag_entrepreneur SET aboutus=?, gptindex=? WHERE email=?
-    `, [aboutUs, maxIndex, email]);
+    return { maxIndex, aboutUs };
   }
 }

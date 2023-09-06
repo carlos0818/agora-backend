@@ -6,6 +6,7 @@ import { Pool, RowDataPacket } from 'mysql2/promise';
 
 import { GeneratePitchDeckDto } from './dto/generate-pitch-deck.dto';
 import { GetSummaryDto } from './dto/get-summary.dto';
+import { SaveSummaryDto } from './dto/save-summary.dto';
 
 @Injectable()
 export class PitchDeckService {
@@ -1009,5 +1010,13 @@ export class PitchDeckService {
     await this.pool.query(`
       INSERT INTO ag_pitchdeck VALUES(?,?,?,?,?)
     `, [email, id, maxIndex, section, respGPT]);
+  }
+
+  async saveSummary(saveSummaryDto: SaveSummaryDto) {
+    await this.pool.query(`
+      UPDATE ag_pitchdeck SET text=? WHERE email=? AND id=? AND section='SPD'
+    `, [saveSummaryDto.text, saveSummaryDto.email, saveSummaryDto.id]);
+
+    return { message: 'Summary Pitch Deck saved' };
   }
 }

@@ -7,14 +7,25 @@ import { CloseAgoraMessage } from './dto/closeAgoraMessage.dto';
 import { SaveUserPostDto } from './dto/saveUserPost';
 import { CommentPost } from './dto/comment-post.dto';
 import { SaveLikeDto } from './dto/save-like.dto';
+import { DatabaseService } from 'src/database/database.service';
 
 @Injectable()
 export class WallService {
   constructor(
     @Inject('DATABASE_CONNECTION') private readonly pool: Pool,
+    private readonly databaseService: DatabaseService,
   ){}
 
   async listAgoraMessages(agoraMessage: AgoraMessage) {
+    // const conn = await this.databaseService.getConnection();
+    // const messages = await conn.query(`
+    //   SELECT h.index, h.title, h.body, h.link, h.effdt FROM ag_home_agora h
+    //   WHERE h.effdt = (SELECT MAX(h_ed.effdt) FROM ag_home_agora h_ed WHERE h.index=h_ed.index AND h_ed.effdt <= current_timestamp)
+    //   AND h.index NOT IN (SELECT nh.index FROM ag_home_agora_closed nh WHERE h.index=nh.index AND email=?)
+    //   ORDER BY h.effdt
+    // `, [agoraMessage.email]);
+    // await this.databaseService.closeConnection(conn);
+
     const messages = await this.pool.query<RowDataPacket[]>(`
       SELECT h.index, h.title, h.body, h.link, h.effdt FROM ag_home_agora h
       WHERE h.effdt = (SELECT MAX(h_ed.effdt) FROM ag_home_agora h_ed WHERE h.index=h_ed.index AND h_ed.effdt <= current_timestamp)

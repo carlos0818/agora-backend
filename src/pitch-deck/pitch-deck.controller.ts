@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Query } from '@nestjs/common';
 import { PitchDeckService } from './pitch-deck.service';
 import { GeneratePitchDeckDto } from './dto/generate-pitch-deck.dto';
 import { GetSummaryDto } from './dto/get-summary.dto';
+import { SaveSummaryDto } from './dto/save-summary.dto';
 
 @Controller('pitch-deck')
 export class PitchDeckController {
@@ -65,5 +66,10 @@ export class PitchDeckController {
   @Get('get-summary')
   getSummary(@Query() getSummaryDto: GetSummaryDto) {
     return this.pitchDeckService.getSummary(getSummaryDto);
+  }
+
+  @Post('save-summary')
+  saveSummary(@Body() saveSummaryDto: SaveSummaryDto) {
+    return this.pitchDeckService.saveSummary(saveSummaryDto);
   }
 }
