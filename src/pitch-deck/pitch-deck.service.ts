@@ -91,7 +91,7 @@ export class PitchDeckService {
     const find838 = query[0].find(data => data.indicator === 838);
     const find967 = query[0].find(data => data.indicator === 967);
 
-    let content = 'Country Context: ';
+    let content = 'Analyze the following information related to Country Context, and generate a professional and detailed report that will be used to assemble a corporate PitchDeck.';
 
     if (find0) {
       content += `In ${ find0.name }, the data reveals various economic and social factors without issuing judgments.`;
@@ -310,7 +310,7 @@ export class PitchDeckService {
     const find6 = query[0].find(data => data.qnbr === '6');
     const findCO = query[0].find(data => data.qnbr === 'CO');
 
-    let content = 'Company/Firm Profile: ';
+    let content = 'Analyze the following information related to Company/Firm Profile, and generate a professional and detailed report that will be used to assemble a corporate PitchDeck.';
 
     if (find1 && find2 && find3 && find5 && find6 && findCO) {
       content = `${ findCO.R3 } is an ${ find3.R3 } operating in the ${ find6.R3 } area which was incorporated in ${ find2.R3 } in ${ find1.R3 } as a ${ find5.R3 }.`;
@@ -371,7 +371,7 @@ export class PitchDeckService {
     const find115 = query[0].find(data => data.qnbr === 115);
     const find116 = query[0].find(data => data.qnbr === 116);
 
-    let content = 'Business Activities: ';
+    let content = 'Analyze the following information related to Business Activities, and generate a professional and detailed report that will be used to assemble a corporate PitchDeck.';
 
     if (find21 && find22) {
       content = `The company is ${ find21.descr } with ${ find22.descr } as target customers.`;
@@ -546,7 +546,7 @@ export class PitchDeckService {
     const find105 = query[0].find(data => data.qnbr === 105);
     const find107 = query[0].find(data => data.qnbr === 107);
 
-    let content = 'Market Analysis and Business Strategy: ';
+    let content = 'Analyze the following information related to Market Analysis and Business Strategy, and generate a professional and detailed report that will be used to assemble a corporate PitchDeck.';
 
     if (find33) {
       content += `There are ${ find33.descr } competitors in the market`;
@@ -676,7 +676,7 @@ export class PitchDeckService {
     const find103 = query[0].find(data => data.qnbr === 103);
     const find104 = query[0].find(data => data.qnbr === 104);
 
-    let content = 'Business Related Risk: ';
+    let content = 'Analyze the following information related to Business Related Risk, and generate a professional and detailed report that will be used to assemble a corporate PitchDeck.';
 
     if (find82) {
       content += `The estimated maximum loss (in % total equity) due to net exposure in foreign currencies is less than ${ find82.descr }.`;
@@ -772,7 +772,7 @@ export class PitchDeckService {
 
     
     if (query[0].length > 0) {
-      let content = 'Past Financial Performance: ';
+      let content = 'Analyze the following information related to Past Financial Performance, and generate a professional and detailed report that will be used to assemble a corporate PitchDeck.';
 
       for (let i=0; i<query[0].length; i++) {
         content += `If you were to ask me the following ${ query[0][i].descr }, my response would be: ${ query[0][i].prev1 }, ${ query[0][i].prev2 }, ${ query[0][i].prev3 }.`;
@@ -814,7 +814,7 @@ export class PitchDeckService {
     const find135 = query[0].find(data => data.qnbr === 135);
     const find136 = query[0].find(data => data.qnbr === 136);
 
-    let content = 'Project Information: ';
+    let content = 'Analyze the following information related to Project Information, and generate a professional and detailed report that will be used to assemble a corporate PitchDeck.';
 
     if (find136) {
       content += `Innovation project that the company wants to develop in the future would ${ find136.R3 }.`;
@@ -887,7 +887,7 @@ export class PitchDeckService {
     `, [showNotificationDto.email]);
 
     if (query[0].length > 0) {
-      let content = 'Future Proyections: ';
+      let content = 'Analyze the following information related to Future Proyections, and generate a professional and detailed report that will be used to assemble a corporate PitchDeck.';
 
       for (let i=0; i<query[0].length; i++) {
         content += `If you were to ask me the following ${ query[0][i].descr }, my response would be: ${ query[0][i].prev1 }, ${ query[0][i].prev2 }, ${ query[0][i].prev3 }.`;
@@ -928,7 +928,7 @@ export class PitchDeckService {
     const find144 = query[0].find(data => data.qnbr === 144);
     const find145 = query[0].find(data => data.qnbr === 145);
 
-    let content = 'Funding Request: ';
+    let content = 'Analyze the following information related to Funding Request, and generate a professional and detailed report that will be used to assemble a corporate PitchDeck.';
 
     if (find144 && find142 && find145) {
       content += `The company estimates its funding needs to amount in ${ find144.R3 } under the form of ${ find142.R3 } wihcih will be used ${ find145.R3 }.`;
@@ -947,7 +947,25 @@ export class PitchDeckService {
 
   async step10(showNotificationDto: GeneratePitchDeckDto) {
     const query = await this.pool.query<RowDataPacket[]>(`
-      select text from ag_pitchdeck where email=?
+      select text from 
+      (
+      select 
+      case
+      when section='A' then concat("Country Context: ",text)
+      when section='B' then concat("Company/Firm Profile: ",text)
+      when section='C' then concat("Business Activities: ",text)
+      when section='D' then concat("Market Analysis and Business Strategy: ",text)
+      when section='E' then concat("Business Related Risk: ",text)
+      when section='F' then concat("Past Financial Performance: ",text)
+      when section='G' then concat("Project Information: ",text)
+      when section='H' then concat("Future Proyections: ",text)
+      when section='I' then concat("Funding Request: ",text)
+      end text
+      from ag_pitchdeck
+      where email=?
+      order by section
+      ) A
+      where text is not null
     `, [showNotificationDto.email]);
 
     let content = '';
@@ -956,7 +974,7 @@ export class PitchDeckService {
       content += query[0][i].text;
     }
 
-    const contentSystem = 'You are an expert in Economics. Perform a SWOT analysis (Strengths, Weaknesses, Opportunities, Threats) using the provided data. Use formal language and always respond in English. Explain in one to five maximum points for each category. Use between 10,000 and 14,000 characters.';
+    const contentSystem = 'You are an expert in economics. Please create a PitchDeck document with a character count ranging from 10,000 to 14,000 characters while maintaining a formal language. Always use English. Once the extensive document has been completed, include a SWOT analysis (Strengths, Weaknesses, Opportunities, Threats) using the provided data. Explain each category with a maximum of one to five points.';
 
     await this.gpt(showNotificationDto.email, showNotificationDto.id, contentSystem, content, 'FPD');
 
@@ -970,7 +988,7 @@ export class PitchDeckService {
 
     let content = query[0][0].text;
 
-    const contentSystem = 'Create a summary while respecting the most important points of the text. Always respond in English and stay within 2000 characters.';
+    const contentSystem = 'Create a summary between 1500 and 2000 characters, while respecting the most important points of the text.';
 
     await this.gpt(showNotificationDto.email, showNotificationDto.id, contentSystem, content, 'SPD');
 
