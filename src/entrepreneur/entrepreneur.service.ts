@@ -473,7 +473,7 @@ export class EntrepreneurService {
 
   async verifyPitchDeck(getDataByIdDto: GetDataByIdDto) {
     const verifyResp = await this.pool.query<RowDataPacket[]>(`
-      SELECT text FROM ag_pitchdeck WHERE id=?
+      SELECT text FROM ag_pitchdeck WHERE id=? AND section='SPD'
     `, [getDataByIdDto.id]);
 
     if (verifyResp[0].length > 0) {
