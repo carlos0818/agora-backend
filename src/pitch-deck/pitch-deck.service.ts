@@ -981,7 +981,7 @@ export class PitchDeckService {
         UNION
         select 1000, name 
         from ag_entrepreneur where email=?
-      `, [showNotificationDto.email]);
+      `, [showNotificationDto.email, showNotificationDto.email]);
 
       const find142 = query[0].find(data => data.qnbr === 142);
       const find143 = query[0].find(data => data.qnbr === 143);
