@@ -16,7 +16,7 @@ export class PitchDeckService {
   ){}
 
   async step1(showNotificationDto: GeneratePitchDeckDto) {
-    const validate = await this.pool.query<RowDataPacket[]>(`SELECT text FROM ag_pitchdeck WHERE section='A'`);
+    const validate = await this.pool.query<RowDataPacket[]>(`SELECT text FROM ag_pitchdeck WHERE section='A' AND email=?`, [showNotificationDto.email]);
 
     if (validate[0].length == 0) {
       const query = await this.pool.query<RowDataPacket[]>(`
@@ -285,7 +285,7 @@ export class PitchDeckService {
   }
 
   async step2(showNotificationDto: GeneratePitchDeckDto) {
-    const validate = await this.pool.query<RowDataPacket[]>(`SELECT text FROM ag_pitchdeck WHERE section='B'`);
+    const validate = await this.pool.query<RowDataPacket[]>(`SELECT text FROM ag_pitchdeck WHERE section='B' AND email=?`, [showNotificationDto.email]);
 
     if (validate[0].length === 0) {
       const query = await this.pool.query<RowDataPacket[]>(`
@@ -332,7 +332,7 @@ export class PitchDeckService {
   }
 
   async step3(showNotificationDto: GeneratePitchDeckDto) {
-    const validate = await this.pool.query<RowDataPacket[]>(`SELECT text FROM ag_pitchdeck WHERE section='C'`);
+    const validate = await this.pool.query<RowDataPacket[]>(`SELECT text FROM ag_pitchdeck WHERE section='C' AND email=?`, [showNotificationDto.email]);
 
     if (validate[0].length === 0) {
       const query = await this.pool.query<RowDataPacket[]>(`
@@ -529,7 +529,7 @@ export class PitchDeckService {
   }
 
   async step4(showNotificationDto: GeneratePitchDeckDto) {
-    const validate = await this.pool.query<RowDataPacket[]>(`SELECT text FROM ag_pitchdeck WHERE section='D'`);
+    const validate = await this.pool.query<RowDataPacket[]>(`SELECT text FROM ag_pitchdeck WHERE section='D' AND email=?`, [showNotificationDto.email]);
 
     if (validate[0].length === 0) {
       const query = await this.pool.query<RowDataPacket[]>(`
@@ -674,7 +674,7 @@ export class PitchDeckService {
   }
 
   async step5(showNotificationDto: GeneratePitchDeckDto) {
-    const validate = await this.pool.query<RowDataPacket[]>(`SELECT text FROM ag_pitchdeck WHERE section='E'`);
+    const validate = await this.pool.query<RowDataPacket[]>(`SELECT text FROM ag_pitchdeck WHERE section='E' AND email=?`, [showNotificationDto.email]);
 
     if (validate[0].length === 0) {
       const query = await this.pool.query<RowDataPacket[]>(`
@@ -786,7 +786,7 @@ export class PitchDeckService {
   }
 
   async step6(showNotificationDto: GeneratePitchDeckDto) {
-    const validate = await this.pool.query<RowDataPacket[]>(`SELECT text FROM ag_pitchdeck WHERE section='F'`);
+    const validate = await this.pool.query<RowDataPacket[]>(`SELECT text FROM ag_pitchdeck WHERE section='F' AND email=?`, [showNotificationDto.email]);
 
     if (validate[0].length === 0) {
       const query = await this.pool.query<RowDataPacket[]>(`
@@ -828,7 +828,7 @@ export class PitchDeckService {
   }
 
   async step7(showNotificationDto: GeneratePitchDeckDto) {
-    const validate = await this.pool.query<RowDataPacket[]>(`SELECT text FROM ag_pitchdeck WHERE section='G'`);
+    const validate = await this.pool.query<RowDataPacket[]>(`SELECT text FROM ag_pitchdeck WHERE section='G' AND email=?`, [showNotificationDto.email]);
 
     if (validate[0].length === 0) {
       const query = await this.pool.query<RowDataPacket[]>(`
@@ -916,7 +916,7 @@ export class PitchDeckService {
   }
 
   async step8(showNotificationDto: GeneratePitchDeckDto) {
-    const validate = await this.pool.query<RowDataPacket[]>(`SELECT text FROM ag_pitchdeck WHERE section='H'`);
+    const validate = await this.pool.query<RowDataPacket[]>(`SELECT text FROM ag_pitchdeck WHERE section='H' AND email=?`, [showNotificationDto.email]);
 
     if (validate[0].length === 0) {
       const query = await this.pool.query<RowDataPacket[]>(`
@@ -958,7 +958,7 @@ export class PitchDeckService {
   }
 
   async step9(showNotificationDto: GeneratePitchDeckDto) {
-    const validate = await this.pool.query<RowDataPacket[]>(`SELECT text FROM ag_pitchdeck WHERE section='I'`);
+    const validate = await this.pool.query<RowDataPacket[]>(`SELECT text FROM ag_pitchdeck WHERE section='I' AND email=?`, [showNotificationDto.email]);
 
     if (validate[0].length === 0) {
       const query = await this.pool.query<RowDataPacket[]>(`
@@ -1008,7 +1008,7 @@ export class PitchDeckService {
   }
 
   async step10(showNotificationDto: GeneratePitchDeckDto) {
-    const validate = await this.pool.query<RowDataPacket[]>(`SELECT text FROM ag_pitchdeck WHERE section='FPD'`);
+    const validate = await this.pool.query<RowDataPacket[]>(`SELECT text FROM ag_pitchdeck WHERE section='FPD' AND email=?`, [showNotificationDto.email]);
 
     if (validate[0].length === 0) {
       const query = await this.pool.query<RowDataPacket[]>(`
@@ -1052,7 +1052,7 @@ export class PitchDeckService {
   }
 
   async step11(showNotificationDto: GeneratePitchDeckDto) {
-    const validate = await this.pool.query<RowDataPacket[]>(`SELECT text FROM ag_pitchdeck WHERE section='SPD'`);
+    const validate = await this.pool.query<RowDataPacket[]>(`SELECT text FROM ag_pitchdeck WHERE section='SPD' AND email=?`, [showNotificationDto.email]);
 
     if (validate[0].length === 0) {
       const query = await this.pool.query<RowDataPacket[]>(`
