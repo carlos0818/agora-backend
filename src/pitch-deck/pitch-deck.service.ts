@@ -1043,7 +1043,7 @@ export class PitchDeckService {
         content += query[0][i].text;
       }
 
-      const contentSystem = 'You are an expert in economics. Please create a presentarion document of the company with a character count ranging from 10,000 to 14,000 characters while maintaining a formal language. Always use English. Once the extensive document has been completed, add a SWOT analysis (Strengths, Weaknesses, Opportunities, Threats) at last. Explain each category with a maximum of one to five points.';
+      const contentSystem = 'You are an expert in economics. Please create a presentarion document of the company with a character count ranging from 10,000 to 14,000 characters while maintaining a formal language. Always use English. Once the extensive document has been completed. It is important attach a SWOT analysis below the finalized document. Explain each category with a maximum of one to five points.';
 
       await this.gpt(showNotificationDto.email, showNotificationDto.id, contentSystem, content, 'FPD');
 
