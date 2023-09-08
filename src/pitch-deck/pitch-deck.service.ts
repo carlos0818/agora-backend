@@ -346,7 +346,10 @@ export class PitchDeckService {
         and A1.anbr=Q.anbr
         and A1.effdt=Q.qeffdt
         group by Q.qnbr
-      `, [showNotificationDto.email]);
+        UNION
+        select 1000, name 
+        from ag_entrepreneur where email=?
+      `, [showNotificationDto.email, showNotificationDto.email]);
 
       const find7 = query[0].find(data => data.qnbr === 7);
       const find10 = query[0].find(data => data.qnbr === 10);
@@ -381,8 +384,9 @@ export class PitchDeckService {
       const find114 = query[0].find(data => data.qnbr === 114);
       const find115 = query[0].find(data => data.qnbr === 115);
       const find116 = query[0].find(data => data.qnbr === 116);
+      const findCO = query[0].find(data => data.qnbr === 1000);
 
-      let content = 'Analyze the following information related to Business Activities, and generate a professional and detailed report that will be used to assemble a corporate PitchDeck.';
+      let content = `Analyze the following information related to Business Activities, and generate a professional and detailed report that will be used to assemble a corporate PitchDeck. My company name is ${ findCO.descr }.`;
 
       if (find21 && find22) {
         content = `The company is ${ find21.descr } with ${ find22.descr } as target customers.`;
@@ -539,7 +543,10 @@ export class PitchDeckService {
         and A1.anbr=Q.anbr
         and A1.effdt=Q.qeffdt
         group by Q.qnbr
-      `, [showNotificationDto.email]);
+        UNION
+        select 1000, name 
+        from ag_entrepreneur where email=?
+      `, [showNotificationDto.email, showNotificationDto.email]);
 
       const find25 = query[0].find(data => data.qnbr === 25);
       const find26 = query[0].find(data => data.qnbr === 26);
@@ -560,8 +567,9 @@ export class PitchDeckService {
       const find92 = query[0].find(data => data.qnbr === 92);
       const find105 = query[0].find(data => data.qnbr === 105);
       const find107 = query[0].find(data => data.qnbr === 107);
+      const findCO = query[0].find(data => data.qnbr === 1000);
 
-      let content = 'Analyze the following information related to Market Analysis and Business Strategy, and generate a professional and detailed report that will be used to assemble a corporate PitchDeck.';
+      let content = `Analyze the following information related to Market Analysis and Business Strategy, and generate a professional and detailed report that will be used to assemble a corporate PitchDeck. My company name is ${ findCO.descr }.`;
 
       if (find33) {
         content += `There are ${ find33.descr } competitors in the market`;
@@ -680,7 +688,10 @@ export class PitchDeckService {
         and A1.anbr=Q.anbr
         and A1.effdt=Q.qeffdt
         group by Q.qnbr
-      `, [showNotificationDto.email]);
+        UNION
+        select 1000, name 
+        from ag_entrepreneur where email=?
+      `, [showNotificationDto.email, showNotificationDto.email]);
 
       const find66 = query[0].find(data => data.qnbr === 66);
       const find67 = query[0].find(data => data.qnbr === 67);
@@ -694,8 +705,9 @@ export class PitchDeckService {
       const find102 = query[0].find(data => data.qnbr === 102);
       const find103 = query[0].find(data => data.qnbr === 103);
       const find104 = query[0].find(data => data.qnbr === 104);
+      const findCO = query[0].find(data => data.qnbr === 1000);
 
-      let content = 'Analyze the following information related to Business Related Risk, and generate a professional and detailed report that will be used to assemble a corporate PitchDeck.';
+      let content = `Analyze the following information related to Business Related Risk, and generate a professional and detailed report that will be used to assemble a corporate PitchDeck. My company name is ${ findCO.descr }.`;
 
       if (find82) {
         content += `The estimated maximum loss (in % total equity) due to net exposure in foreign currencies is less than ${ find82.descr }.`;
@@ -793,9 +805,12 @@ export class PitchDeckService {
         group by Q.qnbr, A1.anbr
       `, [showNotificationDto.email]);
 
+      const company = await this.pool.query(`
+        select name from ag_entrepreneur where email=?
+      `, [showNotificationDto.email]);
       
       if (query[0].length > 0) {
-        let content = 'Analyze the following information related to Past Financial Performance, and generate a professional and detailed report that will be used to assemble a corporate PitchDeck.';
+        let content = `Analyze the following information related to Past Financial Performance, and generate a professional and detailed report that will be used to assemble a corporate PitchDeck. My company name is ${ company[0][0].name }.`;
 
         for (let i=0; i<query[0].length; i++) {
           content += `If you were to ask me the following ${ query[0][i].descr }, my response would be: ${ query[0][i].prev1 }, ${ query[0][i].prev2 }, ${ query[0][i].prev3 }.`;
@@ -827,7 +842,10 @@ export class PitchDeckService {
         and A1.anbr=Q.anbr
         and A1.effdt=Q.qeffdt
         group by Q.qnbr
-      `, [showNotificationDto.email]);
+        UNION
+        select 1000, name 
+        from ag_entrepreneur where email=?
+      `, [showNotificationDto.email, showNotificationDto.email]);
 
       const find61 = query[0].find(data => data.qnbr === 61);
       const find62 = query[0].find(data => data.qnbr === 62);
@@ -839,8 +857,9 @@ export class PitchDeckService {
       const find123 = query[0].find(data => data.qnbr === 123);
       const find135 = query[0].find(data => data.qnbr === 135);
       const find136 = query[0].find(data => data.qnbr === 136);
+      const findCO = query[0].find(data => data.qnbr === 1000);
 
-      let content = 'Analyze the following information related to Project Information, and generate a professional and detailed report that will be used to assemble a corporate PitchDeck.';
+      let content = `Analyze the following information related to Project Information, and generate a professional and detailed report that will be used to assemble a corporate PitchDeck. My company name is ${ findCO.R3 }.`;
 
       if (find136) {
         content += `Innovation project that the company wants to develop in the future would ${ find136.R3 }.`;
@@ -916,8 +935,12 @@ export class PitchDeckService {
         group by Q.qnbr, A1.anbr
       `, [showNotificationDto.email]);
 
+      const company = await this.pool.query(`
+        select name from ag_entrepreneur where email=?
+      `, [showNotificationDto.email]);
+
       if (query[0].length > 0) {
-        let content = 'Analyze the following information related to Future Proyections, and generate a professional and detailed report that will be used to assemble a corporate PitchDeck.';
+        let content = `Analyze the following information related to Future Proyections, and generate a professional and detailed report that will be used to assemble a corporate PitchDeck. My company name is ${ company[0][0].name }`;
 
         for (let i=0; i<query[0].length; i++) {
           content += `If you were to ask me the following ${ query[0][i].descr }, my response would be: ${ query[0][i].prev1 }, ${ query[0][i].prev2 }, ${ query[0][i].prev3 }.`;
@@ -955,14 +978,18 @@ export class PitchDeckService {
           and A1.anbr=Q.anbr
           and A1.effdt=Q.qeffdt
           group by Q.qnbr
+        UNION
+        select 1000, name 
+        from ag_entrepreneur where email=?
       `, [showNotificationDto.email]);
 
       const find142 = query[0].find(data => data.qnbr === 142);
       const find143 = query[0].find(data => data.qnbr === 143);
       const find144 = query[0].find(data => data.qnbr === 144);
       const find145 = query[0].find(data => data.qnbr === 145);
+      const findCO = query[0].find(data => data.qnbr === 1000);
 
-      let content = 'Analyze the following information related to Funding Request, and generate a professional and detailed report that will be used to assemble a corporate PitchDeck.';
+      let content = `Analyze the following information related to Funding Request, and generate a professional and detailed report that will be used to assemble a corporate PitchDeck. My company name is ${ findCO.R3 }`;
 
       if (find144 && find142 && find145) {
         content += `The company estimates its funding needs to amount in ${ find144.R3 } under the form of ${ find142.R3 } wihcih will be used ${ find145.R3 }.`;
