@@ -675,7 +675,7 @@ export class QuestionService {
       and R.anbr=UQ.anbr
     `, [email]);
 
-    let content = 'Please analyze the data from the form containing questions and answers from expert consultants in entrepreneurship. These responses are crucial for making informed decisions. Provide a concise summary of the data in a maximum of 2000 characters. Make sure to include relevant information about experience, skills, recommendations, and any other details that are essential for evaluating the suitability of the consultants in the context of entrepreneurial projects: ';
+    let content = 'Please analyze the data from the form containing questions and answers from expert consultants in entrepreneurship. These responses are crucial for making informed decisions. Provide a concise summary of the data in a maximum of 2000 characters. Make sure to include relevant information about experience, skills, recommendations, and any other details that are essential for evaluating the suitability of the consultants in the context of entrepreneurial projects. The final result should have a promotional structure from a marketing perspective, aimed at motivating the entrepreneur to consider hiring the consulting services provided by the analyzed company.';
 
     for (let i=0; i<dataResp[0].length; i++) {
       if (i<dataResp[0].length - 1)
@@ -713,7 +713,7 @@ export class QuestionService {
       select 0, name from ag_investor where email=?
     `, [email, email]);
 
-    let content = '';
+    let content = 'The final result should present a promotional framework from a marketing perspective, designed to inspire the entrepreneur to choose the right investor for their brand.';
 
     const find0 = dataResp[0].find(data => data.qnbr === 0);
     const find1 = dataResp[0].find(data => data.qnbr === 1);
