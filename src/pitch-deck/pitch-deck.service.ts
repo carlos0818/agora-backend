@@ -1043,53 +1043,45 @@ export class PitchDeckService {
         content += query[0][i].text;
       }
 
-      const contentSystem = 'You are an expert in economics. Please create a presentarion document of the company with a character count ranging from 10,000 to 14,000 characters while maintaining a formal language. Always use English.';
+      let contentSystem = 'You are an expert in economics. Please create a presentarion document of the company with a character count ranging from 10,000 to 14,000 characters while maintaining a formal language. Always use English.';
 
-      await this.gpt(showNotificationDto.email, showNotificationDto.id, contentSystem, content, 'FPD');
+      // await this.gpt(showNotificationDto.email, showNotificationDto.id, contentSystem, content, 'FPD');
+      const {
+        respGPT,
+        prompt_tokens,
+        completion_tokens,
+        total_tokens
+      } = await this.gptOnly(contentSystem, content);
 
-      return { message: 'Pitch Deck Document completed' };
-    }
-  }
+      contentSystem = 'You are an expert in economics. Create a SWOT analysis (Strengths, Weaknesses, Opportunities, Threats). Explain each category with a maximum of one to five points. Always use English.';
 
-  async step10A(showNotificationDto: GeneratePitchDeckDto) {
-    const validate = await this.pool.query<RowDataPacket[]>(`SELECT text FROM ag_pitchdeck WHERE section='SWOT' AND email=?`, [showNotificationDto.email]);
+      const {
+        respGPT: respGPT2,
+        prompt_tokens: prompt_tokens2,
+        completion_tokens: completion_tokens2,
+        total_tokens: total_tokens2
+      } = await this.gptOnly(contentSystem, content);
 
-    if (validate[0].length === 0) {
-      const query = await this.pool.query<RowDataPacket[]>(`
-        select text from 
-        (
-        select 
-        case
-        when section='A' then concat("Country Context: ",text)
-        when section='B' then concat("Company/Firm Profile: ",text)
-        when section='C' then concat("Business Activities: ",text)
-        when section='D' then concat("Market Analysis and Business Strategy: ",text)
-        when section='E' then concat("Business Related Risk: ",text)
-        when section='F' then concat("Past Financial Performance: ",text)
-        when section='G' then concat("Project Information: ",text)
-        when section='H' then concat("Future Proyections: ",text)
-        when section='I' then concat("Funding Request: ",text)
-        end text
-        from ag_pitchdeck
-        where email=?
-        order by section
-        ) A
-        where text is not null
-      `, [showNotificationDto.email]);
+      await this.pool.query(`
+        INSERT INTO ag_gpttokens VALUES(NULL,?,?,?,?,NOW(),'pitchdeck')
+      `, [showNotificationDto.email, (Number(prompt_tokens) + Number(prompt_tokens2)), (Number(completion_tokens) + Number(completion_tokens2)), (Number(total_tokens) + Number(total_tokens2))]);
 
-      const data = await this.pool.query(`
-        select name, aboutus from ag_entrepreneur where email=?
-      `, [showNotificationDto.email]);
+      const maxIndexResp = await this.pool.query('SELECT MAX(`index`) maxIndex FROM ag_gpttokens');
+      const maxIndex = maxIndexResp[0][0].maxIndex;
 
-      let content = `I am an entrepreneur, and my company is named ${ data[0][0].name }. I would like you to prepare an informative Pitch Deck-type document for me, using between 10,000 to 14,000 characters while maintaining a formal language. The document will be read by investors. This is the presentation of my company, ${ data[0][0].aboutus }. The information you need to analyze is as follows: `;
-
-      for (let i=0; i<query[0].length; i++) {
-        content += query[0][i].text;
-      }
-
-      const contentSystem = 'You are an expert in economics. Create a SWOT analysis (Strengths, Weaknesses, Opportunities, Threats). Explain each category with a maximum of one to five points. Always use English.';
-
-      await this.gpt(showNotificationDto.email, showNotificationDto.id, contentSystem, content, 'SWOT');
+      await this.pool.query(`
+        INSERT INTO ag_pitchdeck VALUES(?,?,?,?,?)
+      `, [
+        showNotificationDto.email,
+        showNotificationDto.id,
+        maxIndex,
+        'FPD',
+        `${ respGPT }
+        
+        SWOT Analysis:
+        
+        ${ respGPT2 }`
+      ]);
 
       return { message: 'Pitch Deck Document completed' };
     }
@@ -1146,6 +1138,20 @@ export class PitchDeckService {
     await this.pool.query(`
       INSERT INTO ag_pitchdeck VALUES(?,?,?,?,?)
     `, [email, id, maxIndex, section, respGPT]);
+  }
+
+  private async gptOnly(contentSystem: string, contentUser: string) {
+    const { data } = await lastValueFrom(this.httpService.post(`https://servicesai.agora-sme.org/pitch-deck`, {
+      contentSystem,
+      contentUser
+    }));
+
+    const respGPT = data.data.choices[0].message.content;
+    const prompt_tokens = data.data.usage.prompt_tokens;
+    const completion_tokens = data.data.usage.completion_tokens;
+    const total_tokens = data.data.usage.total_tokens;
+
+    return { respGPT, prompt_tokens, completion_tokens, total_tokens };
   }
 
   async saveSummary(saveSummaryDto: SaveSummaryDto) {

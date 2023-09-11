@@ -58,11 +58,6 @@ export class PitchDeckController {
     return this.pitchDeckService.step10(showNotificationDto);
   }
 
-  @Post('step-10-A')
-  step10A(@Body() showNotificationDto: GeneratePitchDeckDto) {
-    return this.pitchDeckService.step10A(showNotificationDto);
-  }
-
   @Post('step-11')
   step11(@Body() showNotificationDto: GeneratePitchDeckDto) {
     return this.pitchDeckService.step11(showNotificationDto);
