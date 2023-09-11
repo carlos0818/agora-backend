@@ -1043,9 +1043,53 @@ export class PitchDeckService {
         content += query[0][i].text;
       }
 
-      const contentSystem = 'You are an expert in economics. Please create a presentarion document of the company with a character count ranging from 10,000 to 14,000 characters while maintaining a formal language. Always use English. Once the extensive document has been completed. It is important attach a SWOT analysis below the finalized document. Explain each category with a maximum of one to five points.';
+      const contentSystem = 'You are an expert in economics. Please create a presentarion document of the company with a character count ranging from 10,000 to 14,000 characters while maintaining a formal language. Always use English.';
 
       await this.gpt(showNotificationDto.email, showNotificationDto.id, contentSystem, content, 'FPD');
+
+      return { message: 'Pitch Deck Document completed' };
+    }
+  }
+
+  async step10A(showNotificationDto: GeneratePitchDeckDto) {
+    const validate = await this.pool.query<RowDataPacket[]>(`SELECT text FROM ag_pitchdeck WHERE section='SWOT' AND email=?`, [showNotificationDto.email]);
+
+    if (validate[0].length === 0) {
+      const query = await this.pool.query<RowDataPacket[]>(`
+        select text from 
+        (
+        select 
+        case
+        when section='A' then concat("Country Context: ",text)
+        when section='B' then concat("Company/Firm Profile: ",text)
+        when section='C' then concat("Business Activities: ",text)
+        when section='D' then concat("Market Analysis and Business Strategy: ",text)
+        when section='E' then concat("Business Related Risk: ",text)
+        when section='F' then concat("Past Financial Performance: ",text)
+        when section='G' then concat("Project Information: ",text)
+        when section='H' then concat("Future Proyections: ",text)
+        when section='I' then concat("Funding Request: ",text)
+        end text
+        from ag_pitchdeck
+        where email=?
+        order by section
+        ) A
+        where text is not null
+      `, [showNotificationDto.email]);
+
+      const data = await this.pool.query(`
+        select name, aboutus from ag_entrepreneur where email=?
+      `, [showNotificationDto.email]);
+
+      let content = `I am an entrepreneur, and my company is named ${ data[0][0].name }. I would like you to prepare an informative Pitch Deck-type document for me, using between 10,000 to 14,000 characters while maintaining a formal language. The document will be read by investors. This is the presentation of my company, ${ data[0][0].aboutus }. The information you need to analyze is as follows: `;
+
+      for (let i=0; i<query[0].length; i++) {
+        content += query[0][i].text;
+      }
+
+      const contentSystem = 'You are an expert in economics. Create a SWOT analysis (Strengths, Weaknesses, Opportunities, Threats). Explain each category with a maximum of one to five points. Always use English.';
+
+      await this.gpt(showNotificationDto.email, showNotificationDto.id, contentSystem, content, 'SWOT');
 
       return { message: 'Pitch Deck Document completed' };
     }
