@@ -63,9 +63,19 @@ export class PitchDeckController {
     return this.pitchDeckService.step11(showNotificationDto);
   }
 
+  @Get('get-pitch-deck-document')
+  getPitchDeckDocument(@Query() getSummaryDto: GetSummaryDto) {
+    return this.pitchDeckService.getPitchDeckDocument(getSummaryDto);
+  }
+
   @Get('get-summary')
   getSummary(@Query() getSummaryDto: GetSummaryDto) {
     return this.pitchDeckService.getSummary(getSummaryDto);
+  }
+
+  @Post('save-pitch-deck-document')
+  savePitchDeckDocument(@Body() saveSummaryDto: SaveSummaryDto) {
+    return this.pitchDeckService.savePitchDeckDocument(saveSummaryDto);
   }
 
   @Post('save-summary')

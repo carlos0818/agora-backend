@@ -1045,7 +1045,6 @@ export class PitchDeckService {
 
       let contentSystem = 'You are an expert in economics. Please create a presentarion document of the company with a character count ranging from 10,000 to 14,000 characters while maintaining a formal language. Always use English.';
 
-      // await this.gpt(showNotificationDto.email, showNotificationDto.id, contentSystem, content, 'FPD');
       const {
         respGPT,
         prompt_tokens,
@@ -1078,8 +1077,6 @@ export class PitchDeckService {
         'FPD',
         `${ respGPT }
         
-        SWOT Analysis:
-        
         ${ respGPT2 }`
       ]);
 
@@ -1105,6 +1102,26 @@ export class PitchDeckService {
     }
   }
 
+  async getPitchDeckDocument(getSummaryDto: GetSummaryDto) {
+    const query = await this.pool.query<RowDataPacket[]>(`
+      select text from ag_pitchdeck where id=? and section='FPD'
+    `, [getSummaryDto.id]);
+
+    if (query[0].length > 0) {
+      return { response: 1, text: query[0][0].text };
+    }
+
+    return { response: 0, text: null };
+  }
+
+  async savePitchDeckDocument(saveSummaryDto: SaveSummaryDto) {
+    await this.pool.query(`
+      UPDATE ag_pitchdeck SET text=? WHERE email=? AND id=? AND section='FPD'
+    `, [saveSummaryDto.text, saveSummaryDto.email, saveSummaryDto.id]);
+
+    return { message: 'Pitch Deck Document saved' };
+  }
+
   async getSummary(getSummaryDto: GetSummaryDto) {
     const query = await this.pool.query<RowDataPacket[]>(`
       select text from ag_pitchdeck where id=? and section='SPD'
@@ -1115,6 +1132,14 @@ export class PitchDeckService {
     }
 
     return { response: 0, text: null };
+  }
+
+  async saveSummary(saveSummaryDto: SaveSummaryDto) {
+    await this.pool.query(`
+      UPDATE ag_pitchdeck SET text=? WHERE email=? AND id=? AND section='SPD'
+    `, [saveSummaryDto.text, saveSummaryDto.email, saveSummaryDto.id]);
+
+    return { message: 'Summary Pitch Deck saved' };
   }
 
   private async gpt(email: string, id: string, contentSystem: string, contentUser: string, section: string) {
@@ -1152,13 +1177,5 @@ export class PitchDeckService {
     const total_tokens = data.data.usage.total_tokens;
 
     return { respGPT, prompt_tokens, completion_tokens, total_tokens };
-  }
-
-  async saveSummary(saveSummaryDto: SaveSummaryDto) {
-    await this.pool.query(`
-      UPDATE ag_pitchdeck SET text=? WHERE email=? AND id=? AND section='SPD'
-    `, [saveSummaryDto.text, saveSummaryDto.email, saveSummaryDto.id]);
-
-    return { message: 'Summary Pitch Deck saved' };
   }
 }
