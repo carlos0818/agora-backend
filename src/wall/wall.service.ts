@@ -1,6 +1,6 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 
-import { RowDataPacket, Pool } from 'mysql2/promise';
+import { RowDataPacket } from 'mysql2/promise';
 
 import { AgoraMessage } from './dto/agoraMessage.dto';
 import { CloseAgoraMessage } from './dto/closeAgoraMessage.dto';
@@ -12,37 +12,33 @@ import { DatabaseService } from 'src/database/database.service';
 @Injectable()
 export class WallService {
   constructor(
-    @Inject('DATABASE_CONNECTION') private readonly pool: Pool,
     private readonly databaseService: DatabaseService,
   ){}
 
   async listAgoraMessages(agoraMessage: AgoraMessage) {
-    // const conn = await this.databaseService.getConnection();
-    // const messages = await conn.query(`
-    //   SELECT h.index, h.title, h.body, h.link, h.effdt FROM ag_home_agora h
-    //   WHERE h.effdt = (SELECT MAX(h_ed.effdt) FROM ag_home_agora h_ed WHERE h.index=h_ed.index AND h_ed.effdt <= current_timestamp)
-    //   AND h.index NOT IN (SELECT nh.index FROM ag_home_agora_closed nh WHERE h.index=nh.index AND email=?)
-    //   ORDER BY h.effdt
-    // `, [agoraMessage.email]);
-    // await this.databaseService.closeConnection(conn);
+    const conn = await this.databaseService.getConnection();
 
-    const messages = await this.pool.query<RowDataPacket[]>(`
+    const messages = await conn.query(`
       SELECT h.index, h.title, h.body, h.link, h.effdt FROM ag_home_agora h
       WHERE h.effdt = (SELECT MAX(h_ed.effdt) FROM ag_home_agora h_ed WHERE h.index=h_ed.index AND h_ed.effdt <= current_timestamp)
       AND h.index NOT IN (SELECT nh.index FROM ag_home_agora_closed nh WHERE h.index=nh.index AND email=?)
       ORDER BY h.effdt
     `, [agoraMessage.email]);
+    
+    await this.databaseService.closeConnection(conn);
 
     return messages[0];
   }
 
   async listUserPosts(agoraMessage: AgoraMessage) {
-    const indexesResp = await this.pool.query<RowDataPacket[]>(`
+    const conn = await this.databaseService.getConnection();
+
+    const indexesResp = await conn.query<RowDataPacket[]>(`
       select \`index\` from ag_like where email=?
     `, [agoraMessage.email]);
     const indexes = indexesResp[0];
 
-    const posts = await this.pool.query<RowDataPacket[]>(`
+    const posts = await conn.query<RowDataPacket[]>(`
       select HU.\`index\`, Ntipo.type, Ntipo.companyName, U.fullname, U.id userId, Ntipo.profilepic, HU.body, DATE_FORMAT(HU.dateposted, '%Y-%m-%d %H:%i:%s') dateposted, case when Likes.likesC is not null then Likes.likesC else 0 end as likes, HU.indexparent
       from ag_home_user HU left outer join (select \`index\`, count(*) as likesC from ag_like group by \`index\`) as Likes on HU.\`index\`=Likes.\`index\`
       , ag_user U,
@@ -60,6 +56,8 @@ export class WallService {
       and Ntipo.email=HU.email
       order by HU.dateposted desc
     `, [agoraMessage.email, agoraMessage.email, agoraMessage.email]);
+
+    await this.databaseService.closeConnection(conn);
 
     const postsOriginal = posts[0];
     let onlyPosts = [];
@@ -127,43 +125,59 @@ export class WallService {
   }
 
   async closeAgoraMessage(closeAgoraMessage: CloseAgoraMessage) {
-    await this.pool.query(`
+    const conn = await this.databaseService.getConnection();
+
+    await conn.query(`
       INSERT INTO ag_home_agora_closed VALUES(?,?)
     `, [closeAgoraMessage.email, closeAgoraMessage.index]);
+
+    await this.databaseService.closeConnection(conn);
 
     return 'Message closed';
   }
 
   async savePost(saveUserPost: SaveUserPostDto) {
-    await this.pool.query(`
+    const conn = await this.databaseService.getConnection();
+
+    await conn.query(`
       INSERT INTO ag_home_user VALUES(NULL,?,?,NOW(),NULL)
     `, [saveUserPost.email, saveUserPost.body]);
+
+    await this.databaseService.closeConnection(conn);
 
     return 'Post saved'
   }
 
   async saveCommentPost(commentPost: CommentPost) {
-    await this.pool.query(`
+    const conn = await this.databaseService.getConnection();
+
+    await conn.query(`
       INSERT INTO ag_home_user VALUES(NULL,?,?,NOW(),?)
     `, [commentPost.email, commentPost.body, commentPost.index]);
+
+    await this.databaseService.closeConnection(conn);
 
     return { message: 'Comment saved' };
   }
 
   async saveLikePost(saveLikeDto: SaveLikeDto) {
-    const verifyResp = await this.pool.query(`
+    const conn = await this.databaseService.getConnection();
+
+    const verifyResp = await conn.query(`
       SELECT COUNT(*) verify FROM ag_like WHERE \`index\`=? AND email=?
     `, [saveLikeDto.index, saveLikeDto.email]);
     const verify = verifyResp[0][0].verify;
 
     if (verify === 0) {
-      await this.pool.query(`
+      await conn.query(`
         INSERT INTO ag_like VALUES(?,?)
       `, [saveLikeDto.index, saveLikeDto.email]);
     } else {
-      await this.pool.query(`
+      await conn.query(`
         DELETE FROM ag_like WHERE \`index\`=? AND email=?
       `, [saveLikeDto.index, saveLikeDto.email]);
     }
+
+    await this.databaseService.closeConnection(conn);
   }
 }

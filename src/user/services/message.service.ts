@@ -1,24 +1,26 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { Pool } from 'mysql2/promise';
+import { Injectable } from '@nestjs/common';
 
 import { GetUserMessagesDto } from '../dto/get-user-messages.dto';
 import { SendMessageDto } from '../dto/send-message.dto';
 import { DeleteMessageDto } from '../dto/delete-message.dto';
 import { VerifyUserDto } from '../dto/verifyUser.dto';
+import { DatabaseService } from 'src/database/database.service';
 
 @Injectable()
 export class MessageService {
   constructor(
-    @Inject('DATABASE_CONNECTION') private pool: Pool,
+    private readonly databaseService: DatabaseService,
   ){}
 
   async getUserMessages(getUserMessages: GetUserMessagesDto) {
-    const emailResp = await this.pool.query(`
+    const conn = await this.databaseService.getConnection();
+
+    const emailResp = await conn.query(`
       SELECT email FROM ag_user WHERE id=?
     `, [getUserMessages.id]);
     const email = emailResp[0][0].email;
 
-    const messages = await this.pool.query(`
+    const messages = await conn.query(`
       select CONVERT(I.index, CHAR(40)) \`index\`, I.emailcontact, Ntipo.profilepic, I.status, I.subject, I.body, DATE_FORMAT(dateAdded, '%Y-%m-%d %H%:%i') dateAdded,
       I.important, I.pitch, Ntipo.name companyName, U.fullname from ag_user_inbox I, ag_user U,
       (
@@ -36,11 +38,15 @@ export class MessageService {
       order by dateAdded desc
     `, [email]);
 
+    await this.databaseService.closeConnection(conn);
+
       return messages[0];
   }
 
   async sendMessage(sendMessageDto: SendMessageDto) {
-    await this.pool.query(`
+    const conn = await this.databaseService.getConnection();
+
+    await conn.query(`
       INSERT INTO ag_user_inbox VALUES(NULL,?,?,?,?,?, NOW(),?,?)
     `, [
       sendMessageDto.email,
@@ -52,19 +58,27 @@ export class MessageService {
       sendMessageDto.pitch
     ]);
 
+    await this.databaseService.closeConnection(conn);
+
     return { message: 'Message sent' };
   }
 
   async deleteMessage(deleteMessageDto: DeleteMessageDto) {
-    await this.pool.query(`
+    const conn = await this.databaseService.getConnection();
+
+    await conn.query(`
       UPDATE ag_user_inbox SET status='D' WHERE \`index\`=?
     `, [deleteMessageDto.index]);
+
+    await this.databaseService.closeConnection(conn);
 
     return { message: 'Message deleted' };
   }
 
   async getMessagesNotification(verifyUserDto: VerifyUserDto) {
-    const notificationResp = await this.pool.query(`
+    const conn = await this.databaseService.getConnection();
+
+    const notificationResp = await conn.query(`
       select count(*) messages from ag_user_inbox I,
       (
       select email, name, profilepic from ag_entrepreneur
@@ -80,13 +94,19 @@ export class MessageService {
       order by dateAdded desc
     `, [verifyUserDto.email]);
 
+    await this.databaseService.closeConnection(conn);
+
     return notificationResp[0][0];
   }
 
   async readMessage(deleteMessageDto: DeleteMessageDto) {
-    const notificationResp = await this.pool.query(`
+    const conn = await this.databaseService.getConnection();
+
+    const notificationResp = await conn.query(`
       UPDATE ag_user_inbox SET \`status\`='R' WHERE \`index\`=?
     `, [deleteMessageDto.index]);
+
+    await this.databaseService.closeConnection(conn);
 
     return notificationResp[0][0];
   }

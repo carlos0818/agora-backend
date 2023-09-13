@@ -1,21 +1,21 @@
-import { Inject, Injectable } from '@nestjs/common';
-
-import { Pool } from 'mysql2/promise';
+import { Injectable } from '@nestjs/common';
 
 import { GetContactsByEmailDto } from './dto/get-contacts.dto';
 import { DeleteContactDto } from './dto/delete-contact.dto';
 import { ContactRequestsNotificationDto } from './dto/contact-requests-notification.dto';
 import { ValidateFriendDto } from './dto/validate-friend.dto';
 import { SearchContactsDto } from './dto/search-contacts.dto';
-import { GetContactByIdDto } from './dto/get-contact-by-id.dto';
+import { DatabaseService } from 'src/database/database.service';
 
 @Injectable()
 export class ContactService {
   constructor(
-    @Inject('DATABASE_CONNECTION') private pool: Pool,
+    private readonly databaseService: DatabaseService,
   ){}
 
   async getContactsByEmail(getContactsByEmailDto: GetContactsByEmailDto) {
+    const conn = await this.databaseService.getConnection();
+
     let query = `
       select companyName, id, type, fullname, profilepic, email, phone, city, country, address, DATE_FORMAT(creationdate, '%b %Y') since from 
       (
@@ -69,12 +69,16 @@ export class ContactService {
       ];
     }
 
-    const contacts = await this.pool.query(query, parameters);
+    const contacts = await conn.query(query, parameters);
+
+    await this.databaseService.closeConnection(conn);
 
     return contacts[0];
   }
 
   async getContactRequestsByEmail(getContactsByEmailDto: GetContactsByEmailDto) {
+    const conn = await this.databaseService.getConnection();
+
     let query = `
       select companyName, id, type, fullname, dateRequest, profilepic, email, phone, city, country, address, DATE_FORMAT(creationdate, '%b %Y') since from 
       (
@@ -102,86 +106,114 @@ export class ContactService {
       order by 1
     `;
 
-    const contacts = await this.pool.query(query, [getContactsByEmailDto.email, getContactsByEmailDto.email, getContactsByEmailDto.email]);
+    const contacts = await conn.query(query, [getContactsByEmailDto.email, getContactsByEmailDto.email, getContactsByEmailDto.email]);
+
+    await this.databaseService.closeConnection(conn);
 
     return contacts[0];
   }
 
   async deleteContact(deleteContactDto: DeleteContactDto) {
-    const emailResp = await this.pool.query(`
+    const conn = await this.databaseService.getConnection();
+
+    const emailResp = await conn.query(`
       SELECT email FROM ag_user WHERE id=?
     `, [deleteContactDto.id]);
     const email = emailResp[0][0].email;
 
-    await this.pool.query(`
+    await conn.query(`
       delete from ag_contact where (email = ? and emailcontact=?) or (email = ? and emailcontact=?)
     `, [deleteContactDto.email, email, email, deleteContactDto.email]);
+
+    await this.databaseService.closeConnection(conn);
 
     return { message: 'Contact deleted' };
   }
 
   async acceptContact(deleteContactDto: DeleteContactDto) {
-    const emailContactResp = await this.pool.query(`
+    const conn = await this.databaseService.getConnection();
+
+    const emailContactResp = await conn.query(`
       SELECT email FROM ag_user WHERE id=?
     `, [deleteContactDto.id]);
     const emailContact = emailContactResp[0][0].email;
 
-    await this.pool.query(`
+    await conn.query(`
       UPDATE ag_contact SET status='A' WHERE emailcontact=? AND email=?
     `, [emailContact, deleteContactDto.email]);
 
-    await this.pool.query(`
+    await conn.query(`
       INSERT INTO ag_contact VALUES (?, 'A', ?, NOW(), NULL)
     `, [emailContact, deleteContactDto.email]);
+
+    await this.databaseService.closeConnection(conn);
 
     return { message: 'Contact accepted' };
   }
 
   async sendRequest(deleteContactDto: DeleteContactDto) {
-    const emailContactResp = await this.pool.query(`
+    const conn = await this.databaseService.getConnection();
+
+    const emailContactResp = await conn.query(`
       SELECT email FROM ag_user WHERE id=?
     `, [deleteContactDto.id]);
     const emailContact = emailContactResp[0][0].email;
 
-    await this.pool.query(`
+    await conn.query(`
       INSERT INTO ag_contact VALUES (?, 'P', ?, NOW(), NULL)
     `, [emailContact, deleteContactDto.email]);
+
+    await this.databaseService.closeConnection(conn);
   }
 
   async checkSendRequest(deleteContactDto: DeleteContactDto) {
-    const emailContactResp = await this.pool.query(`
+    const conn = await this.databaseService.getConnection();
+
+    const emailContactResp = await conn.query(`
       SELECT email FROM ag_user WHERE id=?
     `, [deleteContactDto.id]);
     const emailContact = emailContactResp[0][0].email;
     
-    const verifyResp = await this.pool.query(`
+    const verifyResp = await conn.query(`
       SELECT COUNT(*) as count FROM ag_contact WHERE (email=? AND emailcontact=?) OR (email=? AND emailcontact=?)
     `, [emailContact, deleteContactDto.email, deleteContactDto.email, emailContact]);
     const verify = verifyResp[0][0].count;
+
+    await this.databaseService.closeConnection(conn);
 
     return { verify };
   }
 
   async getContactRequestsNotification(contactRequestsNotificationDto: ContactRequestsNotificationDto) {
-    const emailContactResp = await this.pool.query(`
+    const conn = await this.databaseService.getConnection();
+
+    const emailContactResp = await conn.query(`
       select count(*) contactRequests from ag_contact where email=? and status='P'
     `, [contactRequestsNotificationDto.email]);
     const notification = emailContactResp[0][0];
+
+    await this.databaseService.closeConnection(conn);
 
     return notification;
   }
 
   async validateFriend(validateFriendDto: ValidateFriendDto) {
-    const emailContactResp = await this.pool.query(`
+    const conn = await this.databaseService.getConnection();
+
+    const emailContactResp = await conn.query(`
       select COUNT(*) isFriend from ag_contact C, ag_user U
       where U.email=C.email and C.status='A' and C.emailcontact=? and id=?
     `, [validateFriendDto.email, validateFriendDto.id]);
+
+    await this.databaseService.closeConnection(conn);
 
     return emailContactResp[0][0];
   }
 
   async searchContact(searchContactsDto: SearchContactsDto) {
-    const contactsResp = await this.pool.query(`
+    const conn = await this.databaseService.getConnection();
+
+    const contactsResp = await conn.query(`
       select Ntipo.name as companyName, Ntipo.email, Ntipo.profilepic, U.fullname, U.id from 
       (
       select email, 'Entrepreneur' as tipo, name, profilepic from ag_entrepreneur
@@ -194,6 +226,8 @@ export class ContactService {
       U.email = Ntipo.email
       and Ntipo.email in (select emailcontact from ag_contact where email=? and status='A')
     `, [searchContactsDto.email]);
+
+    await this.databaseService.closeConnection(conn);
 
     return contactsResp[0];
   }

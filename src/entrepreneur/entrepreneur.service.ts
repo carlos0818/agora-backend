@@ -1,7 +1,7 @@
-import { BadRequestException, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
-import { Pool, RowDataPacket } from 'mysql2/promise';
+import { RowDataPacket } from 'mysql2/promise';
 
 import { JwtPayload } from 'src/user/interfaces/jwt-payload.interface';
 import { UpdateEntrepreneurInfoDto } from './dto/update-entrepreneur-info';
@@ -9,40 +9,51 @@ import { UpdateEntrepreneurDto } from './dto/update-entrepreneur.dto';
 import { GetDataByIdDto } from './dto/get-data-by-id.dto';
 import { SearchDto } from './dto/search.dto';
 import { ShowNotificationDto } from './dto/show-notification.dto';
+import { DatabaseService } from 'src/database/database.service';
 
 @Injectable()
 export class EntrepreneurService {
   constructor(
-    @Inject('DATABASE_CONNECTION') private pool: Pool,
+    private readonly databaseService: DatabaseService,
     private readonly jwtService: JwtService,
   ){}
 
   async getDataByEmail(updateEntrepreneurInfoDto: UpdateEntrepreneurInfoDto) {
-    const data = await this.pool.query(`
+    const conn = await this.databaseService.getConnection();
+
+    const data = await conn.query(`
       SELECT
       name, email_contact, phone, country, city, address, profilepic, backpic, videourl, videodesc, aboutus, web, facebook, linkedin, twitter, DATE_FORMAT(creationdate, '%b %Y') since
       FROM ag_entrepreneur e, ag_user u WHERE u.email=e.email AND e.email=?
     `, [updateEntrepreneurInfoDto.email]);
 
+    await this.databaseService.closeConnection(conn);
+
     return data[0][0];
   }
 
   async getDataById(getDataByIdDto: GetDataByIdDto) {
-    const respEmail = await this.pool.query<RowDataPacket[]>(`
+    const conn = await this.databaseService.getConnection();
+
+    const respEmail = await conn.query<RowDataPacket[]>(`
       SELECT email FROM ag_user WHERE id=?
     `, [getDataByIdDto.id]);
 
-    const data = await this.pool.query(`
+    const data = await conn.query(`
       SELECT
       name, email_contact, phone, country, city, address, profilepic, backpic, videourl, videodesc, aboutus, web, facebook, linkedin, twitter, DATE_FORMAT(creationdate, '%b %Y') since
       FROM ag_user u LEFT OUTER JOIN ag_entrepreneur e ON(u.email=e.email) WHERE u.email=?
     `, [respEmail[0][0].email]);
 
+    await this.databaseService.closeConnection(conn);
+
     return data[0][0];
   }
 
   async updateEntrepreneurInfo(updateEntrepreneurInfoDto: UpdateEntrepreneurInfoDto) {
-    const respValidateEmail = await this.pool.query<RowDataPacket[]>(`
+    const conn = await this.databaseService.getConnection();
+
+    const respValidateEmail = await conn.query<RowDataPacket[]>(`
       SELECT email FROM ag_user WHERE email=?
     `, [updateEntrepreneurInfoDto.email]);
     const validateEmail = respValidateEmail[0];
@@ -51,7 +62,7 @@ export class EntrepreneurService {
       throw new BadRequestException('The email not found');
     }
 
-    const respVerify = await this.pool.query<RowDataPacket[]>(`
+    const respVerify = await conn.query<RowDataPacket[]>(`
       SELECT email FROM ag_entrepreneur WHERE email=?
     `, [updateEntrepreneurInfoDto.email]);
     const verify = respVerify[0];
@@ -129,8 +140,10 @@ export class EntrepreneurService {
     }
 
     if (data.length > 0) {
-      await this.pool.query<RowDataPacket[]>(query, [data, updateEntrepreneurInfoDto.email]);
+      await conn.query<RowDataPacket[]>(query, [data, updateEntrepreneurInfoDto.email]);
     }
+
+    await this.databaseService.closeConnection(conn);
 
     return {
       message: 'Entrepreneur saved'
@@ -170,7 +183,11 @@ export class EntrepreneurService {
     params.push(updateEntrepreneurDto.twitter);
     params.push(updateEntrepreneurDto.email);
 
-    await this.pool.query(query, params);
+    const conn = await this.databaseService.getConnection();
+
+    await conn.query(query, params);
+
+    await this.databaseService.closeConnection(conn);
 
     return {
       message: 'Entrepreneur saved'
@@ -179,24 +196,30 @@ export class EntrepreneurService {
 
   async validateRequiredData(getDataByIdDto: GetDataByIdDto, token: string) {
     const decoded = this.jwtService.decode(token) as JwtPayload;
-    const respEmail = await this.pool.query<RowDataPacket[]>(`
-      SELECT email FROM ag_user WHERE id=?
-    `, [getDataByIdDto.id]);
-    const email = respEmail[0][0].email;
-
     if (!decoded) {
       throw new UnauthorizedException('');
     }
 
+    const conn = await this.databaseService.getConnection();
+
+    const respEmail = await conn.query<RowDataPacket[]>(`
+      SELECT email FROM ag_user WHERE id=?
+    `, [getDataByIdDto.id]);
+    const email = respEmail[0][0].email;
+
+
     if (decoded.email === email) {
+      await this.databaseService.closeConnection(conn);
       return { response: 1 }
     }
 
-    const respValidate = await this.pool.query<RowDataPacket[]>(`
+    const respValidate = await conn.query<RowDataPacket[]>(`
       SELECT COUNT(email) response FROM ag_entrepreneur
       WHERE name IS NOT NULL AND email_contact IS NOT NULL AND phone IS NOT NULL AND country IS NOT NULL AND city IS NOT NULL AND address IS NOT NULL
       AND profilepic IS NOT NULL AND email=?
     `, [email]);
+
+    await this.databaseService.closeConnection(conn);
 
     if (respValidate[0][0].response === 0) {
       throw new BadRequestException('Required data is not completed');
@@ -206,11 +229,15 @@ export class EntrepreneurService {
   }
 
   async getCompanySize() {
-    const types = await this.pool.query(`
+    const conn = await this.databaseService.getConnection();
+
+    const types = await conn.query(`
       SELECT anbr, descr FROM ag_entans A WHERE A.QNBR=4 AND A.EFFDT= (SELECT MAX(ANS.EFFDT) FROM ag_entans ANS
       WHERE ANS.QNBR=A.QNBR AND ANS.EFFDT=A.EFFDT AND ANS.ANBR=A.ANBR AND ANS.STATUS='A' AND ANS.EFFDT <= SYSDATE())
       ORDER BY orderby
     `);
+
+    await this.databaseService.closeConnection(conn);
 
     return types[0];
   }
@@ -283,9 +310,11 @@ export class EntrepreneurService {
       query += ` ORDER BY back1`;
     }
 
-    const searchResult = await this.pool.query<RowDataPacket[]>(query, parameters);
+    const conn = await this.databaseService.getConnection();
 
-    const contactsResp = await this.pool.query<RowDataPacket[]>(`
+    const searchResult = await conn.query<RowDataPacket[]>(query, parameters);
+
+    const contactsResp = await conn.query<RowDataPacket[]>(`
       select distinct * from 
       (
       select distinct email from ag_contact where emailcontact=?
@@ -294,6 +323,8 @@ export class EntrepreneurService {
       ) contact
     `, [searchDto.email, searchDto.email]);
     const contacts = contactsResp[0];
+
+    await this.databaseService.closeConnection(conn);
 
     const emailContactsArr = [];
     const emailsSearch = [];
@@ -358,9 +389,11 @@ export class EntrepreneurService {
       ORDER BY name
     `;
 
-    const searchResult = await this.pool.query<RowDataPacket[]>(query, [showNotificationDto.email]);
+    const conn = await this.databaseService.getConnection();
 
-    const contactsResp = await this.pool.query<RowDataPacket[]>(`
+    const searchResult = await conn.query<RowDataPacket[]>(query, [showNotificationDto.email]);
+
+    const contactsResp = await conn.query<RowDataPacket[]>(`
       select distinct * from 
       (
       select distinct email from ag_contact where emailcontact=?
@@ -369,6 +402,8 @@ export class EntrepreneurService {
       ) contact
     `, [showNotificationDto.email, showNotificationDto.email]);
     const contacts = contactsResp[0];
+
+    await this.databaseService.closeConnection(conn);
 
     const emailContactsArr = [];
     const emailsSearch = [];
@@ -393,22 +428,32 @@ export class EntrepreneurService {
   }
 
   async showNotifications(showNotificationDto: ShowNotificationDto) {
-    const notifications = await this.pool.query(`
+    const conn = await this.databaseService.getConnection();
+
+    const notifications = await conn.query(`
       select count(*) notifications from ag_profileview P, ag_entrepreneur E where 
       P.email=? and P.status='P' and P.emailview=E.email
     `, [showNotificationDto.email]);
+
+    await this.databaseService.closeConnection(conn);
 
     return notifications[0][0];
   }
 
   async updateShowNotifications(showNotificationDto: ShowNotificationDto) {
-    await this.pool.query(`
+    const conn = await this.databaseService.getConnection();
+
+    await conn.query(`
       update ag_profileview set status='V' where email=? and emailview in (select email from ag_entrepreneur);
     `, [showNotificationDto.email]);
+
+    await this.databaseService.closeConnection(conn);
   }
 
   async getScore(showNotificationDto: ShowNotificationDto) {
-    const scoreResp = await this.pool.query<RowDataPacket[]>(`
+    const conn = await this.databaseService.getConnection();
+
+    const scoreResp = await conn.query<RowDataPacket[]>(`
       select maintitle, title, sum(EntrepreneurScore) as EntrepreneurScore, sum(MaxScore) as MaxScore, round((sum(EntrepreneurScore) * 100) / sum(MaxScore), 2) as score from
       (
       select UV.id, S.title, S.qnbr, S.maintitle, A.score as EntrepreneurScore, 1 as MaxScore from ag_scoretitle S,  ag_user_quest U, ag_entans A, ag_user UV
@@ -423,6 +468,8 @@ export class EntrepreneurService {
       group by maintitle, title
       order by maintitle
     `, [showNotificationDto.email]);
+
+    await this.databaseService.closeConnection(conn);
 
     let mainArray = [];
 
@@ -472,9 +519,13 @@ export class EntrepreneurService {
   }
 
   async verifyPitchDeck(getDataByIdDto: GetDataByIdDto) {
-    const verifyResp = await this.pool.query<RowDataPacket[]>(`
+    const conn = await this.databaseService.getConnection();
+
+    const verifyResp = await conn.query<RowDataPacket[]>(`
       SELECT text FROM ag_pitchdeck WHERE id=? AND section='SPD'
     `, [getDataByIdDto.id]);
+
+    await this.databaseService.closeConnection(conn);
 
     if (verifyResp[0].length > 0) {
       return {

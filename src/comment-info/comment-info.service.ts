@@ -1,9 +1,10 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { lastValueFrom } from 'rxjs';
-import { Pool, RowDataPacket } from 'mysql2/promise';
+import { RowDataPacket } from 'mysql2/promise';
 
 import { MailService } from 'src/mail/mail.service';
+import { DatabaseService } from 'src/database/database.service';
 import { CreateCommentInfoDto } from './dto/create-comment-info.dto';
 import { CocreationDto } from './dto/cocreation.dto';
 
@@ -12,7 +13,7 @@ export class CommentInfoService {
   constructor(
     private readonly httpService: HttpService,
     private readonly mailService: MailService,
-    @Inject('DATABASE_CONNECTION') private pool: Pool,
+    private readonly databaseService: DatabaseService,
   ){}
 
   async sendEmail(createCommentInfoDto: CreateCommentInfoDto) {
@@ -40,7 +41,9 @@ export class CommentInfoService {
   }
 
   async getHub() {
-    const hubResp = await this.pool.query<RowDataPacket[]>(`
+    const conn = await this.databaseService.getConnection();
+
+    const hubResp = await conn.query<RowDataPacket[]>(`
       select l0.name title, l1.name level1, l2.name level2, l3.body from ag_hub l0, ag_hub l1, ag_hub l2, ag_hub l3
       where 
       l0.lvl=1
@@ -52,6 +55,8 @@ export class CommentInfoService {
       and l2.nbr=l3.parent
       order by l0.nbr, l1.nbr, l2.nbr, l3.nbr
     `);
+
+    await this.databaseService.closeConnection(conn);
 
     let mainArray = [];
 

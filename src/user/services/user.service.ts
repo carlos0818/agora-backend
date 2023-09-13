@@ -1,9 +1,9 @@
-import { BadRequestException, Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { HttpService } from '@nestjs/axios';
 import { lastValueFrom } from 'rxjs';
 
-import { Pool, RowDataPacket } from 'mysql2/promise';
+import { RowDataPacket } from 'mysql2/promise';
 import * as bcrypt from 'bcrypt';
 
 import { LoginUserDto } from '../dto/login-user.dto';
@@ -22,11 +22,12 @@ import { SendLinkForgotPasswordDto } from '../dto/send-link-forgot-password.dto'
 import { ChangePasswordDto } from '../dto/change-password.dto';
 import { EditPasswordDto } from '../dto/edit-password.dto';
 import { VerifyVoteDto } from '../dto/verify-vote.dto';
+import { DatabaseService } from 'src/database/database.service';
 
 @Injectable()
 export class UserService {
   constructor(
-    @Inject('DATABASE_CONNECTION') private pool: Pool,
+    private readonly databaseService: DatabaseService,
     private readonly jwtService: JwtService,
     private readonly httpService: HttpService,
     private readonly mailService: MailService,
@@ -43,15 +44,18 @@ export class UserService {
       }
     }
 
-    const verified = await this.pool.query<RowDataPacket[]>(`
+    const conn = await this.databaseService.getConnection();
+
+    const verified = await conn.query<RowDataPacket[]>(`
       SELECT email FROM ag_user WHERE email=? AND verified='2'
     `, [loginUserDto.email]);
 
     if (verified[0].length > 0) {
+      await this.databaseService.closeConnection(conn);
       throw new BadRequestException(`Your account has been locked. Please go to "forgot password?"`);
     }
 
-    const user = await this.pool.query<RowDataPacket[]>(`
+    const user = await conn.query<RowDataPacket[]>(`
       SELECT U.fullname, U.password, U.email, U.type, U.id, U.source, foto.profilepic, if (U.qversion > 0,1,0) as qversion, foto.valreq
       FROM ag_user U left outer join(
       select email, profilepic, if(name is null, 0, if (email_contact is null, 0,if (phone is null, 0, if (country is null, 0, if (city is null ,0, if(address is null, 0, 1)))))) as valreq from ag_entrepreneur where email=?
@@ -64,14 +68,18 @@ export class UserService {
     `, [loginUserDto.email, loginUserDto.email, loginUserDto.email, loginUserDto.email]);
 
     if (user[0].length === 0) {
+      await this.databaseService.closeConnection(conn);
       throw new BadRequestException(`Incorrect credentials`);
     }
 
     if (!bcrypt.compareSync(loginUserDto.password, user[0][0].password)) {
+      await this.databaseService.closeConnection(conn);
       throw new BadRequestException(`Incorrect credentials`);
     }
 
-    await this.pool.query('UPDATE ag_user SET lastlogindate=NOW() WHERE email=?', [loginUserDto.email]);
+    await conn.query('UPDATE ag_user SET lastlogindate=NOW() WHERE email=?', [loginUserDto.email]);
+
+    await this.databaseService.closeConnection(conn);
 
     return {
       fullname: user[0][0].fullname,
@@ -90,16 +98,21 @@ export class UserService {
   }
 
   async loginToken(loginTokenDto: LoginTokenDto) {
-    const user = await this.pool.query<RowDataPacket[]>(`
+    const conn = await this.databaseService.getConnection();
+
+    const user = await conn.query<RowDataPacket[]>(`
       SELECT email, fullname, type, id, source, (CASE WHEN TIMESTAMPDIFF(MINUTE, creationdate, NOW()) <= 15 THEN 'valid' ELSE 'not-valid' END) AS valid
       FROM ag_user WHERE email=? AND token=?
     `, [loginTokenDto.email, loginTokenDto.token]);
 
     if (user[0].length === 0 || user[0][0].valid === 'not-valid') {
+      await this.databaseService.closeConnection(conn);
       throw new BadRequestException(`User: Incorrect credentials`);
     }
 
-    await this.pool.query('UPDATE ag_user SET lastlogindate=NOW() WHERE email=?', [loginTokenDto.email]);
+    await conn.query('UPDATE ag_user SET lastlogindate=NOW() WHERE email=?', [loginTokenDto.email]);
+
+    await this.databaseService.closeConnection(conn);
 
     return {
       fullname: user[0][0].fullname,
@@ -135,7 +148,10 @@ export class UserService {
       const token = this.generateUserToken();
       const id = await this.generateUserId();
       const password = bcrypt.hashSync(registerUserDto.password, 10);
-      await this.pool.query(`
+
+      const conn = await this.databaseService.getConnection();
+
+      await conn.query(`
         INSERT INTO ag_user(email, password, status, type, fullname, lang, creationdate, lastdate, lastlogindate, creationadmin, source, token, id)
         VALUES(?, ?, '1', ?, ?, 'en', now(), now(), now(), 'web', 'PR', ?, ?)
       `, [
@@ -147,6 +163,8 @@ export class UserService {
           id
         ]
       );
+
+      await this.databaseService.closeConnection(conn);
 
       await this.insertUserQuestion(registerUserDto.type, registerUserDto.email);
 
@@ -165,7 +183,11 @@ export class UserService {
       throw new BadRequestException('The user does not exist, please click on Sign up');
     }
 
-    await this.pool.query('UPDATE ag_user SET lastlogindate=NOW() WHERE email=?', [registerSocialUserDto.email]);
+    const conn = await this.databaseService.getConnection();
+
+    await conn.query('UPDATE ag_user SET lastlogindate=NOW() WHERE email=?', [registerSocialUserDto.email]);
+
+    await this.databaseService.closeConnection(conn);
 
     return {
       fullname: validateEmailAndSource.user.fullname,
@@ -189,9 +211,13 @@ export class UserService {
 
     const id = await this.generateUserId();
 
+    let conn = await this.databaseService.getConnection();
+
     switch (validateEmailAndSource.response) {
       case 'ok':
-        await this.pool.query('UPDATE ag_user SET lastlogindate=NOW() WHERE email=?', [registerSocialUserDto.email]);
+        await conn.query('UPDATE ag_user SET lastlogindate=NOW() WHERE email=?', [registerSocialUserDto.email]);
+
+        await this.databaseService.closeConnection(conn);
         
         return {
           fullname: validateEmailAndSource.user.fullname,
@@ -208,7 +234,7 @@ export class UserService {
           })
         };
       case 'register':
-        await this.pool.query(`
+        await conn.query(`
           INSERT INTO ag_user(email, password, status, type, fullname, lang, creationdate, lastdate, lastlogindate, creationadmin, source, id)
           VALUES(?, '$P@ssW0rd#', '1', ?, ?, 'en', now(), now(), now(), 'web', ?, ?)
         `, [
@@ -219,6 +245,8 @@ export class UserService {
             id,
           ]
         );
+
+        await this.databaseService.closeConnection(conn);
 
         await this.insertUserQuestion(registerSocialUserDto.type, registerSocialUserDto.email);
         
@@ -237,38 +265,43 @@ export class UserService {
           })
         };
       case 'source':
+        await this.databaseService.closeConnection(conn);
         throw new BadRequestException('This email is already registered with another account type');
     }
   }
 
   async activateAccount(activateAccountDto: ActivateAccountDto) {
-    const user = await this.pool.query<RowDataPacket[]>(`
+    const conn = await this.databaseService.getConnection();
+
+    const user = await conn.query<RowDataPacket[]>(`
       SELECT password, fullname, type, id, source FROM ag_user WHERE email=? AND token=?
     `, [activateAccountDto.email, activateAccountDto.token]);
 
     if (user[0].length === 0) {
+      await this.databaseService.closeConnection(conn);
       throw new BadRequestException('We cannot find your registered user');
     }
 
-    const active = await this.pool.query<RowDataPacket[]>(`
+    const active = await conn.query<RowDataPacket[]>(`
       SELECT fullname FROM ag_user WHERE email=? AND verified='1'
     `, [activateAccountDto.email]);
 
     if (active[0].length > 0) {
+      await this.databaseService.closeConnection(conn);
       throw new BadRequestException('Your account has already been activated previously');
     }
 
-    const verified = await this.pool.query(`
+    const verified = await conn.query(`
       SELECT (CASE WHEN TIMESTAMPDIFF(MINUTE, NOW(), creationdate) <= 15 THEN 'valid' ELSE 'not-valid' END) AS "valid" FROM ag_user WHERE email=? AND token=?
     `, [activateAccountDto.email, activateAccountDto.token]);
 
     if (verified[0][0].valid === 'not-valid') {
-      await this.pool.query(`
+      await conn.query(`
         DELETE FROM ag_user WHERE email=?
       `, [activateAccountDto.email]);
 
       const token = this.generateUserToken()
-      await this.pool.query(`
+      await conn.query(`
         INSERT INTO ag_user(email, password, status, type, fullname, lang, creationdate, lastdate, lastlogindate, creationadmin, source, token)
         VALUES(?, ?, '1', ?, ?, 'en', NOW(), NOW(), NOW(), 'web', 'PR', ?)
       `, [
@@ -280,9 +313,11 @@ export class UserService {
         ]);
     }
 
-    await this.pool.query(`
+    await conn.query(`
       UPDATE ag_user SET verified=true WHERE email=?
     `, [activateAccountDto.email]);
+
+    await this.databaseService.closeConnection(conn);
 
     return {
       fullname: user[0][0].fullname,
@@ -301,15 +336,23 @@ export class UserService {
   }
 
   async updateUserInfo(updateUserInfoDto: UpdateUserInfoDto) {
-    await this.pool.query(`
+    const conn = await this.databaseService.getConnection();
+
+    await conn.query(`
       UPDATE ag_user SET fullname=? WHERE email=?
     `, [updateUserInfoDto.fullname, updateUserInfoDto.email]);
+
+    await this.databaseService.closeConnection(conn);
   }
 
   async loadUserData(verifyUserDto: VerifyUserDto) {
-    const user = await this.pool.query(`
+    const conn = await this.databaseService.getConnection();
+
+    const user = await conn.query(`
       SELECT email, fullname FROM ag_user WHERE email=?
     `, [verifyUserDto.email]);
+
+    await this.databaseService.closeConnection(conn);
 
     return user[0][0];
   }
@@ -321,36 +364,46 @@ export class UserService {
       throw new BadRequestException(`Incorrect captcha`);
     }
 
-    const userResp = await this.pool.query<RowDataPacket[]>(`
+    const conn = await this.databaseService.getConnection();
+
+    const userResp = await conn.query<RowDataPacket[]>(`
       SELECT email, fullname FROM ag_user WHERE email=? AND source='PR'
     `, [sendLinkDto.email]);
     const user = userResp[0][0];
 
     if (userResp[0].length === 0) {
+      await this.databaseService.closeConnection(conn);
       throw new BadRequestException('The email does not exist');
     }
     
     const token = this.generateUserToken();
-    await this.pool.query(`
+    await conn.query(`
       UPDATE ag_user SET token=? WHERE email=?
     `, [token, sendLinkDto.email]);
     await this.mailService.sendLinkForgotPassword(user, process.env.FORGOT_PASSWORD_URL, token);
+
+    await this.databaseService.closeConnection(conn);
 
     return { message: 'Email sent' };
   }
 
   async updateVerified(activateAccountDto: ActivateAccountDto) {
-    const validate = await this.pool.query<RowDataPacket[]>(`
+    const conn = await this.databaseService.getConnection();
+
+    const validate = await conn.query<RowDataPacket[]>(`
       SELECT email FROM ag_user WHERE email=? AND token=?
     `, [activateAccountDto.email, activateAccountDto.token]);
 
     if (validate[0].length === 0) {
+      await this.databaseService.closeConnection(conn);
       throw new BadRequestException(`The email does not exist`);
     }
 
-    await this.pool.query(`
+    await conn.query(`
       UPDATE ag_user SET verified='2' WHERE email=?
     `, [activateAccountDto.email]);
+
+    await this.databaseService.closeConnection(conn);
   }
 
   async changePassword(changePasswordDto: ChangePasswordDto) {
@@ -360,64 +413,84 @@ export class UserService {
       throw new BadRequestException(`Incorrect captcha`);
     }
 
-    const validate = await this.pool.query<RowDataPacket[]>(`
+    const conn = await this.databaseService.getConnection();
+
+    const validate = await conn.query<RowDataPacket[]>(`
       SELECT email FROM ag_user WHERE email=? AND token=?
     `, [changePasswordDto.email, changePasswordDto.token]);
 
+    
     if (validate[0].length === 0) {
+      await this.databaseService.closeConnection(conn);
       throw new BadRequestException(`This email is not valid`);
     }
 
     const password = bcrypt.hashSync(changePasswordDto.password, 10);
 
-    await this.pool.query(`
+    await conn.query(`
       UPDATE ag_user SET \`password\`=?, verified='1', token=NULL WHERE email=?
     `, [password, changePasswordDto.email]);
+
+    await this.databaseService.closeConnection(conn);
   }
 
   async editPassword(editPasswordDto: EditPasswordDto) {
-    const validate = await this.pool.query<RowDataPacket[]>(`
+    const conn = await this.databaseService.getConnection();
+
+    const validate = await conn.query<RowDataPacket[]>(`
       SELECT password FROM ag_user WHERE email=?
     `, [editPasswordDto.email]);
 
     if (validate[0].length === 0) {
+      await this.databaseService.closeConnection(conn);
       throw new BadRequestException(`Incorrect password`);
     }
 
     if (!bcrypt.compareSync(editPasswordDto.currentPassword, validate[0][0].password)) {
+      await this.databaseService.closeConnection(conn);
       throw new BadRequestException(`Incorrect password`);
     }
 
     const password = bcrypt.hashSync(editPasswordDto.newPassword, 10);
 
-    await this.pool.query(`
+    await conn.query(`
       UPDATE ag_user SET \`password\`=? WHERE email=?
     `, [password, editPasswordDto.email]);
+
+    await this.databaseService.closeConnection(conn);
   }
 
   async viewProfileNotification(verifyUserDto: VerifyUserDto) {
-    const viewProfile = await this.pool.query(`
+    const conn = await this.databaseService.getConnection();
+
+    const viewProfile = await conn.query(`
       select count(*) views from ag_profileview where email=? and status='P'
     `, [verifyUserDto.email]);
+
+    await this.databaseService.closeConnection(conn);
 
     return viewProfile[0][0];
   }
 
   async viewProfile(verifyVoteDto: VerifyVoteDto) {
-    const emailResp = await this.pool.query(`
+    const conn = await this.databaseService.getConnection();
+
+    const emailResp = await conn.query(`
       select email from ag_user where id=?
     `, [verifyVoteDto.id]);
     const email = emailResp[0][0].email;
 
-    const validate = await this.pool.query<RowDataPacket[]>(`
+    const validate = await conn.query<RowDataPacket[]>(`
       select email from ag_profileview where email=? and emailview=?
     `, [email, verifyVoteDto.email]);
 
     if (validate[0].length === 0) {
-      await this.pool.query(`
+      await conn.query(`
         INSERT INTO ag_profileview VALUES(?,?,NOW(),'P')
       `, [email, verifyVoteDto.email]);
     }
+
+    await this.databaseService.closeConnection(conn);
 
     return { message: 'profile view inserted' };
   }
@@ -429,9 +502,13 @@ export class UserService {
 
   // Validate if email is already exists
   private async validateEmail(email: string) {
-    const user = await this.pool.query<RowDataPacket[]>(`
+    const conn = await this.databaseService.getConnection();
+
+    const user = await conn.query<RowDataPacket[]>(`
       SELECT email FROM ag_user WHERE email=?
     `, [email]);
+
+    await this.databaseService.closeConnection(conn);
 
     if (user[0].length > 0) {
       return true;
@@ -442,7 +519,9 @@ export class UserService {
 
   // Validate if email and source is already exists
   private async validateEmailAndSource(email: string, source: string) {
-    const user = await this.pool.query<RowDataPacket[]>(`
+    const conn = await this.databaseService.getConnection();
+
+    const user = await conn.query<RowDataPacket[]>(`
       SELECT U.fullname, U.email, U.type, U.id, U.source, foto.profilepic, if (U.qversion > 0,1,0) as qversion, foto.valreq FROM ag_user U left outer join
       (
       select email, profilepic, if(name is null, 0, if (email_contact is null, 0,if (phone is null, 0, if (country is null, 0, if (city is null ,0, if(address is null, 0, 1)))))) as valreq from ag_entrepreneur where email=?
@@ -455,7 +534,7 @@ export class UserService {
     `, [email, email, email, email]);
 
     if (user[0].length > 0) {
-      const response = await this.pool.query<RowDataPacket[]>(`
+      const response = await conn.query<RowDataPacket[]>(`
         SELECT U.email, foto.profilepic, if (U.qversion > 0,1,0) as qversion, foto.valreq FROM ag_user U left outer join
         (
         select email, profilepic, if(name is null, 0, if (email_contact is null, 0,if (phone is null, 0, if (country is null, 0, if (city is null ,0, if(address is null, 0, 1)))))) as valreq from ag_entrepreneur where email=?
@@ -468,17 +547,23 @@ export class UserService {
       `, [email, email, email, email, source]);
       
       if (response[0].length === 0) {
+        await this.databaseService.closeConnection(conn);
+
         return {
           response: 'source',
           user: null
         };
       }
 
+      await this.databaseService.closeConnection(conn);
+
       return {
         response: 'ok',
         user: user[0][0]
       };
     }
+
+    await this.databaseService.closeConnection(conn);
 
     return {
       response: 'register',
@@ -517,7 +602,11 @@ export class UserService {
       id += chars.substring(randomNumber, randomNumber +1);
     }
 
-    const respVerify = await this.pool.query<RowDataPacket[]>(`SELECT id FROM ag_user WHERE id=${ id }`);
+    const conn = await this.databaseService.getConnection();
+
+    const respVerify = await conn.query<RowDataPacket[]>(`SELECT id FROM ag_user WHERE id=${ id }`);
+
+    await this.databaseService.closeConnection(conn);
     
     if (respVerify[0].length > 0) {
       await this.generateUserId();
@@ -546,7 +635,11 @@ export class UserService {
                 ORDER BY q.page, q.orderby LIMIT 1`;
     }
 
-    const respMaxEffdt = await this.pool.query(query);
+    const conn = await this.databaseService.getConnection();
+
+    const respMaxEffdt = await conn.query(query);
+
+    await this.databaseService.closeConnection(conn);
 
     this.questionService.saveUserQuestion({
       qnbr: '0',

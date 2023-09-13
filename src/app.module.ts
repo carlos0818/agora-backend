@@ -3,7 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 
 import * as Joi from 'joi';
 
-import { DatabaseModule } from './database/database.module';
+// import { DatabaseModule } from './database/database.module';
 import { CountryModule } from './country/country.module';
 import { UserModule } from './user/user.module';
 import { MailModule } from './mail/mail.module';
@@ -33,7 +33,7 @@ import { PitchDeckModule } from './pitch-deck/pitch-deck.module';
       }),
     }),
     MailModule,
-    DatabaseModule,
+    // DatabaseModule,
     CountryModule,
     UserModule,
     QuestionModule,

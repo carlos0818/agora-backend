@@ -1,19 +1,24 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 
-import { Pool, RowDataPacket } from 'mysql2/promise';
+import { RowDataPacket } from 'mysql2/promise';
+import { DatabaseService } from 'src/database/database.service';
 
 @Injectable()
 export class CountryService {
   constructor(
-    @Inject('DATABASE_CONNECTION') private readonly pool: Pool,
+    private readonly databaseService: DatabaseService,
   ){}
 
   async findByCountry(id: string) {
-    const indicators = await this.pool.query<RowDataPacket[]>(`
+    const conn = await this.databaseService.getConnection();
+
+    const indicators = await conn.query<RowDataPacket[]>(`
       SELECT country_id "countryId", country_indicator_id "indicatorId", country_indicator_name "indicatorName",
       country_indicator_year "indicatorYear", ROUND(country_indicator_value, 2) "indicatorValue"
-      FROM countries WHERE country_id=?
+      FROM ag_countries_ind WHERE country_id=?
     `, [id]);
+
+    await this.databaseService.closeConnection(conn);
 
     return indicators[0];
   }

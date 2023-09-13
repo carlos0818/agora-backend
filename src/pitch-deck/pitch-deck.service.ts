@@ -1,25 +1,28 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { lastValueFrom } from 'rxjs';
 
-import { Pool, RowDataPacket } from 'mysql2/promise';
+import { RowDataPacket } from 'mysql2/promise';
 
 import { GeneratePitchDeckDto } from './dto/generate-pitch-deck.dto';
 import { GetSummaryDto } from './dto/get-summary.dto';
 import { SaveSummaryDto } from './dto/save-summary.dto';
+import { DatabaseService } from 'src/database/database.service';
 
 @Injectable()
 export class PitchDeckService {
   constructor(
-    @Inject('DATABASE_CONNECTION') private pool: Pool,
+    private readonly databaseService: DatabaseService,
     private readonly httpService: HttpService,
   ){}
 
   async step1(showNotificationDto: GeneratePitchDeckDto) {
-    const validate = await this.pool.query<RowDataPacket[]>(`SELECT text FROM ag_pitchdeck WHERE section='A' AND email=?`, [showNotificationDto.email]);
+    const conn = await this.databaseService.getConnection();
+
+    const validate = await conn.query<RowDataPacket[]>(`SELECT text FROM ag_pitchdeck WHERE section='A' AND email=?`, [showNotificationDto.email]);
 
     if (validate[0].length == 0) {
-      const query = await this.pool.query<RowDataPacket[]>(`
+      const query = await conn.query<RowDataPacket[]>(`
         select 0 indicator, name from ag_country
         where id=
         (
@@ -46,6 +49,8 @@ export class PitchDeckService {
         )
         )
       `, [showNotificationDto.email, showNotificationDto.email]);
+
+      await this.databaseService.closeConnection(conn);
   
       const find0 = query[0].find(data => data.indicator === 0);
       const find2 = query[0].find(data => data.indicator === 2);
@@ -285,10 +290,12 @@ export class PitchDeckService {
   }
 
   async step2(showNotificationDto: GeneratePitchDeckDto) {
-    const validate = await this.pool.query<RowDataPacket[]>(`SELECT text FROM ag_pitchdeck WHERE section='B' AND email=?`, [showNotificationDto.email]);
+    const conn = await this.databaseService.getConnection();
+
+    const validate = await conn.query<RowDataPacket[]>(`SELECT text FROM ag_pitchdeck WHERE section='B' AND email=?`, [showNotificationDto.email]);
 
     if (validate[0].length === 0) {
-      const query = await this.pool.query<RowDataPacket[]>(`
+      const query = await conn.query<RowDataPacket[]>(`
       select Q.qnbr, concat(group_concat(
         case 
         when Q.qnbr=2 then Q.extravalue
@@ -309,6 +316,8 @@ export class PitchDeckService {
       select 'CO', name 
       from ag_entrepreneur where email=?
       `, [showNotificationDto.email, showNotificationDto.email]);
+
+      await this.databaseService.closeConnection(conn);
 
       const find1 = query[0].find(data => data.qnbr === '1');
       const find2 = query[0].find(data => data.qnbr === '2');
@@ -332,10 +341,12 @@ export class PitchDeckService {
   }
 
   async step3(showNotificationDto: GeneratePitchDeckDto) {
-    const validate = await this.pool.query<RowDataPacket[]>(`SELECT text FROM ag_pitchdeck WHERE section='C' AND email=?`, [showNotificationDto.email]);
+    const conn = await this.databaseService.getConnection();
+
+    const validate = await conn.query<RowDataPacket[]>(`SELECT text FROM ag_pitchdeck WHERE section='C' AND email=?`, [showNotificationDto.email]);
 
     if (validate[0].length === 0) {
-      const query = await this.pool.query<RowDataPacket[]>(`
+      const query = await conn.query<RowDataPacket[]>(`
         select Q.qnbr, A1.descr
         from ag_user U, ag_user_quest Q, ag_entans A1
         where U.email=?
@@ -350,6 +361,8 @@ export class PitchDeckService {
         select 1000, name 
         from ag_entrepreneur where email=?
       `, [showNotificationDto.email, showNotificationDto.email]);
+
+      await this.databaseService.closeConnection(conn);
 
       const find7 = query[0].find(data => data.qnbr === 7);
       const find10 = query[0].find(data => data.qnbr === 10);
@@ -529,10 +542,12 @@ export class PitchDeckService {
   }
 
   async step4(showNotificationDto: GeneratePitchDeckDto) {
-    const validate = await this.pool.query<RowDataPacket[]>(`SELECT text FROM ag_pitchdeck WHERE section='D' AND email=?`, [showNotificationDto.email]);
+    const conn = await this.databaseService.getConnection();
+
+    const validate = await conn.query<RowDataPacket[]>(`SELECT text FROM ag_pitchdeck WHERE section='D' AND email=?`, [showNotificationDto.email]);
 
     if (validate[0].length === 0) {
-      const query = await this.pool.query<RowDataPacket[]>(`
+      const query = await conn.query<RowDataPacket[]>(`
         select Q.qnbr, A1.descr
         from ag_user U, ag_user_quest Q, ag_entans A1
         where U.email=?
@@ -547,6 +562,8 @@ export class PitchDeckService {
         select 1000, name 
         from ag_entrepreneur where email=?
       `, [showNotificationDto.email, showNotificationDto.email]);
+
+      await this.databaseService.closeConnection(conn);
 
       const find25 = query[0].find(data => data.qnbr === 25);
       const find26 = query[0].find(data => data.qnbr === 26);
@@ -674,10 +691,12 @@ export class PitchDeckService {
   }
 
   async step5(showNotificationDto: GeneratePitchDeckDto) {
-    const validate = await this.pool.query<RowDataPacket[]>(`SELECT text FROM ag_pitchdeck WHERE section='E' AND email=?`, [showNotificationDto.email]);
+    const conn = await this.databaseService.getConnection();
+
+    const validate = await conn.query<RowDataPacket[]>(`SELECT text FROM ag_pitchdeck WHERE section='E' AND email=?`, [showNotificationDto.email]);
 
     if (validate[0].length === 0) {
-      const query = await this.pool.query<RowDataPacket[]>(`
+      const query = await conn.query<RowDataPacket[]>(`
         select Q.qnbr, A1.descr 
         from ag_user U, ag_user_quest Q, ag_entans A1
         where U.email=?
@@ -692,6 +711,8 @@ export class PitchDeckService {
         select 1000, name 
         from ag_entrepreneur where email=?
       `, [showNotificationDto.email, showNotificationDto.email]);
+
+      await this.databaseService.closeConnection(conn);
 
       const find66 = query[0].find(data => data.qnbr === 66);
       const find67 = query[0].find(data => data.qnbr === 67);
@@ -786,10 +807,12 @@ export class PitchDeckService {
   }
 
   async step6(showNotificationDto: GeneratePitchDeckDto) {
-    const validate = await this.pool.query<RowDataPacket[]>(`SELECT text FROM ag_pitchdeck WHERE section='F' AND email=?`, [showNotificationDto.email]);
+    const conn = await this.databaseService.getConnection();
+
+    const validate = await conn.query<RowDataPacket[]>(`SELECT text FROM ag_pitchdeck WHERE section='F' AND email=?`, [showNotificationDto.email]);
 
     if (validate[0].length === 0) {
-      const query = await this.pool.query<RowDataPacket[]>(`
+      const query = await conn.query<RowDataPacket[]>(`
         select Q.qnbr, A1.anbr, A1.descr, concat(substring_index(Q.extravalue,'|',1)," USD (", year(V.submitdate) - 3 ,")") as prev3, concat(substring_index(substring_index(Q.extravalue,'|',2),'|',-1), " USD (",year(V.submitdate) - 2,")") as prev2, concat(substring_index(Q.extravalue,'|',-1), " USD (",year(V.submitdate) - 1,")") as prev1
         from 
         ag_user U, ag_user_quest Q, ag_entans A1, ag_user_form_version V
@@ -805,9 +828,12 @@ export class PitchDeckService {
         group by Q.qnbr, A1.anbr
       `, [showNotificationDto.email]);
 
-      const company = await this.pool.query(`
-        select name from ag_entrepreneur where email=?
+      
+      const company = await conn.query(`
+      select name from ag_entrepreneur where email=?
       `, [showNotificationDto.email]);
+
+      await this.databaseService.closeConnection(conn);
       
       if (query[0].length > 0) {
         let content = `Analyze the following information related to Past Financial Performance, and generate a professional and detailed report that will be used to assemble a corporate PitchDeck. My company name is ${ company[0][0].name }.`;
@@ -828,10 +854,12 @@ export class PitchDeckService {
   }
 
   async step7(showNotificationDto: GeneratePitchDeckDto) {
-    const validate = await this.pool.query<RowDataPacket[]>(`SELECT text FROM ag_pitchdeck WHERE section='G' AND email=?`, [showNotificationDto.email]);
+    const conn = await this.databaseService.getConnection();
+
+    const validate = await conn.query<RowDataPacket[]>(`SELECT text FROM ag_pitchdeck WHERE section='G' AND email=?`, [showNotificationDto.email]);
 
     if (validate[0].length === 0) {
-      const query = await this.pool.query<RowDataPacket[]>(`
+      const query = await conn.query<RowDataPacket[]>(`
         select Q.qnbr, A1.descr
         as R3 from ag_user U, ag_user_quest Q, ag_entans A1
         where U.email=?
@@ -846,6 +874,8 @@ export class PitchDeckService {
         select 1000, name 
         from ag_entrepreneur where email=?
       `, [showNotificationDto.email, showNotificationDto.email]);
+
+      await this.databaseService.closeConnection(conn);
 
       const find61 = query[0].find(data => data.qnbr === 61);
       const find62 = query[0].find(data => data.qnbr === 62);
@@ -916,10 +946,12 @@ export class PitchDeckService {
   }
 
   async step8(showNotificationDto: GeneratePitchDeckDto) {
-    const validate = await this.pool.query<RowDataPacket[]>(`SELECT text FROM ag_pitchdeck WHERE section='H' AND email=?`, [showNotificationDto.email]);
+    const conn = await this.databaseService.getConnection();
+
+    const validate = await conn.query<RowDataPacket[]>(`SELECT text FROM ag_pitchdeck WHERE section='H' AND email=?`, [showNotificationDto.email]);
 
     if (validate[0].length === 0) {
-      const query = await this.pool.query<RowDataPacket[]>(`
+      const query = await conn.query<RowDataPacket[]>(`
         select Q.qnbr, A1.anbr, A1.descr, concat(substring_index(Q.extravalue,'|',1)," USD (", year(V.submitdate) + 1 ,")") prev1, concat(substring_index(substring_index(Q.extravalue,'|',2),'|',-1), " USD (",year(V.submitdate) + 2,")") prev2, concat(substring_index(Q.extravalue,'|',-1), " USD (",year(V.submitdate) + 3,")")
         as prev3 from 
         ag_user U, ag_user_quest Q, ag_entans A1, ag_user_form_version V
@@ -935,7 +967,7 @@ export class PitchDeckService {
         group by Q.qnbr, A1.anbr
       `, [showNotificationDto.email]);
 
-      const company = await this.pool.query(`
+      const company = await conn.query(`
         select name from ag_entrepreneur where email=?
       `, [showNotificationDto.email]);
 
@@ -958,10 +990,12 @@ export class PitchDeckService {
   }
 
   async step9(showNotificationDto: GeneratePitchDeckDto) {
-    const validate = await this.pool.query<RowDataPacket[]>(`SELECT text FROM ag_pitchdeck WHERE section='I' AND email=?`, [showNotificationDto.email]);
+    const conn = await this.databaseService.getConnection();
+
+    const validate = await conn.query<RowDataPacket[]>(`SELECT text FROM ag_pitchdeck WHERE section='I' AND email=?`, [showNotificationDto.email]);
 
     if (validate[0].length === 0) {
-      const query = await this.pool.query<RowDataPacket[]>(`
+      const query = await conn.query<RowDataPacket[]>(`
         select Q.qnbr, concat(group_concat(
           case 
           when Q.qnbr=144 then Q.extravalue
@@ -982,6 +1016,8 @@ export class PitchDeckService {
         select 1000, name 
         from ag_entrepreneur where email=?
       `, [showNotificationDto.email, showNotificationDto.email]);
+
+      await this.databaseService.closeConnection(conn);
 
       const find142 = query[0].find(data => data.qnbr === 142);
       const find143 = query[0].find(data => data.qnbr === 143);
@@ -1008,10 +1044,12 @@ export class PitchDeckService {
   }
 
   async step10(showNotificationDto: GeneratePitchDeckDto) {
-    const validate = await this.pool.query<RowDataPacket[]>(`SELECT text FROM ag_pitchdeck WHERE section='FPD' AND email=?`, [showNotificationDto.email]);
+    const conn = await this.databaseService.getConnection();
+
+    const validate = await conn.query<RowDataPacket[]>(`SELECT text FROM ag_pitchdeck WHERE section='FPD' AND email=?`, [showNotificationDto.email]);
 
     if (validate[0].length === 0) {
-      const query = await this.pool.query<RowDataPacket[]>(`
+      const query = await conn.query<RowDataPacket[]>(`
         select text from 
         (
         select 
@@ -1033,7 +1071,7 @@ export class PitchDeckService {
         where text is not null
       `, [showNotificationDto.email]);
 
-      const data = await this.pool.query(`
+      const data = await conn.query(`
         select name, aboutus from ag_entrepreneur where email=?
       `, [showNotificationDto.email]);
 
@@ -1061,14 +1099,14 @@ export class PitchDeckService {
         total_tokens: total_tokens2
       } = await this.gptOnly(contentSystem, content);
 
-      await this.pool.query(`
+      await conn.query(`
         INSERT INTO ag_gpttokens VALUES(NULL,?,?,?,?,NOW(),'pitchdeck')
       `, [showNotificationDto.email, (Number(prompt_tokens) + Number(prompt_tokens2)), (Number(completion_tokens) + Number(completion_tokens2)), (Number(total_tokens) + Number(total_tokens2))]);
 
-      const maxIndexResp = await this.pool.query('SELECT MAX(`index`) maxIndex FROM ag_gpttokens');
+      const maxIndexResp = await conn.query('SELECT MAX(`index`) maxIndex FROM ag_gpttokens');
       const maxIndex = maxIndexResp[0][0].maxIndex;
 
-      await this.pool.query(`
+      await conn.query(`
         INSERT INTO ag_pitchdeck VALUES(?,?,?,?,?)
       `, [
         showNotificationDto.email,
@@ -1080,17 +1118,23 @@ export class PitchDeckService {
         ${ respGPT2 }`
       ]);
 
+      await this.databaseService.closeConnection(conn);
+
       return { message: 'Pitch Deck Document completed' };
     }
   }
 
   async step11(showNotificationDto: GeneratePitchDeckDto) {
-    const validate = await this.pool.query<RowDataPacket[]>(`SELECT text FROM ag_pitchdeck WHERE section='SPD' AND email=?`, [showNotificationDto.email]);
+    const conn = await this.databaseService.getConnection();
+
+    const validate = await conn.query<RowDataPacket[]>(`SELECT text FROM ag_pitchdeck WHERE section='SPD' AND email=?`, [showNotificationDto.email]);
 
     if (validate[0].length === 0) {
-      const query = await this.pool.query<RowDataPacket[]>(`
+      const query = await conn.query<RowDataPacket[]>(`
         select text from ag_pitchdeck where email=? and section='FPD'
       `, [showNotificationDto.email]);
+
+      await this.databaseService.closeConnection(conn);
 
       let content = query[0][0].text;
 
@@ -1103,9 +1147,13 @@ export class PitchDeckService {
   }
 
   async getPitchDeckDocument(getSummaryDto: GetSummaryDto) {
-    const query = await this.pool.query<RowDataPacket[]>(`
+    const conn = await this.databaseService.getConnection();
+
+    const query = await conn.query<RowDataPacket[]>(`
       select text from ag_pitchdeck where id=? and section='FPD'
     `, [getSummaryDto.id]);
+
+    await this.databaseService.closeConnection(conn);
 
     if (query[0].length > 0) {
       return { response: 1, text: query[0][0].text };
@@ -1115,17 +1163,25 @@ export class PitchDeckService {
   }
 
   async savePitchDeckDocument(saveSummaryDto: SaveSummaryDto) {
-    await this.pool.query(`
+    const conn = await this.databaseService.getConnection();
+
+    await conn.query(`
       UPDATE ag_pitchdeck SET text=? WHERE email=? AND id=? AND section='FPD'
     `, [saveSummaryDto.text, saveSummaryDto.email, saveSummaryDto.id]);
+
+    await this.databaseService.closeConnection(conn);
 
     return { message: 'Pitch Deck Document saved' };
   }
 
   async getSummary(getSummaryDto: GetSummaryDto) {
-    const query = await this.pool.query<RowDataPacket[]>(`
+    const conn = await this.databaseService.getConnection();
+
+    const query = await conn.query<RowDataPacket[]>(`
       select text from ag_pitchdeck where id=? and section='SPD'
     `, [getSummaryDto.id]);
+
+    await this.databaseService.closeConnection(conn);
 
     if (query[0].length > 0) {
       return { response: 1, text: query[0][0].text };
@@ -1135,9 +1191,13 @@ export class PitchDeckService {
   }
 
   async saveSummary(saveSummaryDto: SaveSummaryDto) {
-    await this.pool.query(`
+    const conn = await this.databaseService.getConnection();
+
+    await conn.query(`
       UPDATE ag_pitchdeck SET text=? WHERE email=? AND id=? AND section='SPD'
     `, [saveSummaryDto.text, saveSummaryDto.email, saveSummaryDto.id]);
+
+    await this.databaseService.closeConnection(conn);
 
     return { message: 'Summary Pitch Deck saved' };
   }
@@ -1153,16 +1213,20 @@ export class PitchDeckService {
     const completion_tokens = data.data.usage.completion_tokens;
     const total_tokens = data.data.usage.total_tokens;
 
-    await this.pool.query(`
+    const conn = await this.databaseService.getConnection();
+
+    await conn.query(`
       INSERT INTO ag_gpttokens VALUES(NULL,?,?,?,?,NOW(),'pitchdeck')
     `, [email, prompt_tokens, completion_tokens, total_tokens]);
 
-    const maxIndexResp = await this.pool.query('SELECT MAX(`index`) maxIndex FROM ag_gpttokens');
+    const maxIndexResp = await conn.query('SELECT MAX(`index`) maxIndex FROM ag_gpttokens');
     const maxIndex = maxIndexResp[0][0].maxIndex;
 
-    await this.pool.query(`
+    await conn.query(`
       INSERT INTO ag_pitchdeck VALUES(?,?,?,?,?)
     `, [email, id, maxIndex, section, respGPT]);
+
+    await this.databaseService.closeConnection(conn);
   }
 
   private async gptOnly(contentSystem: string, contentUser: string) {

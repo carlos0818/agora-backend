@@ -1,7 +1,7 @@
-import { BadRequestException, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
-import { Pool, RowDataPacket } from 'mysql2/promise';
+import { RowDataPacket } from 'mysql2/promise';
 
 import { JwtPayload } from 'src/user/interfaces/jwt-payload.interface';
 import { GetDataByIdDto } from './dto/get-data-by-id.dto';
@@ -9,49 +9,61 @@ import { UpdateExpertInfoDto } from './dto/update-expert-info';
 import { UpdateExpertDto } from './dto/update-expert.dto';
 import { SearchDto } from './dto/search.dto';
 import { ShowNotificationDto } from './dto/show-notification.dto';
+import { DatabaseService } from 'src/database/database.service';
 
 @Injectable()
 export class ExpertService {
   constructor(
-    @Inject('DATABASE_CONNECTION') private pool: Pool,
+    private readonly databaseService: DatabaseService,
     private readonly jwtService: JwtService,
   ){}
 
   async getDataByEmail(updateExpertInfoDto: UpdateExpertInfoDto) {
-    const data = await this.pool.query(`
+    const conn = await this.databaseService.getConnection();
+
+    const data = await conn.query(`
       SELECT
       name, email_contact, phone, country, city, address, profilepic, backpic, videourl, videodesc, aboutus, web, facebook, linkedin, twitter, DATE_FORMAT(creationdate, '%b %Y') since
       FROM ag_expert e, ag_user u WHERE u.email=e.email AND e.email=?
     `, [updateExpertInfoDto.email]);
 
+    await this.databaseService.closeConnection(conn);
+
     return data[0][0];
   }
 
   async getDataById(getDataByIdDto: GetDataByIdDto) {
-    const respEmail = await this.pool.query<RowDataPacket[]>(`
+    const conn = await this.databaseService.getConnection();
+
+    const respEmail = await conn.query<RowDataPacket[]>(`
       SELECT email FROM ag_user WHERE id=?
     `, [getDataByIdDto.id]);
 
-    const data = await this.pool.query(`
+    const data = await conn.query(`
       SELECT
       name, email_contact, phone, country, city, address, profilepic, backpic, videourl, videodesc, aboutus, web, facebook, linkedin, twitter, DATE_FORMAT(creationdate, '%b %Y') since
       FROM ag_user u LEFT OUTER JOIN ag_expert e ON(u.email=e.email) WHERE u.email=?
     `, [respEmail[0][0].email]);
 
+    await this.databaseService.closeConnection(conn);
+
     return data[0][0];
   }
 
   async updateExpertInfo(updateExpertInfoDto: UpdateExpertInfoDto) {
-    const respValidateEmail = await this.pool.query<RowDataPacket[]>(`
+    const conn = await this.databaseService.getConnection();
+
+    const respValidateEmail = await conn.query<RowDataPacket[]>(`
       SELECT email FROM ag_user WHERE email=?
     `, [updateExpertInfoDto.email]);
     const validateEmail = respValidateEmail[0];
 
     if (validateEmail.length === 0) {
+      await this.databaseService.closeConnection(conn);
       throw new BadRequestException('The email not found');
     }
 
-    const respVerify = await this.pool.query<RowDataPacket[]>(`
+    const respVerify = await conn.query<RowDataPacket[]>(`
       SELECT email FROM ag_expert WHERE email=?
     `, [updateExpertInfoDto.email]);
     const verify = respVerify[0];
@@ -128,7 +140,9 @@ export class ExpertService {
       query = `INSERT INTO ag_expert(${ field }, email) VALUES(?,?)`;
     }
 
-    await this.pool.query<RowDataPacket[]>(query, [data, updateExpertInfoDto.email]);
+    await conn.query<RowDataPacket[]>(query, [data, updateExpertInfoDto.email]);
+
+    await this.databaseService.closeConnection(conn);
 
     return {
       message: 'Expert saved'
@@ -168,7 +182,11 @@ export class ExpertService {
     params.push(updateExpertDto.twitter);
     params.push(updateExpertDto.email);
 
-    await this.pool.query(query, params);
+    const conn = await this.databaseService.getConnection();
+
+    await conn.query(query, params);
+
+    await this.databaseService.closeConnection(conn);
 
     return {
       message: 'Expert saved'
@@ -177,24 +195,29 @@ export class ExpertService {
 
   async validateRequiredData(getDataByIdDto: GetDataByIdDto, token: string) {
     const decoded = this.jwtService.decode(token) as JwtPayload;
-    const respEmail = await this.pool.query<RowDataPacket[]>(`
-      SELECT email FROM ag_user WHERE id=?
-    `, [getDataByIdDto.id]);
-    const email = respEmail[0][0].email;
-
     if (!decoded) {
       throw new UnauthorizedException('');
     }
 
+    const conn = await this.databaseService.getConnection();
+
+    const respEmail = await conn.query<RowDataPacket[]>(`
+      SELECT email FROM ag_user WHERE id=?
+    `, [getDataByIdDto.id]);
+    const email = respEmail[0][0].email;
+
     if (decoded.email === email) {
+      await this.databaseService.closeConnection(conn);
       return { response: 1 }
     }
 
-    const respValidate = await this.pool.query<RowDataPacket[]>(`
+    const respValidate = await conn.query<RowDataPacket[]>(`
       SELECT COUNT(email) response FROM ag_expert
       WHERE name IS NOT NULL AND email_contact IS NOT NULL AND phone IS NOT NULL AND country IS NOT NULL AND city IS NOT NULL AND address IS NOT NULL
       AND profilepic IS NOT NULL AND email=?
     `, [email]);
+
+    await this.databaseService.closeConnection(conn);
 
     if (respValidate[0][0].response === 0) {
       throw new BadRequestException('Required data is not completed');
@@ -268,9 +291,11 @@ export class ExpertService {
       ) expert ) expert2 WHERE front2 IS NOT NULL
     `;
 
-    const searchResult = await this.pool.query<RowDataPacket[]>(query, parameters);
+    const conn = await this.databaseService.getConnection();
 
-    const contactsResp = await this.pool.query<RowDataPacket[]>(`
+    const searchResult = await conn.query<RowDataPacket[]>(query, parameters);
+
+    const contactsResp = await conn.query<RowDataPacket[]>(`
       select distinct * from 
       (
       select distinct email from ag_contact where emailcontact=?
@@ -279,6 +304,8 @@ export class ExpertService {
       ) contact
     `, [searchDto.email, searchDto.email]);
     const contacts = contactsResp[0];
+
+    await this.databaseService.closeConnection(conn);
 
     const emailContactsArr = [];
     const emailsSearch = [];
@@ -356,9 +383,11 @@ export class ExpertService {
       ) expert ) expert2 WHERE front2 IS NOT NULL
     `;
 
-    const searchResult = await this.pool.query<RowDataPacket[]>(query, [showNotificationDto.email]);
+    const conn = await this.databaseService.getConnection();
 
-    const contactsResp = await this.pool.query<RowDataPacket[]>(`
+    const searchResult = await conn.query<RowDataPacket[]>(query, [showNotificationDto.email]);
+
+    const contactsResp = await conn.query<RowDataPacket[]>(`
       select distinct * from 
       (
       select distinct email from ag_contact where emailcontact=?
@@ -367,6 +396,8 @@ export class ExpertService {
       ) contact
     `, [showNotificationDto.email, showNotificationDto.email]);
     const contacts = contactsResp[0];
+
+    await this.databaseService.closeConnection(conn);
 
     const emailContactsArr = [];
     const emailsSearch = [];
@@ -391,17 +422,25 @@ export class ExpertService {
   }
 
   async showNotifications(showNotificationDto: ShowNotificationDto) {
-    const notifications = await this.pool.query(`
+    const conn = await this.databaseService.getConnection();
+
+    const notifications = await conn.query(`
       select count(*) notifications from ag_profileview P, ag_expert E where 
       P.email=? and P.status='P' and P.emailview=E.email
     `, [showNotificationDto.email]);
+
+    await this.databaseService.closeConnection(conn);
 
     return notifications[0][0];
   }
 
   async updateShowNotifications(showNotificationDto: ShowNotificationDto) {
-    await this.pool.query(`
+    const conn = await this.databaseService.getConnection();
+
+    await conn.query(`
       update ag_profileview set status='V' where email=? and emailview in (select email from ag_expert)
     `, [showNotificationDto.email]);
+
+    await this.databaseService.closeConnection(conn);
   }
 }
