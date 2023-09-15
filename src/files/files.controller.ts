@@ -1,4 +1,4 @@
-import { Controller, Post, UploadedFile, UseInterceptors, BadRequestException, Body } from '@nestjs/common';
+import { Controller, Post, UploadedFile, UseInterceptors, BadRequestException } from '@nestjs/common';
 import { FilesService } from './files.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { fileFilter } from './helpers/fileFilter';
@@ -12,7 +12,8 @@ export class FilesController {
 
   @Post('user-profile')
   @UseInterceptors(FileInterceptor('file', {
-    fileFilter: fileFilter
+    fileFilter: fileFilter,
+    limits: { fileSize: 2048 * 1024 }
   }))
   async uploadProfilePicture(@UploadedFile() file: Express.Multer.File) {
     if (!file) {
@@ -24,7 +25,8 @@ export class FilesController {
 
   @Post('user-background')
   @UseInterceptors(FileInterceptor('file', {
-    fileFilter: fileFilter
+    fileFilter: fileFilter,
+    limits: { fileSize: 2048 * 1024 }
   }))
   async uploadBackgroundPicture(@UploadedFile() file: Express.Multer.File) {
     if (!file) {
@@ -36,7 +38,8 @@ export class FilesController {
 
   @Post('video')
   @UseInterceptors(FileInterceptor('video', {
-    fileFilter: videoFilter
+    fileFilter: videoFilter,
+    limits: { fileSize: 250 * 1024 * 1024 }
   }))
   async uploadVideo(@UploadedFile() video: Express.Multer.File) {
     if (!video) {
