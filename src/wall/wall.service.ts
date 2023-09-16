@@ -140,8 +140,10 @@ export class WallService {
     const conn = await this.databaseService.getConnection();
 
     await conn.query(`
-      INSERT INTO ag_home_user VALUES(NULL,?,?,NOW(),NULL)
-    `, [saveUserPost.email, saveUserPost.body]);
+      insert into ag_home_user (email, body, dateposted, indexparent)
+      select ?, ?, sysdate(), null
+      where (select count(*) from ag_home_user where email=? and body=? and date(dateposted)=date(sysdate())) = 0 and trim(?) <> ''
+    `, [saveUserPost.email, saveUserPost.body, saveUserPost.email, saveUserPost.body, saveUserPost.body]);
 
     await this.databaseService.closeConnection(conn);
 
@@ -152,8 +154,10 @@ export class WallService {
     const conn = await this.databaseService.getConnection();
 
     await conn.query(`
-      INSERT INTO ag_home_user VALUES(NULL,?,?,NOW(),?)
-    `, [commentPost.email, commentPost.body, commentPost.index]);
+      insert into ag_home_user (email, body, dateposted, indexparent)
+      select ?, ?, sysdate(), ?
+      where (select count(*) from ag_home_user where email=? and body=? and date(dateposted)=date(sysdate())) = 0 and trim(?) <> ''
+    `, [commentPost.email, commentPost.body, commentPost.index, commentPost.email, commentPost.body, commentPost.body]);
 
     await this.databaseService.closeConnection(conn);
 
