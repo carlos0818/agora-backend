@@ -329,7 +329,7 @@ export class PitchDeckService {
       let content = 'Analyze the following information related to Company/Firm Profile, and generate a professional and detailed report that will be used to assemble a corporate PitchDeck.';
 
       if (find1 && find2 && find3 && find5 && find6 && findCO) {
-        content = `${ findCO.R3 } is an ${ find3.R3 } operating in the ${ find6.R3 } area which was incorporated in ${ find2.R3 } in ${ find1.R3 } as a ${ find5.R3 }.`;
+        content += `${ findCO.R3 } is an ${ find3.R3 } operating in the ${ find6.R3 } area which was incorporated in ${ find2.R3 } in ${ find1.R3 } as a ${ find5.R3 }.`;
       }
 
       const contentSystem = 'You are an expert in marketing techniques. Utilize advanced data analysis tools to showcase business ventures to potential investors. Craft compelling narratives that demonstrate the immense potential of these ventures. Assist companies in standing out in a competitive landscape. Focus investor appeal by highlighting the scalability, market demand, and revenue projections of each endeavor. Extract valuable market trends, customer behaviors, and competitive benchmarks. Tell a compelling story backed by insights, while ensuring your offerings and scope remain realistic and optimistic. Your language should be professional, yet also fresh and friendly. Always respond in English and stay within 2000 characters.';
@@ -402,43 +402,43 @@ export class PitchDeckService {
       let content = `Analyze the following information related to Business Activities, and generate a professional and detailed report that will be used to assemble a corporate PitchDeck. My company name is ${ findCO.descr }.`;
 
       if (find21 && find22) {
-        content = `The company is ${ find21.descr } with ${ find22.descr } as target customers.`;
+        content += `The company is ${ find21.descr } with ${ find22.descr } as target customers.`;
       }
 
       if (find24 && find23 && find29) {
-        content = `The firm has ${ find24.descr } products in ${ find23.descr } with ${ find29.descr } sales in the domestic market.`;
+        content += `The firm has ${ find24.descr } products in ${ find23.descr } with ${ find29.descr } sales in the domestic market.`;
       }
 
       if (find46) {
-        content = `The capital is provided by ${ find46.descr } to get started.`;
+        content += `The capital is provided by ${ find46.descr } to get started.`;
       }
 
       if (find7) {
-        content = `${ find7.descr } of the firm have the largest shareholding.`;
+        content += `${ find7.descr } of the firm have the largest shareholding.`;
       }
 
       if (find42 && find45) {
-        content = `The key management roles are ${ find42.descr } and are ${ find45.descr }.`;
+        content += `The key management roles are ${ find42.descr } and are ${ find45.descr }.`;
       }
 
       if (find49 && find43) {
-        content = `The senior management has ${ find49.descr } of experience and has ${ find43.descr }.`;
+        content += `The senior management has ${ find49.descr } of experience and has ${ find43.descr }.`;
       }
 
       if (find51) {
-        content = `The top manager has a ${ find51.descr }.`;
+        content += `The top manager has a ${ find51.descr }.`;
       }
 
       if (find54 && find55) {
-        content = `There are ${ find54.descr } full-time employees and more than ${ find55.descr } temporary employees.`;
+        content += `There are ${ find54.descr } full-time employees and more than ${ find55.descr } temporary employees.`;
       }
 
       if (find50) {
-        content = `Most of the workers have completed the ${ find50.descr }.`;
+        content += `Most of the workers have completed the ${ find50.descr }.`;
       }
 
       if (find53) {
-        content = `${ find53.descr }, of the staff has special skills and education.`;
+        content += `${ find53.descr }, of the staff has special skills and education.`;
       }
 
       if (find47 && find48) {
