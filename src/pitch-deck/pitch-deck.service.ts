@@ -287,6 +287,8 @@ export class PitchDeckService {
   
       return { content };
     }
+
+    await this.databaseService.closeConnection(conn);
   }
 
   async step2(showNotificationDto: GeneratePitchDeckDto) {
@@ -338,6 +340,8 @@ export class PitchDeckService {
 
       return { content };
     }
+
+    await this.databaseService.closeConnection(conn);
   }
 
   async step3(showNotificationDto: GeneratePitchDeckDto) {
@@ -539,6 +543,8 @@ export class PitchDeckService {
 
       return { content };
     }
+
+    await this.databaseService.closeConnection(conn);
   }
 
   async step4(showNotificationDto: GeneratePitchDeckDto) {
@@ -688,6 +694,8 @@ export class PitchDeckService {
 
       return { content };
     }
+
+    await this.databaseService.closeConnection(conn);
   }
 
   async step5(showNotificationDto: GeneratePitchDeckDto) {
@@ -804,6 +812,8 @@ export class PitchDeckService {
 
       return { content };
     }
+
+    await this.databaseService.closeConnection(conn);
   }
 
   async step6(showNotificationDto: GeneratePitchDeckDto) {
@@ -828,7 +838,6 @@ export class PitchDeckService {
         group by Q.qnbr, A1.anbr
       `, [showNotificationDto.email]);
 
-      
       const company = await conn.query(`
       select name from ag_entrepreneur where email=?
       `, [showNotificationDto.email]);
@@ -848,6 +857,8 @@ export class PitchDeckService {
 
         return { content };
       }
+
+      await this.databaseService.closeConnection(conn);
 
       return { content: '' };
     }
@@ -943,6 +954,8 @@ export class PitchDeckService {
 
       return { content };
     }
+
+    await this.databaseService.closeConnection(conn);
   }
 
   async step8(showNotificationDto: GeneratePitchDeckDto) {
@@ -971,6 +984,8 @@ export class PitchDeckService {
         select name from ag_entrepreneur where email=?
       `, [showNotificationDto.email]);
 
+      await this.databaseService.closeConnection(conn);
+
       if (query[0].length > 0) {
         let content = `Analyze the following information related to Future Proyections, and generate a professional and detailed report that will be used to assemble a corporate PitchDeck. My company name is ${ company[0][0].name }`;
 
@@ -984,6 +999,8 @@ export class PitchDeckService {
 
         return { content };
       }
+
+      await this.databaseService.closeConnection(conn);
 
       return { content: '' };
     }
@@ -1041,6 +1058,8 @@ export class PitchDeckService {
 
       return { content };
     }
+
+    await this.databaseService.closeConnection(conn);
   }
 
   async step10(showNotificationDto: GeneratePitchDeckDto) {
@@ -1122,6 +1141,8 @@ export class PitchDeckService {
 
       return { message: 'Pitch Deck Document completed' };
     }
+
+    await this.databaseService.closeConnection(conn);
   }
 
   async step11(showNotificationDto: GeneratePitchDeckDto) {
@@ -1144,6 +1165,8 @@ export class PitchDeckService {
 
       return { message: 'Summary Pitch Deck completed' };
     }
+
+    await this.databaseService.closeConnection(conn);
   }
 
   async getPitchDeckDocument(getSummaryDto: GetSummaryDto) {
