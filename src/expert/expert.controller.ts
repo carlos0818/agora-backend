@@ -7,6 +7,7 @@ import { GetDataByIdDto } from './dto/get-data-by-id.dto';
 import { UpdateExpertDto } from './dto/update-expert.dto';
 import { SearchDto } from './dto/search.dto';
 import { ShowNotificationDto } from './dto/show-notification.dto';
+import { UpdateVideoDto } from './dto/update-video.dto';
 
 @Controller('expert')
 export class ExpertController {
@@ -56,5 +57,10 @@ export class ExpertController {
   @Post('update-show-notifications')
   updateShowNotifications(@Body() showNotificationDto: ShowNotificationDto) {
     return this.expertService.updateShowNotifications(showNotificationDto);
+  }
+
+  @Post('update-video')
+  updateVideo(@Body() updateVideoDto: UpdateVideoDto) {
+    return this.expertService.updateVideo(updateVideoDto);
   }
 }

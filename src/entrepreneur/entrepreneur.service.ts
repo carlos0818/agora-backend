@@ -10,6 +10,7 @@ import { GetDataByIdDto } from './dto/get-data-by-id.dto';
 import { SearchDto } from './dto/search.dto';
 import { ShowNotificationDto } from './dto/show-notification.dto';
 import { DatabaseService } from 'src/database/database.service';
+import { UpdateVideoDto } from './dto/update-video.dto';
 
 @Injectable()
 export class EntrepreneurService {
@@ -536,5 +537,17 @@ export class EntrepreneurService {
     return {
       response: 0
     };
+  }
+
+  async updateVideo(updateVideoDto: UpdateVideoDto) {
+    const conn = await this.databaseService.getConnection();
+
+    await conn.query(`
+      UPDATE ag_entrepreneur SET videourl=? WHERE email=?
+    `, [updateVideoDto.videoUrl, updateVideoDto.email]);
+
+    await this.databaseService.closeConnection(conn);
+
+    return { message: 'Video updated' };
   }
 }

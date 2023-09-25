@@ -7,6 +7,7 @@ import { UpdateEntrepreneurDto } from './dto/update-entrepreneur.dto';
 import { GetDataByIdDto } from './dto/get-data-by-id.dto';
 import { SearchDto } from './dto/search.dto';
 import { ShowNotificationDto } from './dto/show-notification.dto';
+import { UpdateVideoDto } from './dto/update-video.dto';
 
 @Controller('entrepreneur')
 export class EntrepreneurController {
@@ -71,5 +72,10 @@ export class EntrepreneurController {
   @Get('verify-pitch-deck')
   verifyPitchDeck(@Query() getDataByIdDto: GetDataByIdDto) {
     return this.entrepreneurService.verifyPitchDeck(getDataByIdDto);
+  }
+
+  @Post('update-video')
+  updateVideo(@Body() updateVideoDto: UpdateVideoDto) {
+    return this.entrepreneurService.updateVideo(updateVideoDto);
   }
 }

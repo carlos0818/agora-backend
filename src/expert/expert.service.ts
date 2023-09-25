@@ -10,6 +10,7 @@ import { UpdateExpertDto } from './dto/update-expert.dto';
 import { SearchDto } from './dto/search.dto';
 import { ShowNotificationDto } from './dto/show-notification.dto';
 import { DatabaseService } from 'src/database/database.service';
+import { UpdateVideoDto } from './dto/update-video.dto';
 
 @Injectable()
 export class ExpertService {
@@ -442,5 +443,17 @@ export class ExpertService {
     `, [showNotificationDto.email]);
 
     await this.databaseService.closeConnection(conn);
+  }
+
+  async updateVideo(updateVideoDto: UpdateVideoDto) {
+    const conn = await this.databaseService.getConnection();
+
+    await conn.query(`
+      UPDATE ag_expert SET videourl=? WHERE email=?
+    `, [updateVideoDto.videoUrl, updateVideoDto.email]);
+
+    await this.databaseService.closeConnection(conn);
+
+    return { message: 'Video updated' };
   }
 }

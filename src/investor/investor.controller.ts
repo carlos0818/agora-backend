@@ -7,6 +7,7 @@ import { UpdateInvestorInfoDto } from './dto/update-investor-info';
 import { GetDataByIdDto } from './dto/get-data-by-id.dto';
 import { SearchDto } from './dto/search.dto';
 import { ShowNotificationDto } from './dto/show-notification.dto';
+import { UpdateVideoDto } from './dto/update-video.dto';
 
 @Controller('investor')
 export class InvestorController {
@@ -56,5 +57,9 @@ export class InvestorController {
   @Post('update-show-notifications')
   updateShowNotifications(@Body() showNotificationDto: ShowNotificationDto) {
     return this.investorService.updateShowNotifications(showNotificationDto);
+  }
+  @Post('update-video')
+  updateVideo(@Body() updateVideoDto: UpdateVideoDto) {
+    return this.investorService.updateVideo(updateVideoDto);
   }
 }
