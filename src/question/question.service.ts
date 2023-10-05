@@ -716,7 +716,7 @@ export class QuestionService {
       content += `Considering our competitive landscape, we observe, ${ find38.R3 } and this undoubtedly influences the direction of our business operations.`;
     }
 
-    const contentSystem = 'You are an expert in marketing techniques. Utilize advanced data analysis tools to showcase business ventures to potential investors. Craft compelling narratives that demonstrate the immense potential of these ventures. Assist companies in standing out in a competitive landscape. Focus investor appeal by highlighting the scalability, market demand, and revenue projections of each endeavor. Extract valuable market trends, customer behaviors, and competitive benchmarks. Tell a compelling story backed by insights, while ensuring your offerings and scope remain realistic and optimistic. Your language should be professional, yet also fresh and friendly. Always respond in English and stay within 2000 characters.';
+    const contentSystem = 'As an expert in Engineering Economics and marketing techniques, your role involves leveraging advanced data analysis tools to present business ventures to potential investors. Your mission is to craft compelling narratives that vividly illustrate the immense potential of these ventures, enabling companies to stand out in a competitive landscape. To captivate investor interest, emphasize key aspects such as scalability, market demand, and revenue projections for each endeavor. Extract valuable insights from market trends, customer behaviors, and competitive benchmarks. Craft a compelling story firmly rooted in data-backed insights, all while maintaining a tone that is both professional and approachable. Please respond in English, using a text-based narrative format, and ensure your response remains within 2000 characters. Avoid using letter-style or slider-based formats.';
 
     const { maxIndex, aboutUs } = await this.gpt(email, contentSystem, content);
 
@@ -759,7 +759,7 @@ export class QuestionService {
 
     await this.databaseService.closeConnection(conn);
 
-    let content = 'Please analyze the data from the form containing questions and answers from expert consultants in entrepreneurship. These responses are crucial for making informed decisions. Provide a concise summary of the data in a maximum of 2000 characters. Make sure to include relevant information about experience, skills, recommendations, and any other details that are essential for evaluating the suitability of the consultants in the context of entrepreneurial projects. The final result should have a promotional structure from a marketing perspective, aimed at motivating the entrepreneur to consider hiring the consulting services provided by the analyzed company.';
+    let content = 'Analyze the data from the form containing questions and answers provided by expert consultants in entrepreneurship. This data holds utmost importance in facilitating informed decisions. Your task is to succinctly summarize this information within a maximum of 2000 characters. Ensure that your summary encompasses key details regarding the consultants\' experience, skills, recommendations, and any other pertinent information vital for evaluating their suitability for entrepreneurial projects. Present your summary in a promotional narrative that appeals to the entrepreneur, encouraging them to consider the consulting services offered by the analyzed company. Please provide your response in a plain text narrative format, avoiding any letter or slider format.';
 
     for (let i=0; i<dataResp[0].length; i++) {
       if (i<dataResp[0].length - 1)
@@ -768,7 +768,7 @@ export class QuestionService {
         content += `${ dataResp[0][i].descr }, ${ dataResp[0][i].output }.`;
     }
 
-    const contentSystem = 'Imagine that you are a highly skilled marketing expert, deeply passionate about driving the success of businesses. Your task is to effectively promote the consultant or consulting firm that an intelligent and ambitious entrepreneur has chosen to boost their venture. Your language should be professional, yet also fresh and friendly. Always respond in English and stay within 2000 characters.';
+    const contentSystem = 'Imagine yourself as a proficient marketing expert, deeply dedicated to enhancing business success. Your mission is to craft a compelling narrative to promote the consultant or consulting firm chosen by an intelligent and ambitious entrepreneur to elevate their venture. Maintain a professional tone with a touch of warmth while staying within 2000 characters. Please respond in plain text, avoiding any letter or slider format.';
 
     const { maxIndex, aboutUs } = await this.gpt(email, contentSystem, content);
 
@@ -915,7 +915,7 @@ export class QuestionService {
       content += `The maximum loss we can support in one year considering an investment in a SME is ${ find23.ans }.`;
     }
 
-    const contentSystem = 'Imagine that you are playing the role of a marketing expert. Your mission is to promote the investment firm that is in search of a profitable entrepreneurial opportunity. Your language should be professional, yet also fresh and friendly. Always respond in English and stay within 2000 characters.';
+    const contentSystem = 'Imagine yourself as a marketing expert tasked with promoting an investment firm searching for profitable entrepreneurial opportunities. Your objective is to craft a professional yet approachable narrative. Please respond in English, using a textual narrative format, and limit your response to 2000 characters. Avoid using letter-style or slider-based formats.';
 
     const { maxIndex, aboutUs } = await this.gpt(email, contentSystem, content);
 
