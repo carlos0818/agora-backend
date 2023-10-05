@@ -467,8 +467,67 @@ export class EntrepreneurService {
       order by S.qnbr
       ) Q1
       group by maintitle, title
+      UNION
+      SELECT 'Financial Performance', 'Financial Performance', SCORE, 10, (SCORE * 100) / 10 as total
+      from
+      (
+      SELECT 
+      Case 
+      When Mean < 0.05 then 10*1/5
+      When Mean < 0.10 then 10*2/5
+      When Mean < 0.15 then 10*3/5
+      When Mean < 0.2 then 10*4/5
+      else 10*5/5
+      END as SCORE
+      from
+      (
+      SELECT ((((Turn1 - Cost1) - Amor1) - (0.02 * Deb1 + 0.005 * Cash1)) / Equi1 + (((Turn2 - Cost2) - Amor2) - (0.03 * Deb2 + 0.01 * Cash2)) / Equi2 + (((Turn3 - Cost3) - Amor3) - (0.04 * Deb3 + 0.02 * Cash3)) / Equi3) / 3 as Mean
+      from
+      (
+      select 
+      sum(Turn1) as Turn1, sum(Turn2) as Turn2, sum(Turn3) as Turn3, 
+      sum(Cost1) as Cost1, sum(Cost2) as Cost2, sum(Cost3) as Cost3,
+      sum(Equi1) as Equi1, sum(Equi2) as Equi2, sum(Equi3) as Equi3,
+      sum(Deb1) as Deb1, sum(Deb2) as Deb2, sum(Deb3) as Deb3,
+      sum(Cash1) as Cash1, sum(Cash2) as Cash2, sum(Cash3) as Cash3,
+      sum(Amor1) as Amor1, sum(Amor2) as Amor2, sum(Amor3) as Amor3
+      from
+      ( 
+      select anbr,
+      case when anbr=1 then Val1 else 0 end Turn1,
+      case when anbr=1 then Val2 else 0 end Turn2,
+      case when anbr=1 then Val3 else 0 end Turn3,
+      case when anbr=2 then Val1 else 0 end Cost1,
+      case when anbr=2 then Val2 else 0 end Cost2,
+      case when anbr=2 then Val3 else 0 end Cost3,
+      case when anbr=4 then Val1 else 0 end Equi1,
+      case when anbr=4 then Val2 else 0 end Equi2,
+      case when anbr=4 then Val3 else 0 end Equi3,
+      case when anbr=5 then Val1 else 0 end Deb1,
+      case when anbr=5 then Val2 else 0 end Deb2,
+      case when anbr=5 then Val3 else 0 end Deb3,
+      case when anbr=6 then Val1 else 0 end Cash1,
+      case when anbr=6 then Val2 else 0 end Cash2,
+      case when anbr=6 then Val3 else 0 end Cash3,
+      case when anbr=7 then Val1 else 0 end Amor1,
+      case when anbr=7 then Val2 else 0 end Amor2,
+      case when anbr=7 then Val3 else 0 end Amor3
+      from
+      (
+      select U.anbr, substring_index(replace(U.extravalue,',',''),'|',1) as Val1, substring_index(substring_index(replace(U.extravalue,',',''),'|',2),'|',-1) as Val2, substring_index(replace(U.extravalue,',',''),'|',-1) as Val3 from ag_user_quest U, ag_user UV
+      where UV.email=?
+      and UV.email=U.email
+      and UV.qversion=U.qversion
+      and U.qnbr in ('75','76')
+      and U.anbr in (1,2,4,5,6,7)
+      ) SEG1
+      group by anbr
+      ) PIVOT
+      ) TOTAL
+      ) Score
+      ) FormatTable
       order by maintitle
-    `, [showNotificationDto.email]);
+    `, [showNotificationDto.email, showNotificationDto.email]);
 
     await this.databaseService.closeConnection(conn);
 
