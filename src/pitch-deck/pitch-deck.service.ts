@@ -99,7 +99,7 @@ export class PitchDeckService {
       const find838 = query[0].find(data => data.indicator === 838);
       const find967 = query[0].find(data => data.indicator === 967);
   
-      let content = 'Analyze the following information related to Country Context, and generate a professional and detailed report that will be used to assemble a corporate PitchDeck.';
+      let content = 'Analyze the following information concerning the Country Context and produce a comprehensive, professional report. This report will serve as a crucial component for creating a corporate PitchDeck. Your analysis should be presented in a narrative text format, devoid of any letter or slider-like presentation.';
   
       if (find0) {
         content += `In ${ find0.name }, the data reveals various economic and social factors without issuing judgments.`;
@@ -281,7 +281,7 @@ export class PitchDeckService {
         content += `The cost of living has become ${ find967.name }%.`;
       }
   
-      const contentSystem = 'You are an expert in Engineering Economics. Utilize advanced data analysis tools to showcase business ventures to potential investors. Craft compelling narratives that demonstrate the immense potential of these ventures. Assist companies in standing out in a competitive landscape. Focus investor appeal by highlighting the scalability, market demand, and revenue projections of each endeavor. Extract valuable market trends, customer behaviors, and competitive benchmarks. Tell a compelling story backed by insights, while ensuring your offerings and scope remain realistic and optimistic. Your language should be professional, yet also fresh and friendly. Always respond in English and stay within 2000 characters.';
+      const contentSystem = 'As an expert in Engineering Economics, your role involves utilizing advanced data analysis tools to present business ventures to potential investors. Your task is to create persuasive narratives that vividly showcase the substantial potential of these ventures, enabling companies to distinguish themselves in a competitive market. Your focus should be on appealing to investors by emphasizing the scalability, market demand, and revenue projections of each endeavor. Extract valuable insights on market trends, customer behaviors, and competitive benchmarks to weave a compelling story. While maintaining a professional tone, infuse a touch of freshness and friendliness into your communication. Please respond in plain text, refraining from using letter or slider formats, and ensure your response remains within 2000 characters.';
   
       await this.gpt(showNotificationDto.email, showNotificationDto.id, contentSystem, content, 'A');
   
@@ -328,13 +328,13 @@ export class PitchDeckService {
       const find6 = query[0].find(data => data.qnbr === '6');
       const findCO = query[0].find(data => data.qnbr === 'CO');
 
-      let content = 'Analyze the following information related to Company/Firm Profile, and generate a professional and detailed report that will be used to assemble a corporate PitchDeck.';
+      let content = 'Analyze the provided Company/Firm Profile information and create a detailed, professional narrative. This narrative will serve as a fundamental element for constructing a corporate PitchDeck. Please present your analysis in a text-based format, avoiding any letter-style or slider-like presentation.';
 
       if (find1 && find2 && find3 && find5 && find6 && findCO) {
         content += `${ findCO.R3 } is an ${ find3.R3 } operating in the ${ find6.R3 } area which was incorporated in ${ find2.R3 } in ${ find1.R3 } as a ${ find5.R3 }.`;
       }
 
-      const contentSystem = 'You are an expert in marketing techniques. Utilize advanced data analysis tools to showcase business ventures to potential investors. Craft compelling narratives that demonstrate the immense potential of these ventures. Assist companies in standing out in a competitive landscape. Focus investor appeal by highlighting the scalability, market demand, and revenue projections of each endeavor. Extract valuable market trends, customer behaviors, and competitive benchmarks. Tell a compelling story backed by insights, while ensuring your offerings and scope remain realistic and optimistic. Your language should be professional, yet also fresh and friendly. Always respond in English and stay within 2000 characters.';
+      const contentSystem = 'As an expert in Engineering Economics, your role involves utilizing advanced data analysis tools to present business ventures to potential investors. Your task is to create persuasive narratives that vividly showcase the substantial potential of these ventures, enabling companies to distinguish themselves in a competitive market. Your focus should be on appealing to investors by emphasizing the scalability, market demand, and revenue projections of each endeavor. Extract valuable insights on market trends, customer behaviors, and competitive benchmarks to weave a compelling story. While maintaining a professional tone, infuse a touch of freshness and friendliness into your communication. Please respond in plain text, refraining from using letter or slider formats, and ensure your response remains within 2000 characters.';
 
       await this.gpt(showNotificationDto.email, showNotificationDto.id, contentSystem, content, 'B');
 
@@ -403,7 +403,7 @@ export class PitchDeckService {
       const find116 = query[0].find(data => data.qnbr === 116);
       const findCO = query[0].find(data => data.qnbr === 1000);
 
-      let content = `Analyze the following information related to Business Activities, and generate a professional and detailed report that will be used to assemble a corporate PitchDeck. My company name is ${ findCO.descr }.`;
+      let content = `Analyze the provided Business Activities information and craft a detailed, professional narrative. This narrative will be a pivotal component in the creation of a corporate PitchDeck. Your response should be text-based, avoiding any letter-style or slider-like presentation formats. My company name is ${ findCO.descr }.`;
 
       if (find21 && find22) {
         content += `The company is ${ find21.descr } with ${ find22.descr } as target customers.`;
@@ -537,7 +537,7 @@ export class PitchDeckService {
         }
       }
 
-      const contentSystem = 'You are an expert in Engineering Economics. Utilize advanced data analysis tools to showcase business ventures to potential investors. Craft compelling narratives that demonstrate the immense potential of these ventures. Assist companies in standing out in a competitive landscape. Focus investor appeal by highlighting the scalability, market demand, and revenue projections of each endeavor. Extract valuable market trends, customer behaviors, and competitive benchmarks. Tell a compelling story backed by insights, while ensuring your offerings and scope remain realistic and optimistic. Your language should be professional, yet also fresh and friendly. Always respond in English and stay within 2000 characters.';
+      const contentSystem = 'As an expert in Engineering Economics, your role involves utilizing advanced data analysis tools to present business ventures to potential investors. Your task is to create persuasive narratives that vividly showcase the substantial potential of these ventures, enabling companies to distinguish themselves in a competitive market. Your focus should be on appealing to investors by emphasizing the scalability, market demand, and revenue projections of each endeavor. Extract valuable insights on market trends, customer behaviors, and competitive benchmarks to weave a compelling story. While maintaining a professional tone, infuse a touch of freshness and friendliness into your communication. Please respond in plain text, refraining from using letter or slider formats, and ensure your response remains within 2000 characters.';
 
       await this.gpt(showNotificationDto.email, showNotificationDto.id, contentSystem, content, 'C');
 
@@ -592,7 +592,7 @@ export class PitchDeckService {
       const find107 = query[0].find(data => data.qnbr === 107);
       const findCO = query[0].find(data => data.qnbr === 1000);
 
-      let content = `Analyze the following information related to Market Analysis and Business Strategy, and generate a professional and detailed report that will be used to assemble a corporate PitchDeck. My company name is ${ findCO.descr }.`;
+      let content = `Examine the given information concerning Market Analysis and Business Strategy, and produce a comprehensive, professional narrative. This narrative will serve as a crucial component for building a corporate PitchDeck. Ensure that your response is presented strictly in a textual format, avoiding any letter-style or slider-based presentations. My company name is ${ findCO.descr }.`;
 
       if (find33) {
         content += `There are ${ find33.descr } competitors in the market`;
@@ -688,7 +688,7 @@ export class PitchDeckService {
         }
       }
 
-      const contentSystem = 'You are an expert in Engineering Economics. Utilize advanced data analysis tools to showcase business ventures to potential investors. Craft compelling narratives that demonstrate the immense potential of these ventures. Assist companies in standing out in a competitive landscape. Focus investor appeal by highlighting the scalability, market demand, and revenue projections of each endeavor. Extract valuable market trends, customer behaviors, and competitive benchmarks. Tell a compelling story backed by insights, while ensuring your offerings and scope remain realistic and optimistic. Your language should be professional, yet also fresh and friendly. Always respond in English and stay within 2000 characters.';
+      const contentSystem = 'As an expert in Engineering Economics, your role involves utilizing advanced data analysis tools to present business ventures to potential investors. Your task is to create persuasive narratives that vividly showcase the substantial potential of these ventures, enabling companies to distinguish themselves in a competitive market. Your focus should be on appealing to investors by emphasizing the scalability, market demand, and revenue projections of each endeavor. Extract valuable insights on market trends, customer behaviors, and competitive benchmarks to weave a compelling story. While maintaining a professional tone, infuse a touch of freshness and friendliness into your communication. Please respond in plain text, refraining from using letter or slider formats, and ensure your response remains within 2000 characters.';
 
       await this.gpt(showNotificationDto.email, showNotificationDto.id, contentSystem, content, 'D');
 
@@ -736,7 +736,7 @@ export class PitchDeckService {
       const find104 = query[0].find(data => data.qnbr === 104);
       const findCO = query[0].find(data => data.qnbr === 1000);
 
-      let content = `Analyze the following information related to Business Related Risk, and generate a professional and detailed report that will be used to assemble a corporate PitchDeck. My company name is ${ findCO.descr }.`;
+      let content = `Evaluate the provided data pertaining to Business-Related Risks and craft a comprehensive, professional narrative. This narrative will play a pivotal role in the development of a corporate PitchDeck. Please ensure that your response strictly adheres to a textual format and refrains from adopting letter-style or slider-like presentations. My company name is ${ findCO.descr }.`;
 
       if (find82) {
         content += `The estimated maximum loss (in % total equity) due to net exposure in foreign currencies is less than ${ find82.descr }.`;
@@ -806,7 +806,7 @@ export class PitchDeckService {
         }
       }
 
-      const contentSystem = 'You are an expert in Engineering Economics. Utilize advanced data analysis tools to showcase business ventures to potential investors. Craft compelling narratives that demonstrate the immense potential of these ventures. Assist companies in standing out in a competitive landscape. Focus investor appeal by highlighting the scalability, market demand, and revenue projections of each endeavor. Extract valuable market trends, customer behaviors, and competitive benchmarks. Tell a compelling story backed by insights, while ensuring your offerings and scope remain realistic and optimistic. Your language should be professional, yet also fresh and friendly. Always respond in English and stay within 2000 characters.';
+      const contentSystem = 'As an expert in Engineering Economics, your role involves utilizing advanced data analysis tools to present business ventures to potential investors. Your task is to create persuasive narratives that vividly showcase the substantial potential of these ventures, enabling companies to distinguish themselves in a competitive market. Your focus should be on appealing to investors by emphasizing the scalability, market demand, and revenue projections of each endeavor. Extract valuable insights on market trends, customer behaviors, and competitive benchmarks to weave a compelling story. While maintaining a professional tone, infuse a touch of freshness and friendliness into your communication. Please respond in plain text, refraining from using letter or slider formats, and ensure your response remains within 2000 characters.';
 
       await this.gpt(showNotificationDto.email, showNotificationDto.id, contentSystem, content, 'E');
 
@@ -845,13 +845,13 @@ export class PitchDeckService {
       await this.databaseService.closeConnection(conn);
       
       if (query[0].length > 0) {
-        let content = `Analyze the following information related to Past Financial Performance, and generate a professional and detailed report that will be used to assemble a corporate PitchDeck. My company name is ${ company[0][0].name }.`;
+        let content = `Analyze the provided data concerning Past Financial Performance and produce a professional and detailed narrative. This narrative will be a crucial component in creating a corporate PitchDeck. Please present your analysis solely in a textual format, avoiding any letter-style or slider-like presentations. My company name is ${ company[0][0].name }.`;
 
         for (let i=0; i<query[0].length; i++) {
-          content += `If you were to ask me the following ${ query[0][i].descr }, my response would be: ${ query[0][i].prev1 }, ${ query[0][i].prev2 }, ${ query[0][i].prev3 }.`;
+          content += `If you were to ask me the following ${ query[0][i].descr }, my response will be: ${ query[0][i].prev1 }, ${ query[0][i].prev2 }, ${ query[0][i].prev3 }.`;
         }
 
-        const contentSystem = 'You are an expert in Engineering Economics. Utilize advanced data analysis tools to showcase business ventures to potential investors. Craft compelling narratives that demonstrate the immense potential of these ventures. Assist companies in standing out in a competitive landscape. Focus investor appeal by highlighting the scalability, market demand, and revenue projections of each endeavor. Extract valuable market trends, customer behaviors, and competitive benchmarks. Tell a compelling story backed by insights, while ensuring your offerings and scope remain realistic and optimistic. Your language should be professional, yet also fresh and friendly. Always respond in English and stay within 2000 characters.';
+        const contentSystem = 'As an expert in Engineering Economics, your role involves utilizing advanced data analysis tools to present business ventures to potential investors. Your task is to create persuasive narratives that vividly showcase the substantial potential of these ventures, enabling companies to distinguish themselves in a competitive market. Your focus should be on appealing to investors by emphasizing the scalability, market demand, and revenue projections of each endeavor. Extract valuable insights on market trends, customer behaviors, and competitive benchmarks to weave a compelling story. While maintaining a professional tone, infuse a touch of freshness and friendliness into your communication. Please respond in plain text, refraining from using letter or slider formats, and ensure your response remains within 2000 characters.';
     
         await this.gpt(showNotificationDto.email, showNotificationDto.id, contentSystem, content, 'F');
 
@@ -900,7 +900,7 @@ export class PitchDeckService {
       const find136 = query[0].find(data => data.qnbr === 136);
       const findCO = query[0].find(data => data.qnbr === 1000);
 
-      let content = `Analyze the following information related to Project Information, and generate a professional and detailed report that will be used to assemble a corporate PitchDeck. My company name is ${ findCO.R3 }.`;
+      let content = `Analyze the provided Project Information and create a professional, detailed narrative. This narrative will be a vital element in the development of a corporate PitchDeck. Please ensure that your response is presented exclusively in a textual format, avoiding any letter-style or slider-like presentations. My company name is ${ findCO.R3 }.`;
 
       if (find136) {
         content += `Innovation project that the company wants to develop in the future would ${ find136.R3 }.`;
@@ -948,7 +948,7 @@ export class PitchDeckService {
         content += `The company intends to ${ find123.R3 } as part of its development stategy in terms of exports.`;
       }
 
-      const contentSystem = 'You are an expert in Engineering Economics. Utilize advanced data analysis tools to showcase business ventures to potential investors. Craft compelling narratives that demonstrate the immense potential of these ventures. Assist companies in standing out in a competitive landscape. Focus investor appeal by highlighting the scalability, market demand, and revenue projections of each endeavor. Extract valuable market trends, customer behaviors, and competitive benchmarks. Tell a compelling story backed by insights, while ensuring your offerings and scope remain realistic and optimistic. Your language should be professional, yet also fresh and friendly. Always respond in English and stay within 2000 characters.';
+      const contentSystem = 'As an expert in Engineering Economics, your role involves utilizing advanced data analysis tools to present business ventures to potential investors. Your task is to create persuasive narratives that vividly showcase the substantial potential of these ventures, enabling companies to distinguish themselves in a competitive market. Your focus should be on appealing to investors by emphasizing the scalability, market demand, and revenue projections of each endeavor. Extract valuable insights on market trends, customer behaviors, and competitive benchmarks to weave a compelling story. While maintaining a professional tone, infuse a touch of freshness and friendliness into your communication. Please respond in plain text, refraining from using letter or slider formats, and ensure your response remains within 2000 characters.';
 
       await this.gpt(showNotificationDto.email, showNotificationDto.id, contentSystem, content, 'G');
 
@@ -987,13 +987,13 @@ export class PitchDeckService {
       await this.databaseService.closeConnection(conn);
 
       if (query[0].length > 0) {
-        let content = `Analyze the following information related to Future Proyections, and generate a professional and detailed report that will be used to assemble a corporate PitchDeck. My company name is ${ company[0][0].name }`;
+        let content = `Analyze the given information pertaining to Future Projections and create a professional, detailed narrative. This narrative will serve as a critical component for constructing a corporate PitchDeck. Please present your analysis strictly in a textual format, avoiding any letter-style or slider-like presentations. My company name is ${ company[0][0].name }.`;
 
         for (let i=0; i<query[0].length; i++) {
-          content += `If you were to ask me the following ${ query[0][i].descr }, my response would be: ${ query[0][i].prev1 }, ${ query[0][i].prev2 }, ${ query[0][i].prev3 }.`;
+          content += `If you were to ask me the following ${ query[0][i].descr }, my response will be: ${ query[0][i].prev1 }, ${ query[0][i].prev2 }, ${ query[0][i].prev3 }.`;
         }
 
-        const contentSystem = 'You are an expert in Engineering Economics. Utilize advanced data analysis tools to showcase business ventures to potential investors. Craft compelling narratives that demonstrate the immense potential of these ventures. Assist companies in standing out in a competitive landscape. Focus investor appeal by highlighting the scalability, market demand, and revenue projections of each endeavor. Extract valuable market trends, customer behaviors, and competitive benchmarks. Tell a compelling story backed by insights, while ensuring your offerings and scope remain realistic and optimistic. Your language should be professional, yet also fresh and friendly. Always respond in English and stay within 2000 characters.';
+        const contentSystem = 'As an expert in Engineering Economics, your role involves utilizing advanced data analysis tools to present business ventures to potential investors. Your task is to create persuasive narratives that vividly showcase the substantial potential of these ventures, enabling companies to distinguish themselves in a competitive market. Your focus should be on appealing to investors by emphasizing the scalability, market demand, and revenue projections of each endeavor. Extract valuable insights on market trends, customer behaviors, and competitive benchmarks to weave a compelling story. While maintaining a professional tone, infuse a touch of freshness and friendliness into your communication. Please respond in plain text, refraining from using letter or slider formats, and ensure your response remains within 2000 characters.';
 
         await this.gpt(showNotificationDto.email, showNotificationDto.id, contentSystem, content, 'H');
 
@@ -1042,7 +1042,7 @@ export class PitchDeckService {
       const find145 = query[0].find(data => data.qnbr === 145);
       const findCO = query[0].find(data => data.qnbr === 1000);
 
-      let content = `Analyze the following information related to Funding Request, and generate a professional and detailed report that will be used to assemble a corporate PitchDeck. My company name is ${ findCO.R3 }`;
+      let content = `Analyze the provided information regarding the Funding Request and craft a professional, detailed narrative. This narrative will be instrumental in the creation of a corporate PitchDeck. Ensure that your response is presented in a purely textual format, without adopting any letter-style or slider-based presentations. My company name is ${ findCO.R3 }.`;
 
       if (find144 && find142 && find145) {
         content += `The company estimates its funding needs to amount in ${ find144.R3 } under the form of ${ find142.R3 } wihcih will be used ${ find145.R3 }.`;
@@ -1052,7 +1052,7 @@ export class PitchDeckService {
         content += `It is ${ find143.R3 } currently working with other investors on a round of funding.`;
       }
 
-      const contentSystem = 'You are an expert in Engineering Economics. Utilize advanced data analysis tools to showcase business ventures to potential investors. Craft compelling narratives that demonstrate the immense potential of these ventures. Assist companies in standing out in a competitive landscape. Focus investor appeal by highlighting the scalability, market demand, and revenue projections of each endeavor. Extract valuable market trends, customer behaviors, and competitive benchmarks. Tell a compelling story backed by insights, while ensuring your offerings and scope remain realistic and optimistic. Your language should be professional, yet also fresh and friendly. Always respond in English and stay within 2000 characters.';
+      const contentSystem = 'As an expert in Engineering Economics, your role involves utilizing advanced data analysis tools to present business ventures to potential investors. Your task is to create persuasive narratives that vividly showcase the substantial potential of these ventures, enabling companies to distinguish themselves in a competitive market. Your focus should be on appealing to investors by emphasizing the scalability, market demand, and revenue projections of each endeavor. Extract valuable insights on market trends, customer behaviors, and competitive benchmarks to weave a compelling story. While maintaining a professional tone, infuse a touch of freshness and friendliness into your communication. Please respond in plain text, refraining from using letter or slider formats, and ensure your response remains within 2000 characters.';
 
       await this.gpt(showNotificationDto.email, showNotificationDto.id, contentSystem, content, 'I');
 
@@ -1094,13 +1094,13 @@ export class PitchDeckService {
         select name, aboutus from ag_entrepreneur where email=?
       `, [showNotificationDto.email]);
 
-      let content = `I am an entrepreneur, and my company is named ${ data[0][0].name }. I would like you to prepare an informative Pitch Deck-type document for me, using between 10,000 to 14,000 characters while maintaining a formal language. The document will be read by investors. This is the presentation of my company, ${ data[0][0].aboutus }. The information you need to analyze is as follows: `;
+      let content = `Certainly, as an entrepreneur with ${ data[0][0].name }, I request the creation of an informative document within a character limit of 10,000 to 14,000 characters (approximately 3 pages). The document is intended for investors and should maintain a formal tone. It will serve as a presentation of my company, ${ data[0][0].aboutus }. The information to be analyzed includes:Country Context, Company Profile, Business Activities, Market Analysis and Business Strategy, Business Risks, Financial Performance, Project Information, Funding Request and others. Please provide a text-based narrative while avoiding any letter or slider-like formats. The data analysis is as follows:`;
 
       for (let i=0; i<query[0].length; i++) {
         content += query[0][i].text;
       }
 
-      let contentSystem = 'You are an expert in economics. Please create a presentarion document of the company with a character count ranging from 10,000 to 14,000 characters while maintaining a formal language. Always use English.';
+      let contentSystem = 'As an expert in economics, produce a document outlining the company\'s presentation within a character limit of 10,000 to 14,000 characters. Ensure the content maintains a formal tone and is presented in English. Avoid any letter-style or slider-based formats, and focus on delivering the information in a text-based narrative.';
 
       const {
         respGPT,
@@ -1109,7 +1109,7 @@ export class PitchDeckService {
         total_tokens
       } = await this.gptOnly(contentSystem, content);
 
-      contentSystem = 'You are an expert in economics. Create a SWOT analysis (Strengths, Weaknesses, Opportunities, Threats). Explain each category with a maximum of one to five points. Always use English.';
+      contentSystem = 'As an expert in economics, produce a SWOT analysis (Strengths, Weaknesses, Opportunities, Threats). Explain each category using a concise range of one to five points per category. Ensure your response is presented in a purely textual narrative format in English, without any letter-style or slider-based presentation.';
 
       const {
         respGPT: respGPT2,
@@ -1159,7 +1159,7 @@ export class PitchDeckService {
 
       let content = query[0][0].text;
 
-      const contentSystem = 'Create a summary between 1500 and 2000 characters, while respecting the most important points of the text.';
+      const contentSystem = 'Generate a concise summary within a character limit of 1500 to 2000 characters, focusing on the key points from the text. Please ensure that your response is presented in a straightforward textual format, avoiding any letter-style or slider-based presentations.';
 
       await this.gpt(showNotificationDto.email, showNotificationDto.id, contentSystem, content, 'SPD');
 
