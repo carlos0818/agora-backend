@@ -1065,7 +1065,7 @@ export class PitchDeckService {
   async step10(showNotificationDto: GeneratePitchDeckDto) {
     const conn = await this.databaseService.getConnection();
 
-    const validate = await conn.query<RowDataPacket[]>(`SELECT text FROM ag_pitchdeck WHERE section='FPD' AND email=?`, [showNotificationDto.email]);
+    const validate = await conn.query<RowDataPacket[]>(`SELECT text FROM ag_pitchdeck WHERE section='FPD' AND email=? and text <> ''`, [showNotificationDto.email]);
 
     if (validate[0].length === 0) {
       const query = await conn.query<RowDataPacket[]>(`
@@ -1188,9 +1188,20 @@ export class PitchDeckService {
   async savePitchDeckDocument(saveSummaryDto: SaveSummaryDto) {
     const conn = await this.databaseService.getConnection();
 
-    await conn.query(`
-      UPDATE ag_pitchdeck SET text=? WHERE email=? AND id=? AND section='FPD'
-    `, [saveSummaryDto.text, saveSummaryDto.email, saveSummaryDto.id]);
+    const validate = await conn.query(`
+      SELECT COUNT(*) validate FROM ag_pitchdeck WHERE email=? AND id=? AND section='FPD'
+    `, [saveSummaryDto.email, saveSummaryDto.id]);
+    const validateRes = validate[0][0].validate;
+
+    if (validateRes === 0) {
+      await conn.query(`
+        INSERT INTO ag_pitchdeck VALUES(?,?,0,'FPD',?)
+      `, [saveSummaryDto.email, saveSummaryDto.id, saveSummaryDto.text]);
+    } else {
+      await conn.query(`
+        UPDATE ag_pitchdeck SET text=? WHERE email=? AND id=? AND section='FPD'
+      `, [saveSummaryDto.text, saveSummaryDto.email, saveSummaryDto.id]);
+    }
 
     await this.databaseService.closeConnection(conn);
 
