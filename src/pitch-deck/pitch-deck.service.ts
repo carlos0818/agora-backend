@@ -1126,6 +1126,10 @@ export class PitchDeckService {
       const maxIndex = maxIndexResp[0][0].maxIndex;
 
       await conn.query(`
+        DELETE FROM ag_pitchdeck WHERE email=? AND id=? AND section='FPD'
+      `, [showNotificationDto.email, showNotificationDto.id]);
+
+      await conn.query(`
         INSERT INTO ag_pitchdeck VALUES(?,?,?,?,?)
       `, [
         showNotificationDto.email,
