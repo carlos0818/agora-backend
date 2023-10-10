@@ -243,7 +243,15 @@ export class InvestorService {
       and UQ.anbr=A.anbr
       and A.EFFDT= (SELECT MAX(ANS.EFFDT) FROM ag_invans ANS WHERE ANS.QNBR=A.QNBR AND ANS.EFFDT=A.EFFDT AND ANS.ANBR=A.ANBR AND ANS.STATUS='A' AND ANS.EFFDT <= SYSDATE())
       and UQ.qnbr=3
-      and U.email=UQ2.email
+    `;
+    let parameters = [];
+
+    if (searchDto.interest && searchDto.interest !== '') {
+      query += ` and A.descr = ?`;
+      parameters.push(searchDto.interest);
+    }
+
+    query += `and U.email=UQ2.email
       and U.qversion=UQ2.qversion
       and UQ2.qnbr=A2.qnbr
       and UQ2.qeffdt=A2.effdt
@@ -272,7 +280,6 @@ export class InvestorService {
       and A5.EFFDT= (SELECT MAX(ANS5.EFFDT) FROM ag_invans ANS5 WHERE ANS5.QNBR=A5.QNBR AND ANS5.EFFDT=A5.EFFDT AND ANS5.ANBR=A5.ANBR AND ANS5.STATUS='A' AND ANS5.EFFDT <= SYSDATE())
       and UQ5.qnbr=15
     `;
-    let parameters = [];
 
     if (searchDto.term && searchDto.term !== '') {
       query += ` and I.name like ?`;
@@ -290,6 +297,8 @@ export class InvestorService {
       ) INV
       ) INV2 WHERE front1 IS NOT NULL
     `;
+
+    // console.log(query);
 
     const conn = await this.databaseService.getConnection();
 

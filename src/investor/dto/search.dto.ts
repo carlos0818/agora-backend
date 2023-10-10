@@ -30,6 +30,10 @@ export class SearchDto {
     funding: string;
 
     @IsString()
+    @IsOptional()
+    interest: string;
+
+    @IsString()
     @IsEmail()
     @IsOptional()
     email: string;
