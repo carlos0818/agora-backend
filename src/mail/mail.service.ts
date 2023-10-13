@@ -34,8 +34,8 @@ export class MailService {
 
     async sendCommentInfo(comment: any) {
         await this.mailerService.sendMail({
-            // to: 'agora.admin@uncdf.org',
-            to: 'praimus666@gmail.com',
+            to: 'agora.admin@uncdf.org',
+            // to: 'praimus666@gmail.com',
             subject: 'Your Message to Agora Team',
             template: 'commentInfo',
             context: {
