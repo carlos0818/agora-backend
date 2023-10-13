@@ -31,6 +31,10 @@ export class SearchDto {
 
     @IsString()
     @IsOptional()
+    expertise: string;
+
+    @IsString()
+    @IsOptional()
     @IsEmail()
     email: string;
 }

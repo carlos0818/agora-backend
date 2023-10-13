@@ -286,11 +286,27 @@ export class ExpertService {
       parameters.push(searchDto.country);
     }
 
-    query += `
-      ORDER BY name
-      LIMIT 3
-      ) expert ) expert2 WHERE front2 IS NOT NULL
-    `;
+    /*
+      ) expert 
+      where tipo = "Financing"
+      ) expert2 where front2 IS NOT NULL;
+    */
+
+    if (searchDto.expertise && searchDto.expertise !== '') {
+      query += `
+        ) expert 
+        where tipo = ?
+        ) expert2 where front2 IS NOT NULL
+      `;
+      parameters.push(searchDto.expertise);
+    } else {
+      query += `
+        ORDER BY name
+        LIMIT 3
+        ) expert ) expert2 WHERE front2 IS NOT NULL
+      `;
+    }
+
 
     const conn = await this.databaseService.getConnection();
 
