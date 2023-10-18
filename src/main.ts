@@ -46,9 +46,9 @@ async function bootstrap() {
   app.enableCors();
   await app.listen(process.env.PORT);
   logger.log(`App running on port ${ process.env.PORT }`);
-  
-  console.log('HOST:', process.env.MAIL_HOST);
-  console.log('USER:', process.env.MAIL_USER);
-  console.log('PASSWORD:', process.env.MAIL_PASSWORD);
+
+  // console.log('HOST:', process.env.MAIL_HOST);
+  // console.log('USER:', process.env.MAIL_USER);
+  // console.log('PASSWORD:', process.env.MAIL_PASSWORD);
 }
 bootstrap();
